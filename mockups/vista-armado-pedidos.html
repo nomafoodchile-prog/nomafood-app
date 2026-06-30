@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Vista Picker NOMA FOOD</title>
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: #f8faf6;
+        color: #0d2238;
+        font-family: Inter, Arial, sans-serif;
+      }
+      .page {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 24px;
+        padding: 28px;
+      }
+      aside {
+        border: 1px solid rgba(184, 201, 135, .45);
+        border-radius: 10px;
+        background: #ffffff;
+        padding: 16px;
+        height: fit-content;
+      }
+      .brand {
+        background: #071a2f;
+        color: white;
+        border-radius: 10px;
+        padding: 18px;
+        margin-bottom: 16px;
+      }
+      .brand small { color: #b8c987; font-weight: 800; text-transform: uppercase; }
+      .brand h1 { margin: 6px 0 0; font-size: 21px; line-height: 1.1; }
+      .user {
+        border: 1px solid rgba(184, 201, 135, .45);
+        border-radius: 8px;
+        padding: 12px;
+        background: white;
+        margin-bottom: 14px;
+      }
+      .user b { display: block; }
+      .user span { color: #666; font-size: 13px; }
+      .nav-title {
+        color: #70824a;
+        font-size: 11px;
+        font-weight: 900;
+        margin: 18px 8px 8px;
+        text-transform: uppercase;
+      }
+      .nav-item {
+        border-radius: 8px;
+        padding: 10px 12px;
+        margin-bottom: 6px;
+        color: #0d2238;
+        font-size: 13px;
+      }
+      .nav-item.active {
+        background: #70824a;
+        color: white;
+      }
+      main { min-width: 0; }
+      .header {
+        border: 1px solid rgba(184, 201, 135, .45);
+        border-radius: 10px;
+        background: white;
+        padding: 22px;
+        margin-bottom: 18px;
+      }
+      .label {
+        color: #70824a;
+        font-size: 12px;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+      h2 { margin: 6px 0 8px; font-size: 30px; }
+      .subtitle { color: #606060; margin: 0; line-height: 1.45; }
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+        margin-bottom: 18px;
+      }
+      .metric {
+        border: 1px solid rgba(184, 201, 135, .30);
+        border-radius: 10px;
+        background: white;
+        padding: 16px;
+      }
+      .metric span { color: #606060; display: block; font-size: 13px; font-weight: 700; }
+      .metric b { display: block; font-size: 28px; margin-top: 8px; }
+      .panel {
+        border: 1px solid rgba(184, 201, 135, .45);
+        border-radius: 10px;
+        background: white;
+        padding: 20px;
+      }
+      .panel-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 16px;
+      }
+      .panel h3 { margin: 0; font-size: 23px; }
+      .chip {
+        border-radius: 999px;
+        background: #b8c987;
+        color: #071a2f;
+        display: inline-flex;
+        font-size: 12px;
+        font-weight: 900;
+        padding: 7px 10px;
+        white-space: nowrap;
+      }
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+      }
+      .card {
+        border: 1px solid rgba(184, 201, 135, .32);
+        border-radius: 10px;
+        background: #ffffff;
+        padding: 18px;
+      }
+      .card-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .card h4 { margin: 0; font-size: 20px; }
+      .status { color: #606060; font-size: 14px; margin-top: 5px; }
+      .progress {
+        height: 10px;
+        border-radius: 999px;
+        background: #e8eedf;
+        margin: 14px 0 12px;
+        overflow: hidden;
+      }
+      .progress > div { height: 100%; background: #70824a; }
+      .checklist { display: grid; gap: 10px; margin-top: 12px; }
+      .check {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border-radius: 8px;
+        background: white;
+        border: 1px solid #dfe8c8;
+        padding: 10px;
+        font-weight: 700;
+      }
+      .dot {
+        display: inline-grid;
+        place-items: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        flex: 0 0 22px;
+        font-size: 13px;
+        font-weight: 900;
+      }
+      .done .dot { background: #70824a; color: white; }
+      .pending .dot { background: #f2d6d0; color: #a33222; }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 16px;
+      }
+      button {
+        border: 1px solid rgba(184, 201, 135, .65);
+        border-radius: 8px;
+        background: #071a2f;
+        color: white;
+        font-weight: 900;
+        padding: 10px 12px;
+      }
+      button.secondary { background: white; color: #0d2238; }
+      @media (max-width: 900px) {
+        .page { grid-template-columns: 1fr; padding: 16px; }
+        .metrics, .cards { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <aside>
+        <div class="brand">
+          <small>NOMA FOOD</small>
+          <h1>Inventario de fábrica</h1>
+        </div>
+        <div class="user">
+          <b>Daniela Pérez</b>
+          <span>Rol: Armado</span>
+        </div>
+        <div class="nav-title">Operaciones</div>
+        <div class="nav-item">Pedidos</div>
+        <div class="nav-item active">Despacho y rutas</div>
+        <div class="nav-item">ADT / tareas diarias</div>
+        <div class="nav-title">Personas</div>
+        <div class="nav-item">Cumplimiento y desempeño</div>
+      </aside>
+      <main>
+        <section class="header">
+          <div class="label">Panel de Armado</div>
+          <h2>Armado por cliente</h2>
+          <p class="subtitle">Vista para preparar cestas, revisar checklist por pedido y dejar todo listo para despacho con evidencia.</p>
+        </section>
+        <section class="metrics">
+          <div class="metric"><span>Pedidos para armado</span><b>2</b></div>
+          <div class="metric"><span>Cestas activas</span><b>2</b></div>
+          <div class="metric"><span>Checklist listo</span><b>2/5</b></div>
+          <div class="metric"><span>Prioridad</span><b>Alta</b></div>
+        </section>
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <div class="label">Cola de pedidos</div>
+              <h3>Armado por cliente</h3>
+            </div>
+            <span class="chip">Modo demo</span>
+          </div>
+          <div class="cards">
+            <article class="card">
+              <div class="card-head">
+                <div>
+                  <h4>Clínica Santa Emilia</h4>
+                  <div class="status">Cesta CSE-01 · En armado · 2/3 listo</div>
+                </div>
+                <span class="chip">CSE-01</span>
+              </div>
+              <div class="progress"><div style="width: 66%"></div></div>
+              <div class="checklist">
+                <div class="check pending"><span class="dot">!</span>60 lasañas</div>
+                <div class="check done"><span class="dot">✓</span>35 focaccias</div>
+                <div class="check done"><span class="dot">✓</span>Etiquetas cliente</div>
+              </div>
+              <div class="actions">
+                <button>Marcar avance</button>
+                <button class="secondary">Reportar problema</button>
+              </div>
+            </article>
+            <article class="card">
+              <div class="card-head">
+                <div>
+                  <h4>Café Raíz</h4>
+                  <div class="status">Cesta CR-01 · Pendiente · 0/2 listo</div>
+                </div>
+                <span class="chip">CR-01</span>
+              </div>
+              <div class="progress"><div style="width: 0%"></div></div>
+              <div class="checklist">
+                <div class="check pending"><span class="dot">!</span>42 bowls thai</div>
+                <div class="check pending"><span class="dot">!</span>Salsas y cubiertos</div>
+              </div>
+              <div class="actions">
+                <button>Iniciar armado</button>
+                <button class="secondary">Ver detalle</button>
+              </div>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

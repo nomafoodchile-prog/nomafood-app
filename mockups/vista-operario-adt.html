@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Vista Operario NOMA FOOD</title>
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: #f8faf6;
+        color: #0d2238;
+        font-family: Inter, Arial, sans-serif;
+      }
+      .page {
+        display: grid;
+        grid-template-columns: 270px 1fr;
+        gap: 24px;
+        padding: 28px;
+      }
+      aside {
+        border: 1px solid rgba(184, 201, 135, .45);
+        border-radius: 10px;
+        background: #ffffff;
+        padding: 16px;
+        height: fit-content;
+      }
+      .brand {
+        background: #071a2f;
+        border-radius: 10px;
+        color: white;
+        margin-bottom: 16px;
+        padding: 18px;
+      }
+      .brand small {
+        color: #b8c987;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+      .brand h1 { font-size: 21px; line-height: 1.1; margin: 6px 0 0; }
+      .user {
+        background: white;
+        border: 1px solid rgba(184, 201, 135, .45);
+        border-radius: 8px;
+        margin-bottom: 14px;
+        padding: 12px;
+      }
+      .user b { display: block; }
+      .user span { color: #666; font-size: 13px; }
+      .nav-title {
+        color: #70824a;
+        font-size: 11px;
+        font-weight: 900;
+        margin: 18px 8px 8px;
+        text-transform: uppercase;
+      }
+      .nav-item {
+        border-radius: 8px;
+        color: #0d2238;
+        font-size: 13px;
+        margin-bottom: 6px;
+        padding: 10px 12px;
+      }
+      .nav-item.active { background: #70824a; color: white; }
+      main { min-width: 0; }
+      .welcome {
+        background: #071a2f;
+        border-radius: 12px;
+        color: white;
+        display: grid;
+        gap: 16px;
+        grid-template-columns: 1fr auto;
+        margin-bottom: 18px;
+        padding: 24px;
+      }
+      .welcome .label { color: #b8c987; }
+      .label {
+        color: #70824a;
+        font-size: 12px;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+      h2 { font-size: 30px; margin: 6px 0 8px; }
+      h3 { font-size: 22px; margin: 0; }
+      .subtitle { color: rgba(255,255,255,.72); line-height: 1.45; margin: 0; }
+      .date-card {
+        align-self: center;
+        background: rgba(184, 201, 135, .20);
+        border: 1px solid rgba(184, 201, 135, .45);
+        border-radius: 10px;
+        color: white;
+        min-width: 160px;
+        padding: 14px;
+        text-align: center;
+      }
+      .date-card b { color: #b8c987; display: block; font-size: 24px; }
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+        margin-bottom: 18px;
+      }
+      .metric {
+        background: white;
+        border: 1px solid rgba(184, 201, 135, .30);
+        border-radius: 10px;
+        padding: 16px;
+      }
+      .metric span { color: #606060; display: block; font-size: 13px; font-weight: 700; }
+      .metric b { display: block; font-size: 28px; margin-top: 8px; }
+      .metric small { color: #666; display: block; line-height: 1.35; margin-top: 6px; }
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 360px;
+        gap: 18px;
+      }
+      .panel {
+        background: white;
+        border: 1px solid rgba(184, 201, 135, .45);
+        border-radius: 10px;
+        padding: 20px;
+      }
+      .panel-head {
+        align-items: center;
+        display: flex;
+        gap: 16px;
+        justify-content: space-between;
+        margin-bottom: 16px;
+      }
+      .chip {
+        background: #b8c987;
+        border-radius: 999px;
+        color: #071a2f;
+        display: inline-flex;
+        font-size: 12px;
+        font-weight: 900;
+        padding: 7px 10px;
+        white-space: nowrap;
+      }
+      .chip.dark { background: #70824a; color: white; }
+      .task-list { display: grid; gap: 14px; }
+      .task {
+        background: #ffffff;
+        border: 1px solid rgba(184, 201, 135, .32);
+        border-radius: 10px;
+        padding: 16px;
+      }
+      .task-head {
+        align-items: start;
+        display: flex;
+        gap: 14px;
+        justify-content: space-between;
+      }
+      .task h4 { font-size: 20px; margin: 0; }
+      .task .meta {
+        color: #606060;
+        font-size: 14px;
+        line-height: 1.55;
+        margin: 8px 0 0;
+      }
+      .steps {
+        background: white;
+        border: 1px solid #dfe8c8;
+        border-radius: 8px;
+        margin-top: 14px;
+        padding: 12px 14px;
+      }
+      .steps b { display: block; margin-bottom: 8px; }
+      ol { margin: 0; padding-left: 20px; }
+      li { line-height: 1.5; margin: 4px 0; }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 16px;
+      }
+      button {
+        background: #071a2f;
+        border: 1px solid rgba(184, 201, 135, .65);
+        border-radius: 8px;
+        color: white;
+        font-weight: 900;
+        padding: 10px 12px;
+      }
+      button.secondary { background: white; color: #0d2238; }
+      .progress-box {
+        background: #ffffff;
+        border: 1px solid rgba(184, 201, 135, .32);
+        border-radius: 10px;
+        padding: 16px;
+      }
+      .ring {
+        align-items: center;
+        background: conic-gradient(#70824a 0 86%, #e8eedf 86% 100%);
+        border-radius: 50%;
+        display: flex;
+        height: 170px;
+        justify-content: center;
+        margin: 12px auto 16px;
+        width: 170px;
+      }
+      .ring-inner {
+        align-items: center;
+        background: white;
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        height: 126px;
+        justify-content: center;
+        width: 126px;
+      }
+      .ring-inner b { font-size: 34px; }
+      .ring-inner span { color: #666; font-size: 12px; font-weight: 800; }
+      .bar {
+        background: #e8eedf;
+        border-radius: 999px;
+        height: 10px;
+        margin: 8px 0 14px;
+        overflow: hidden;
+      }
+      .bar > div { background: #70824a; height: 100%; }
+      .geo {
+        display: grid;
+        gap: 10px;
+        margin-top: 12px;
+      }
+      .geo-row {
+        align-items: center;
+        background: white;
+        border: 1px solid #dfe8c8;
+        border-radius: 8px;
+        display: flex;
+        justify-content: space-between;
+        padding: 10px;
+      }
+      .note {
+        background: #071a2f;
+        border-radius: 10px;
+        color: white;
+        line-height: 1.45;
+        margin-top: 14px;
+        padding: 14px;
+      }
+      .note b { color: #b8c987; display: block; margin-bottom: 5px; }
+      @media (max-width: 1000px) {
+        .page, .layout, .welcome { grid-template-columns: 1fr; padding: 16px; }
+        .metrics { grid-template-columns: 1fr 1fr; }
+      }
+      @media (max-width: 620px) {
+        .metrics { grid-template-columns: 1fr; }
+        h2 { font-size: 24px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <aside>
+        <div class="brand">
+          <small>NOMA FOOD</small>
+          <h1>Portal Operario</h1>
+        </div>
+        <div class="user">
+          <b>Marisol Fuentes</b>
+          <span>Rol: Operario · Cocina caliente</span>
+        </div>
+        <div class="nav-title">Mi panel</div>
+        <div class="nav-item active">Mi ADT de hoy</div>
+        <div class="nav-item">Reportar cumplimiento</div>
+        <div class="nav-item">Mis recetas</div>
+        <div class="nav-item">Asistencia GeoVictoria</div>
+      </aside>
+      <main>
+        <section class="welcome">
+          <div>
+            <div class="label">Inicio de turno</div>
+            <h2>¡Buenos días, Marisol!</h2>
+            <p class="subtitle">Hoy es un día maravilloso y de mucho aprendizaje. Demos nuestro mejor esfuerzo, cuidemos cada detalle y trabajemos como equipo.</p>
+          </div>
+          <div class="date-card">
+            <span>Martes</span>
+            <b>23 jun</b>
+            <span>Turno 07:00 - 15:00</span>
+          </div>
+        </section>
+
+        <section class="metrics">
+          <div class="metric"><span>Tareas asignadas</span><b>4</b><small>2 pendientes · 1 en proceso · 1 terminada</small></div>
+          <div class="metric"><span>Cumplimiento diario</span><b>86%</b><small>Referencia para evaluación mensual</small></div>
+          <div class="metric"><span>Asistencia real</span><b>98%</b><small>Integración GeoVictoria</small></div>
+          <div class="metric"><span>Horas extra mes</span><b>3.5 h</b><small>Dato visible, pendiente validación</small></div>
+        </section>
+
+        <div class="layout">
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <div class="label">ADT diaria</div>
+                <h3>Mis tareas asignadas</h3>
+              </div>
+              <span class="chip dark">Pendiente validación supervisor</span>
+            </div>
+            <div class="task-list">
+              <article class="task">
+                <div class="task-head">
+                  <div>
+                    <h4>Lasagna vegana individual · tanda 1 a 3</h4>
+                    <p class="meta">Área: Cocina caliente · Prioridad alta · 07:30 a 10:30<br>Meta: 72 unidades · Receta REC-001 · Tiempo estimado 180 min</p>
+                  </div>
+                  <span class="chip">En proceso</span>
+                </div>
+                <div class="steps">
+                  <b>Paso a paso</b>
+                  <ol>
+                    <li>Sanitizar puesto, bandejas y utensilios.</li>
+                    <li>Controlar temperatura de salsa base y tofu.</li>
+                    <li>Dosificar 8 lt salsa y 4 kg tofu por tanda.</li>
+                    <li>Montar 24 unidades por tanda y registrar lote.</li>
+                  </ol>
+                </div>
+                <div class="actions">
+                  <button>Finalizar tarea</button>
+                  <button class="secondary">Reportar problema</button>
+                  <button class="secondary">Ver ficha imprimible</button>
+                </div>
+              </article>
+
+              <article class="task">
+                <div class="task-head">
+                  <div>
+                    <h4>Limpieza profunda de campanas</h4>
+                    <p class="meta">Área: Cocina caliente · Prioridad media · 13:00 a 14:15<br>Meta: 1 tarea completa · Evidencia foto obligatoria</p>
+                  </div>
+                  <span class="chip">Pendiente</span>
+                </div>
+                <div class="steps">
+                  <b>Instrucciones</b>
+                  <ol>
+                    <li>Apagar equipos cercanos.</li>
+                    <li>Retirar filtros y remojar con desengrasante.</li>
+                    <li>Lavar interior y exterior de campana.</li>
+                    <li>Subir foto final para validación.</li>
+                  </ol>
+                </div>
+                <div class="actions">
+                  <button>Iniciar tarea</button>
+                  <button class="secondary">Necesito ayuda</button>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <aside class="panel">
+            <div class="label">Mi Cumplimiento Diario</div>
+            <h3>Resumen del día</h3>
+            <div class="ring">
+              <div class="ring-inner">
+                <b>86%</b>
+                <span>CUMPLIMIENTO</span>
+              </div>
+            </div>
+            <div class="progress-box">
+              <b>Componentes del cálculo</b>
+              <p>Producción lograda</p>
+              <div class="bar"><div style="width: 90%"></div></div>
+              <p>Puntualidad</p>
+              <div class="bar"><div style="width: 82%"></div></div>
+              <p>Evidencia entregada</p>
+              <div class="bar"><div style="width: 100%"></div></div>
+              <p>Tareas completadas</p>
+              <div class="bar"><div style="width: 75%"></div></div>
+            </div>
+            <div class="note">
+              <b>Mensaje al cerrar reporte</b>
+              Buen trabajo. Estuviste cerca de la meta. Revisa los detalles pendientes y mañana vamos por ese 100%.
+            </div>
+            <div class="note">
+              <b>Bonos</b>
+              Esta vista solo muestra indicadores para evaluación mensual. No calcula ni promete bonos automáticos.
+            </div>
+            <div style="height: 14px;"></div>
+            <div class="label">GeoVictoria integrado</div>
+            <div class="geo">
+              <div class="geo-row"><span>Entrada real</span><b>06:58</b></div>
+              <div class="geo-row"><span>Salida esperada</span><b>15:00</b></div>
+              <div class="geo-row"><span>Asistencia mes</span><b>98%</b></div>
+              <div class="geo-row"><span>Ausencias</span><b>0 días</b></div>
+            </div>
+            <div class="actions">
+              <button>Enviar reporte diario</button>
+            </div>
+          </aside>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

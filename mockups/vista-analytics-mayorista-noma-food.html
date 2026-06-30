@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Analytics Portal Mayorista NOMA FOOD</title>
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: #f8faf6;
+        color: #0d2238;
+        font-family: Inter, Arial, sans-serif;
+      }
+      .page {
+        display: grid;
+        grid-template-columns: 270px 1fr;
+        gap: 24px;
+        padding: 28px;
+      }
+      aside {
+        border: 1px solid rgba(184, 201, 135, .45);
+        border-radius: 10px;
+        background: #ffffff;
+        padding: 16px;
+        height: fit-content;
+      }
+      .brand {
+        background: #071a2f;
+        color: white;
+        border-radius: 10px;
+        padding: 18px;
+        margin-bottom: 16px;
+      }
+      .brand small {
+        color: #b8c987;
+        display: block;
+        font-weight: 900;
+        letter-spacing: .02em;
+        text-transform: uppercase;
+      }
+      .brand h1 {
+        font-size: 21px;
+        line-height: 1.1;
+        margin: 7px 0 0;
+      }
+      .nav-title {
+        color: #70824a;
+        font-size: 11px;
+        font-weight: 900;
+        margin: 18px 8px 8px;
+        text-transform: uppercase;
+      }
+      .nav-item {
+        border-radius: 8px;
+        color: #0d2238;
+        font-size: 13px;
+        margin-bottom: 6px;
+        padding: 10px 12px;
+      }
+      .nav-item.active {
+        background: #70824a;
+        color: white;
+      }
+      main { min-width: 0; }
+      .header {
+        align-items: center;
+        background: #071a2f;
+        border-radius: 12px;
+        color: white;
+        display: flex;
+        gap: 18px;
+        justify-content: space-between;
+        margin-bottom: 18px;
+        padding: 24px;
+      }
+      .label {
+        color: #70824a;
+        font-size: 12px;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+      .header .label { color: #b8c987; }
+      h2 {
+        font-size: 32px;
+        margin: 6px 0 8px;
+      }
+      .subtitle {
+        color: rgba(255,255,255,.72);
+        line-height: 1.45;
+        margin: 0;
+      }
+      .date-pill {
+        background: rgba(184, 201, 135, .18);
+        border: 1px solid rgba(184, 201, 135, .5);
+        border-radius: 999px;
+        color: white;
+        font-size: 13px;
+        font-weight: 900;
+        padding: 10px 14px;
+        white-space: nowrap;
+      }
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+        margin-bottom: 18px;
+      }
+      .metric {
+        background: white;
+        border: 1px solid rgba(184, 201, 135, .35);
+        border-radius: 10px;
+        padding: 16px;
+      }
+      .metric span {
+        color: #5d6d3f;
+        display: block;
+        font-size: 13px;
+        font-weight: 800;
+      }
+      .metric b {
+        display: block;
+        font-size: 28px;
+        margin-top: 8px;
+      }
+      .metric small {
+        color: #667;
+        display: block;
+        font-size: 12px;
+        margin-top: 6px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.25fr) minmax(360px, .75fr);
+        gap: 18px;
+      }
+      .panel {
+        background: white;
+        border: 1px solid rgba(184, 201, 135, .35);
+        border-radius: 10px;
+        padding: 20px;
+      }
+      .panel-head {
+        align-items: center;
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 18px;
+      }
+      h3 {
+        font-size: 22px;
+        margin: 0;
+      }
+      .chip {
+        background: #f0f4dc;
+        border: 1px solid #b8c987;
+        border-radius: 999px;
+        color: #0d2238;
+        display: inline-flex;
+        font-size: 12px;
+        font-weight: 900;
+        padding: 7px 10px;
+        white-space: nowrap;
+      }
+      .funnel {
+        display: grid;
+        gap: 12px;
+      }
+      .funnel-row {
+        align-items: center;
+        display: grid;
+        grid-template-columns: 170px 1fr 90px;
+        gap: 12px;
+      }
+      .bar {
+        background: #e8eedf;
+        border-radius: 999px;
+        height: 14px;
+        overflow: hidden;
+      }
+      .bar div {
+        background: #70824a;
+        height: 100%;
+      }
+      .bar.navy div { background: #071a2f; }
+      .row-label {
+        font-size: 13px;
+        font-weight: 900;
+      }
+      .row-value {
+        color: #0d2238;
+        font-size: 13px;
+        font-weight: 900;
+        text-align: right;
+      }
+      .two-cols {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+        margin-top: 18px;
+      }
+      .ranking {
+        display: grid;
+        gap: 11px;
+      }
+      .rank {
+        border: 1px solid #dfe8c8;
+        border-radius: 8px;
+        padding: 12px;
+      }
+      .rank b {
+        display: block;
+        font-size: 14px;
+      }
+      .rank span {
+        color: #667;
+        display: block;
+        font-size: 12px;
+        margin-top: 4px;
+      }
+      .line-chart {
+        align-items: end;
+        display: grid;
+        gap: 8px;
+        grid-template-columns: repeat(7, 1fr);
+        height: 190px;
+        padding-top: 12px;
+      }
+      .line-chart div {
+        background: linear-gradient(180deg, #071a2f, #70824a);
+        border-radius: 8px 8px 0 0;
+        min-height: 24px;
+      }
+      .source {
+        align-items: center;
+        border-bottom: 1px solid #dfe8c8;
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 0;
+      }
+      .source:last-child { border-bottom: 0; }
+      .source b { font-size: 14px; }
+      .source span {
+        color: #70824a;
+        font-weight: 900;
+      }
+      .note {
+        background: #f0f4dc;
+        border: 1px solid #b8c987;
+        border-radius: 10px;
+        color: #0d2238;
+        line-height: 1.45;
+        margin-top: 18px;
+        padding: 14px;
+      }
+      @media (max-width: 1040px) {
+        .page, .grid, .two-cols { grid-template-columns: 1fr; }
+        .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      }
+      @media (max-width: 640px) {
+        .page { padding: 16px; }
+        .header { align-items: flex-start; flex-direction: column; }
+        .metrics { grid-template-columns: 1fr; }
+        .funnel-row { grid-template-columns: 1fr; }
+        .row-value { text-align: left; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <aside>
+        <div class="brand">
+          <small>NOMA FOOD</small>
+          <h1>Medicion portal mayorista</h1>
+        </div>
+        <div class="nav-title">Google Analytics</div>
+        <div class="nav-item active">Resumen comercial</div>
+        <div class="nav-item">Catalogo</div>
+        <div class="nav-item">Carrito y checkout</div>
+        <div class="nav-item">Campanas</div>
+        <div class="nav-title">Conversiones</div>
+        <div class="nav-item">Solicitudes de acceso</div>
+        <div class="nav-item">Pedidos confirmados</div>
+      </aside>
+      <main>
+        <section class="header">
+          <div>
+            <div class="label">Portal clientes mayoristas</div>
+            <h2>Tablero de medicion comercial</h2>
+            <p class="subtitle">Ejemplo de datos que veremos al conectar GA4: visitas, catalogo, carrito, pedidos y campanas.</p>
+          </div>
+          <div class="date-pill">Ultimos 30 dias</div>
+        </section>
+
+        <section class="metrics">
+          <div class="metric"><span>Visitas al portal</span><b>1.842</b><small>+18% vs periodo anterior</small></div>
+          <div class="metric"><span>Solicitudes acceso</span><b>96</b><small>5,2% de conversion</small></div>
+          <div class="metric"><span>Carritos iniciados</span><b>214</b><small>Productos agregados</small></div>
+          <div class="metric"><span>Pedidos confirmados</span><b>58</b><small>$4.780.000 CLP estimado</small></div>
+        </section>
+
+        <section class="grid">
+          <div>
+            <div class="panel">
+              <div class="panel-head">
+                <div>
+                  <div class="label">Embudo mayorista</div>
+                  <h3>Desde visita hasta pedido</h3>
+                </div>
+                <span class="chip">Eventos GA4</span>
+              </div>
+              <div class="funnel">
+                <div class="funnel-row">
+                  <div class="row-label">Ver portal</div>
+                  <div class="bar navy"><div style="width: 100%"></div></div>
+                  <div class="row-value">1.842</div>
+                </div>
+                <div class="funnel-row">
+                  <div class="row-label">Ver catalogo</div>
+                  <div class="bar"><div style="width: 72%"></div></div>
+                  <div class="row-value">1.326</div>
+                </div>
+                <div class="funnel-row">
+                  <div class="row-label">Ver producto</div>
+                  <div class="bar"><div style="width: 54%"></div></div>
+                  <div class="row-value">994</div>
+                </div>
+                <div class="funnel-row">
+                  <div class="row-label">Agregar carrito</div>
+                  <div class="bar"><div style="width: 28%"></div></div>
+                  <div class="row-value">214</div>
+                </div>
+                <div class="funnel-row">
+                  <div class="row-label">Iniciar checkout</div>
+                  <div class="bar"><div style="width: 17%"></div></div>
+                  <div class="row-value">126</div>
+                </div>
+                <div class="funnel-row">
+                  <div class="row-label">Pedido confirmado</div>
+                  <div class="bar navy"><div style="width: 9%"></div></div>
+                  <div class="row-value">58</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="two-cols">
+              <div class="panel">
+                <div class="panel-head">
+                  <div>
+                    <div class="label">Productos</div>
+                    <h3>Mas vistos</h3>
+                  </div>
+                </div>
+                <div class="ranking">
+                  <div class="rank"><b>Ciabatta lomito seitan</b><span>342 vistas - 41 carritos</span></div>
+                  <div class="rank"><b>Mendocinos</b><span>288 vistas - 36 carritos</span></div>
+                  <div class="rank"><b>Baos congelados</b><span>261 vistas - 33 carritos</span></div>
+                  <div class="rank"><b>Pan miga huevo mayo</b><span>238 vistas - 27 carritos</span></div>
+                </div>
+              </div>
+              <div class="panel">
+                <div class="panel-head">
+                  <div>
+                    <div class="label">Categorias</div>
+                    <h3>Interes por linea</h3>
+                  </div>
+                </div>
+                <div class="ranking">
+                  <div class="rank"><b>Pasteleria premium</b><span>38% del trafico de catalogo</span></div>
+                  <div class="rank"><b>Sandwiches NOMA FOOD</b><span>34% del trafico de catalogo</span></div>
+                  <div class="rank"><b>Brotes Asiaticos</b><span>28% del trafico de catalogo</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="panel">
+              <div class="panel-head">
+                <div>
+                  <div class="label">Ventas estimadas</div>
+                  <h3>Pedidos por semana</h3>
+                </div>
+              </div>
+              <div class="line-chart">
+                <div style="height: 55%"></div>
+                <div style="height: 66%"></div>
+                <div style="height: 48%"></div>
+                <div style="height: 72%"></div>
+                <div style="height: 78%"></div>
+                <div style="height: 90%"></div>
+                <div style="height: 82%"></div>
+              </div>
+            </div>
+
+            <div class="panel" style="margin-top: 18px;">
+              <div class="panel-head">
+                <div>
+                  <div class="label">Origen de clientes</div>
+                  <h3>Canales que convierten</h3>
+                </div>
+              </div>
+              <div class="source"><b>Instagram</b><span>34 solicitudes</span></div>
+              <div class="source"><b>WhatsApp</b><span>27 solicitudes</span></div>
+              <div class="source"><b>Email marketing</b><span>18 solicitudes</span></div>
+              <div class="source"><b>Google / busqueda</b><span>12 solicitudes</span></div>
+              <div class="source"><b>Link directo</b><span>5 solicitudes</span></div>
+            </div>
+
+            <div class="note">
+              Estos datos son de ejemplo. En la version real veremos informacion actualizada del portal mayorista y podremos decidir que productos promocionar, donde invertir y donde se pierden pedidos.
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

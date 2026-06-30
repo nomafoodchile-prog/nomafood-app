@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Vista Chofer NOMA FOOD</title>
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: #f8faf6;
+        color: #0d2238;
+        font-family: Inter, Arial, sans-serif;
+      }
+      .page {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 24px;
+        padding: 28px;
+      }
+      aside {
+        border: 1px solid rgba(184, 201, 135, .45);
+        border-radius: 10px;
+        background: #ffffff;
+        padding: 16px;
+        height: fit-content;
+      }
+      .brand {
+        background: #071a2f;
+        color: white;
+        border-radius: 10px;
+        padding: 18px;
+        margin-bottom: 16px;
+      }
+      .brand small { color: #b8c987; font-weight: 800; text-transform: uppercase; }
+      .brand h1 { margin: 6px 0 0; font-size: 21px; line-height: 1.1; }
+      .user {
+        border: 1px solid rgba(184, 201, 135, .45);
+        border-radius: 8px;
+        padding: 12px;
+        background: white;
+        margin-bottom: 14px;
+      }
+      .user b { display: block; }
+      .user span { color: #666; font-size: 13px; }
+      .nav-title {
+        color: #70824a;
+        font-size: 11px;
+        font-weight: 900;
+        margin: 18px 8px 8px;
+        text-transform: uppercase;
+      }
+      .nav-item {
+        border-radius: 8px;
+        padding: 10px 12px;
+        margin-bottom: 6px;
+        color: #0d2238;
+        font-size: 13px;
+      }
+      .nav-item.active { background: #70824a; color: white; }
+      main { min-width: 0; }
+      .header {
+        border: 1px solid rgba(184, 201, 135, .45);
+        border-radius: 10px;
+        background: white;
+        padding: 22px;
+        margin-bottom: 18px;
+      }
+      .label {
+        color: #70824a;
+        font-size: 12px;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+      h2 { margin: 6px 0 8px; font-size: 30px; }
+      .subtitle { color: #606060; margin: 0; line-height: 1.45; }
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+        margin-bottom: 18px;
+      }
+      .metric {
+        border: 1px solid rgba(184, 201, 135, .30);
+        border-radius: 10px;
+        background: white;
+        padding: 16px;
+      }
+      .metric span { color: #606060; display: block; font-size: 13px; font-weight: 700; }
+      .metric b { display: block; font-size: 28px; margin-top: 8px; }
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 360px;
+        gap: 18px;
+      }
+      .panel {
+        border: 1px solid rgba(184, 201, 135, .45);
+        border-radius: 10px;
+        background: white;
+        padding: 20px;
+      }
+      .panel-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 16px;
+      }
+      .panel h3 { margin: 0; font-size: 23px; }
+      .chip {
+        border-radius: 999px;
+        background: #b8c987;
+        color: #071a2f;
+        display: inline-flex;
+        font-size: 12px;
+        font-weight: 900;
+        padding: 7px 10px;
+        white-space: nowrap;
+      }
+      .route-list { display: grid; gap: 14px; }
+      .stop {
+        display: grid;
+        grid-template-columns: 48px 1fr;
+        gap: 14px;
+        border: 1px solid rgba(184, 201, 135, .32);
+        border-radius: 10px;
+        background: #ffffff;
+        padding: 16px;
+      }
+      .number {
+        display: grid;
+        place-items: center;
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: #071a2f;
+        color: #b8c987;
+        font-size: 18px;
+        font-weight: 900;
+      }
+      .stop h4 { margin: 0; font-size: 20px; }
+      .meta {
+        color: #606060;
+        font-size: 14px;
+        line-height: 1.55;
+        margin: 8px 0 0;
+      }
+      .delivery-box {
+        display: grid;
+        gap: 8px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        margin-top: 14px;
+      }
+      .mini {
+        border-radius: 8px;
+        background: white;
+        border: 1px solid #dfe8c8;
+        padding: 10px;
+      }
+      .mini span {
+        color: #777;
+        display: block;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+      }
+      .mini b {
+        display: block;
+        font-size: 13px;
+        margin-top: 4px;
+      }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 16px;
+      }
+      button {
+        border: 1px solid rgba(184, 201, 135, .65);
+        border-radius: 8px;
+        background: #071a2f;
+        color: white;
+        font-weight: 900;
+        padding: 10px 12px;
+      }
+      button.secondary { background: white; color: #0d2238; }
+      .map {
+        min-height: 420px;
+        border-radius: 10px;
+        background:
+          linear-gradient(90deg, rgba(112,130,74,.11) 1px, transparent 1px),
+          linear-gradient(rgba(112,130,74,.11) 1px, transparent 1px),
+          #ffffff;
+        background-size: 34px 34px;
+        position: relative;
+        overflow: hidden;
+      }
+      .pin {
+        position: absolute;
+        display: grid;
+        place-items: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 50% 50% 50% 0;
+        background: #70824a;
+        color: white;
+        font-weight: 900;
+        transform: rotate(-45deg);
+      }
+      .pin span { transform: rotate(45deg); }
+      .pin.one { left: 68%; top: 22%; }
+      .pin.two { left: 42%; top: 56%; background: #b8c987; color: #071a2f; }
+      .route-line {
+        position: absolute;
+        left: 48%;
+        top: 34%;
+        width: 180px;
+        height: 120px;
+        border-top: 5px solid #70824a;
+        border-left: 5px solid #70824a;
+        border-radius: 22px 0 0 0;
+        transform: rotate(-18deg);
+        opacity: .55;
+      }
+      .map-note {
+        position: absolute;
+        left: 16px;
+        right: 16px;
+        bottom: 16px;
+        border-radius: 10px;
+        background: rgba(17,17,17,.9);
+        color: white;
+        padding: 14px;
+      }
+      .map-note b { color: #b8c987; display: block; margin-bottom: 5px; }
+      @media (max-width: 1000px) {
+        .page, .layout { grid-template-columns: 1fr; padding: 16px; }
+        .metrics, .delivery-box { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <aside>
+        <div class="brand">
+          <small>NOMA FOOD</small>
+          <h1>Portal Chofer</h1>
+        </div>
+        <div class="user">
+          <b>Héctor Silva</b>
+          <span>Rol: Chofer · Ruta Oriente</span>
+        </div>
+        <div class="nav-title">Operaciones</div>
+        <div class="nav-item active">Mi ruta de hoy</div>
+        <div class="nav-item">Entregas y comprobantes</div>
+        <div class="nav-item">Incidencias de despacho</div>
+      </aside>
+      <main>
+        <section class="header">
+          <div class="label">Ruta definida</div>
+          <h2>Despachos cliente por cliente</h2>
+          <p class="subtitle">Vista simple para que el chofer vea el orden de entrega, contacto, evidencia requerida y estado de cada pedido.</p>
+        </section>
+        <section class="metrics">
+          <div class="metric"><span>Entregas de hoy</span><b>2</b></div>
+          <div class="metric"><span>Ruta</span><b>Oriente</b></div>
+          <div class="metric"><span>Tiempo estimado</span><b>2h 20</b></div>
+          <div class="metric"><span>Evidencias</span><b>0/2</b></div>
+        </section>
+        <div class="layout">
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <div class="label">Orden de despacho</div>
+                <h3>Ruta de Héctor Silva</h3>
+              </div>
+              <span class="chip">23 jun 2026</span>
+            </div>
+            <div class="route-list">
+              <article class="stop">
+                <div class="number">1</div>
+                <div>
+                  <div class="panel-head" style="margin-bottom: 0;">
+                    <h4>Clínica Santa Emilia</h4>
+                    <span class="chip">Programado</span>
+                  </div>
+                  <p class="meta">
+                    Dirección: Av. Providencia 1800, Providencia<br>
+                    Contacto: Paula Herrera · +56 9 4422 1100<br>
+                    Pedido: PED-1024 · Cesta CSE-01
+                  </p>
+                  <div class="delivery-box">
+                    <div class="mini"><span>Horario</span><b>10:00 - 10:40</b></div>
+                    <div class="mini"><span>Productos</span><b>60 lasañas · 35 focaccias</b></div>
+                    <div class="mini"><span>Evidencia</span><b>Foto + nombre receptor</b></div>
+                  </div>
+                  <div class="actions">
+                    <button>Iniciar entrega</button>
+                    <button class="secondary">Llamar cliente</button>
+                    <button class="secondary">Reportar incidencia</button>
+                  </div>
+                </div>
+              </article>
+              <article class="stop">
+                <div class="number">2</div>
+                <div>
+                  <div class="panel-head" style="margin-bottom: 0;">
+                    <h4>Café Raíz</h4>
+                    <span class="chip">Pendiente armado</span>
+                  </div>
+                  <p class="meta">
+                    Dirección: Av. Italia 1320, Ñuñoa<br>
+                    Contacto: Martín Leiva · +56 9 7718 2030<br>
+                    Pedido: PED-1025 · Cesta CR-01
+                  </p>
+                  <div class="delivery-box">
+                    <div class="mini"><span>Horario</span><b>11:20 - 12:00</b></div>
+                    <div class="mini"><span>Productos</span><b>42 bowls thai · salsas</b></div>
+                    <div class="mini"><span>Evidencia</span><b>Foto + firma digital</b></div>
+                  </div>
+                  <div class="actions">
+                    <button>Marcar en ruta</button>
+                    <button class="secondary">Ver checklist</button>
+                    <button class="secondary">Subir comprobante</button>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </section>
+          <section class="panel">
+            <div class="label">Mapa demo</div>
+            <h3 style="margin: 5px 0 14px;">Ruta Oriente</h3>
+            <div class="map">
+              <div class="route-line"></div>
+              <div class="pin one"><span>1</span></div>
+              <div class="pin two"><span>2</span></div>
+              <div class="map-note">
+                <b>Secuencia sugerida</b>
+                1. Clínica Santa Emilia, Providencia<br>
+                2. Café Raíz, Ñuñoa
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>
