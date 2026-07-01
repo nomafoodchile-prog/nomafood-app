@@ -10,7 +10,7 @@ export async function PATCH(
     const supabase = createServerClient()
     const body = await req.json()
 
-    // Verificar que el token corresponde al operario dueño de la tarea
+    // Verificar que el token corresponde al operario dueÃ±o de la tarea
     const { data: operator } = await supabase
       .from('operators')
       .select('id')
@@ -54,7 +54,7 @@ export async function PATCH(
         completada_en: body.completed_at || new Date().toISOString(),
         minutos_reales: body.minutos_reales,
         notas: body.notas,
-      }).throwOnError().maybeSingle().catch(() => null) // silencioso si la tabla tiene diferente estructura
+      }).then(() => {}, () => {}) // silencioso si la tabla tiene diferente estructura
     }
 
     return NextResponse.json({ ok: true })
