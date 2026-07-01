@@ -29,6 +29,7 @@ import {
   LogOut,
   X,
   Menu,
+  Activity,
 } from 'lucide-react'
 import { Logo } from './Logo'
 import { supabase } from '@/lib/supabase/client'
@@ -48,12 +49,12 @@ const navItems: NavItem[] = [
     icon: ChefHat,
     children: [
       { label: 'Pedidos', href: '/operaciones/pedidos', icon: ClipboardList },
-      { label: 'Producción', href: '/operaciones/produccion', icon: ChefHat },
+      { label: 'ProducciÃ³n', href: '/operaciones/produccion', icon: ChefHat },
       { label: 'Tareas', href: '/operaciones/tareas', icon: CheckSquare },
       { label: 'Inventario', href: '/operaciones/inventario', icon: Package },
       { label: 'Despachos', href: '/operaciones/despachos', icon: Truck },
       { label: 'Limpieza', href: '/operaciones/limpieza', icon: SprayCan },
-      { label: 'Mantención', href: '/operaciones/mantencion', icon: Wrench },
+      { label: 'MantenciÃ³n', href: '/operaciones/mantencion', icon: Wrench },
     ],
   },
   {
@@ -62,7 +63,7 @@ const navItems: NavItem[] = [
     children: [
       { label: 'Productos', href: '/comercial/productos', icon: Tag },
       { label: 'Clientes', href: '/comercial/clientes', icon: Users },
-      { label: 'Campañas', href: '/comercial/campanas', icon: Megaphone },
+      { label: 'CampaÃ±as', href: '/comercial/campanas', icon: Megaphone },
     ],
   },
   {
@@ -88,6 +89,13 @@ const navItems: NavItem[] = [
     children: [
       { label: 'Usuarios', href: '/personas/usuarios', icon: Users },
       { label: 'Accesos', href: '/personas/accesos', icon: Shield },
+    ],
+  },
+  {
+    label: 'Gerencia',
+    icon: Activity,
+    children: [
+      { label: 'Marcha Blanca', href: '/gerencia/marcha-blanca', icon: Activity },
     ],
   },
 ]
@@ -195,7 +203,7 @@ export function Sidebar() {
           <button
             onClick={handleLogout}
             className="p-1.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-400/10 transition-colors"
-            title="Cerrar sesión"
+            title="Cerrar sesiÃ³n"
           >
             <LogOut size={14} />
           </button>
