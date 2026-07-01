@@ -203,7 +203,7 @@ export default function ProveedoresPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-[#1a1a1a]">Proveedores</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Gestión de proveedores â Compras Noma Food</p>
+          <p className="text-sm text-gray-500 mt-0.5">Gestión de proveedores — Compras Noma Food</p>
         </div>
         <button
           onClick={() => setShowForm(true)}
