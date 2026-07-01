@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Plus, X, Search, ChevronDown, ChevronUp, Truck, CheckCircle, XCircle } from 'lucide-react'
 
-type CondicionPago = '30 dÃ­as' | '60 dÃ­as' | 'Contado'
+type CondicionPago = '30 días' | '60 días' | 'Contado'
 type EstadoProveedor = 'Activo' | 'Inactivo'
 
 interface Proveedor {
@@ -36,7 +36,7 @@ const initialProveedores: Proveedor[] = [
     contacto: 'Jorge Valenzuela',
     telefono: '+56 9 8765 4321',
     email: 'ventas@legumbresdelvalle.cl',
-    condicionPago: '30 dÃ­as',
+    condicionPago: '30 días',
     estado: 'Activo',
     ciudad: 'San Felipe',
     notas: 'Principal proveedor de lentejas, garbanzos y porotos. Entrega cada lunes.',
@@ -49,22 +49,22 @@ const initialProveedores: Proveedor[] = [
     contacto: 'Marcela Cifuentes',
     telefono: '+56 9 7654 3210',
     email: 'pedidos@frutosdelsol.cl',
-    condicionPago: '30 dÃ­as',
+    condicionPago: '30 días',
     estado: 'Activo',
     ciudad: 'Santiago',
-    notas: 'Anacardos, almendras y manÃ­ orgÃ¡nico certificado. Materia prima principal.',
+    notas: 'Anacardos, almendras y maní orgánico certificado. Materia prima principal.',
   },
   {
     id: 'pv-003',
     empresa: 'AceitesCorp Ltda.',
     rut: '78.765.432-3',
     rubro: 'Aceites y grasas',
-    contacto: 'Pablo MuÃ±oz',
+    contacto: 'Pablo Muñoz',
     telefono: '+56 9 6543 2100',
     email: 'comercial@aceitescorp.cl',
     condicionPago: 'Contado',
     estado: 'Activo',
-    ciudad: 'ValparaÃ­so',
+    ciudad: 'Valparaíso',
     notas: 'Aceite de coco, girasol y oliva en tambores de 200L.',
   },
   {
@@ -72,14 +72,14 @@ const initialProveedores: Proveedor[] = [
     empresa: 'PackSolution Chile',
     rut: '79.876.543-4',
     rubro: 'Envases y packaging',
-    contacto: 'Alejandra RÃ­os',
+    contacto: 'Alejandra Ríos',
     telefono: '+56 9 5432 1000',
     email: 'ventas@packsolution.cl',
-    condicionPago: '60 dÃ­as',
+    condicionPago: '60 días',
     estado: 'Activo',
     ciudad: 'Santiago',
-    direccion: 'Av. VicuÃ±a Mackenna 1234, San JoaquÃ­n',
-    notas: 'Tarros de vidrio, tapas y etiquetas. Pedido mÃ­nimo 500 unidades.',
+    direccion: 'Av. Vicuña Mackenna 1234, San Joaquín',
+    notas: 'Tarros de vidrio, tapas y etiquetas. Pedido mínimo 500 unidades.',
   },
   {
     id: 'pv-005',
@@ -92,24 +92,24 @@ const initialProveedores: Proveedor[] = [
     condicionPago: 'Contado',
     estado: 'Activo',
     ciudad: 'Temuco',
-    notas: 'Especias orgÃ¡nicas a granel, incluye cÃºrcuma, comino y pimentÃ³n ahumado.',
+    notas: 'Especias orgánicas a granel, incluye cúrcuma, comino y pimentón ahumado.',
   },
   {
     id: 'pv-006',
     empresa: 'Avena Bio SpA',
     rut: '81.098.765-6',
     rubro: 'Leches vegetales base',
-    contacto: 'Camila SÃ¡ez',
+    contacto: 'Camila Sáez',
     telefono: '+56 9 3210 9999',
     email: 'compras@avenabio.cl',
-    condicionPago: '30 dÃ­as',
+    condicionPago: '30 días',
     estado: 'Activo',
-    ciudad: 'Los Ãngeles',
+    ciudad: 'Los Ángeles',
     notas: 'Avena en hojuelas y harina de avena certificada sin gluten.',
   },
   {
     id: 'pv-007',
-    empresa: 'Hortalizas OrgÃ¡nicas Lo Ovalle',
+    empresa: 'Hortalizas Orgánicas Lo Ovalle',
     rut: '82.109.876-7',
     rubro: 'Frutas y verduras',
     contacto: 'Luis Ovalle',
@@ -118,7 +118,7 @@ const initialProveedores: Proveedor[] = [
     condicionPago: 'Contado',
     estado: 'Activo',
     ciudad: 'Colina',
-    notas: 'Proveedor local orgÃ¡nico. Remolacha, zanahoria y espinacas. Entrega miÃ©rcoles.',
+    notas: 'Proveedor local orgánico. Remolacha, zanahoria y espinacas. Entrega miércoles.',
   },
   {
     id: 'pv-008',
@@ -128,7 +128,7 @@ const initialProveedores: Proveedor[] = [
     contacto: 'Francisca Lagos',
     telefono: '+56 9 1098 7777',
     email: 'clientes@cleanpro.cl',
-    condicionPago: '30 dÃ­as',
+    condicionPago: '30 días',
     estado: 'Activo',
     ciudad: 'Santiago',
     notas: 'Detergentes y desinfectantes de grado alimentario aprobados por ISP.',
@@ -138,13 +138,13 @@ const initialProveedores: Proveedor[] = [
     empresa: 'Fermentos Chile Ltda.',
     rut: '84.321.098-9',
     rubro: 'Fermentos y cultivos',
-    contacto: 'Daniela NÃºÃ±ez',
+    contacto: 'Daniela Núñez',
     telefono: '+56 9 0987 6666',
     email: 'lab@fermentoschile.cl',
-    condicionPago: '30 dÃ­as',
+    condicionPago: '30 días',
     estado: 'Inactivo',
     ciudad: 'Valdivia',
-    notas: 'Cultivos lÃ¡cticos y levaduras para fermentados. En evaluaciÃ³n de nuevas alternativas.',
+    notas: 'Cultivos lácticos y levaduras para fermentados. En evaluación de nuevas alternativas.',
   },
 ]
 
@@ -161,7 +161,7 @@ export default function ProveedoresPage() {
     contacto: '',
     telefono: '',
     email: '',
-    condicionPago: '30 dÃ­as' as CondicionPago,
+    condicionPago: '30 días' as CondicionPago,
     estado: 'Activo' as EstadoProveedor,
     ciudad: '',
     direccion: '',
@@ -190,7 +190,7 @@ export default function ProveedoresPage() {
     }
     setProveedores(prev => [nuevo, ...prev])
     setShowForm(false)
-    setForm({ empresa: '', rut: '', rubro: 'Legumbres y granos', contacto: '', telefono: '', email: '', condicionPago: '30 dÃ­as', estado: 'Activo', ciudad: '', direccion: '', notas: '' })
+    setForm({ empresa: '', rut: '', rubro: 'Legumbres y granos', contacto: '', telefono: '', email: '', condicionPago: '30 días', estado: 'Activo', ciudad: '', direccion: '', notas: '' })
   }
 
   const toggleExpandir = (id: string) => {
@@ -203,7 +203,7 @@ export default function ProveedoresPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-[#1a1a1a]">Proveedores</h1>
-          <p className="text-sm text-gray-500 mt-0.5">GestiÃ³n de proveedores â Compras Noma Food</p>
+          <p className="text-sm text-gray-500 mt-0.5">Gestión de proveedores â Compras Noma Food</p>
         </div>
         <button
           onClick={() => setShowForm(true)}
@@ -260,7 +260,7 @@ export default function ProveedoresPage() {
         </select>
       </div>
 
-      {/* Lista con expansiÃ³n */}
+      {/* Lista con expansión */}
       <div className="noma-card !p-0 overflow-hidden">
         <div className="p-4 border-b border-gray-100">
           <h2 className="font-bold text-[#1a1a1a]">{filtrados.length} proveedor{filtrados.length !== 1 ? 'es' : ''}</h2>
@@ -318,8 +318,8 @@ export default function ProveedoresPage() {
                     <div>
                       <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Detalles</p>
                       {p.ciudad && <p className="text-sm text-gray-500"><span className="font-medium text-[#1a1a1a]">Ciudad:</span> {p.ciudad}</p>}
-                      {p.direccion && <p className="text-sm text-gray-500"><span className="font-medium text-[#1a1a1a]">DirecciÃ³n:</span> {p.direccion}</p>}
-                      <p className="text-sm text-gray-500"><span className="font-medium text-[#1a1a1a]">CondiciÃ³n:</span> {p.condicionPago}</p>
+                      {p.direccion && <p className="text-sm text-gray-500"><span className="font-medium text-[#1a1a1a]">Dirección:</span> {p.direccion}</p>}
+                      <p className="text-sm text-gray-500"><span className="font-medium text-[#1a1a1a]">Condición:</span> {p.condicionPago}</p>
                       <p className="text-sm text-gray-500"><span className="font-medium text-[#1a1a1a]">Rubro:</span> {p.rubro}</p>
                     </div>
                     {p.notas && (
@@ -351,7 +351,7 @@ export default function ProveedoresPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1">Nombre empresa</label>
-                <input type="text" value={form.empresa} onChange={e => setForm(f => ({ ...f, empresa: e.target.value }))} className="noma-input" placeholder="RazÃ³n social" required />
+                <input type="text" value={form.empresa} onChange={e => setForm(f => ({ ...f, empresa: e.target.value }))} className="noma-input" placeholder="Razón social" required />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -373,7 +373,7 @@ export default function ProveedoresPage() {
                   <input type="text" value={form.contacto} onChange={e => setForm(f => ({ ...f, contacto: e.target.value }))} className="noma-input" placeholder="Nombre" required />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">TelÃ©fono</label>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Teléfono</label>
                   <input type="tel" value={form.telefono} onChange={e => setForm(f => ({ ...f, telefono: e.target.value }))} className="noma-input" placeholder="+56 9 1234 5678" />
                 </div>
               </div>
@@ -385,11 +385,11 @@ export default function ProveedoresPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">CondiciÃ³n de pago</label>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Condición de pago</label>
                   <select value={form.condicionPago} onChange={e => setForm(f => ({ ...f, condicionPago: e.target.value as CondicionPago }))} className="noma-input">
                     <option value="Contado">Contado</option>
-                    <option value="30 dÃ­as">30 dÃ­as</option>
-                    <option value="60 dÃ­as">60 dÃ­as</option>
+                    <option value="30 días">30 días</option>
+                    <option value="60 días">60 días</option>
                   </select>
                 </div>
                 <div>
