@@ -7,9 +7,9 @@ import {
   User, Star, Send, Search
 } from 'lucide-react'
 
-/* ─────────────────────────────────────────────
+/* âââââââââââââââââââââââââââââââââââââââââââââ
    TIPOS
-───────────────────────────────────────────── */
+âââââââââââââââââââââââââââââââââââââââââââââ */
 type PickStatus = 'pendiente' | 'en_proceso' | 'completado' | 'faltante'
 
 interface Picker {
@@ -39,9 +39,9 @@ interface PickSession {
   items: PickItem[]
 }
 
-/* ─────────────────────────────────────────────
+/* âââââââââââââââââââââââââââââââââââââââââââââ
    HELPERS
-───────────────────────────────────────────── */
+âââââââââââââââââââââââââââââââââââââââââââââ */
 const STATUS_COLORS: Record<PickStatus, string> = {
   pendiente: 'bg-gray-100 text-gray-600',
   en_proceso: 'bg-blue-100 text-blue-700',
@@ -56,9 +56,9 @@ const STATUS_LABELS: Record<PickStatus, string> = {
   faltante: 'Faltante',
 }
 
-/* ─────────────────────────────────────────────
+/* âââââââââââââââââââââââââââââââââââââââââââââ
    COMPONENTE PRINCIPAL
-───────────────────────────────────────────── */
+âââââââââââââââââââââââââââââââââââââââââââââ */
 export default function PortalPicker({ params }: { params: { token: string } }) {
   const { token } = params
 
@@ -77,14 +77,14 @@ export default function PortalPicker({ params }: { params: { token: string } }) 
   const [quantities, setQuantities] = useState<Record<string, number>>({})
   const [itemNotas, setItemNotas] = useState<Record<string, string>>({})
 
-  /* ── Carga ── */
+  /* ââ Carga ââ */
   const loadData = useCallback(async () => {
     try {
       setOnline(navigator.onLine)
       const res = await fetch(`/api/portal/picker/${token}`)
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
-        setError(err.error || 'Token inválido')
+        setError(err.error || 'Token invÃ¡lido')
         setLoading(false)
         return
       }
@@ -102,7 +102,7 @@ export default function PortalPicker({ params }: { params: { token: string } }) 
       setError(null)
     } catch {
       setOnline(false)
-      setError('Sin conexión')
+      setError('Sin conexiÃ³n')
     } finally {
       setLoading(false)
     }
@@ -123,7 +123,7 @@ export default function PortalPicker({ params }: { params: { token: string } }) 
     setTimeout(() => setSuccessMsg(null), 3000)
   }
 
-  /* ── Acciones ── */
+  /* ââ Acciones ââ */
   async function confirmPick(itemId: string, qty: number, isFaltante: boolean) {
     setSaving(itemId)
     try {
@@ -151,11 +151,11 @@ export default function PortalPicker({ params }: { params: { token: string } }) 
         }
       })
       setExpandedItem(null)
-      showSuccess(isFaltante ? 'Faltante registrado' : '¡Pick confirmado!')
+      showSuccess(isFaltante ? 'Faltante registrado' : 'Â¡Pick confirmado!')
     } finally { setSaving(null) }
   }
 
-  /* ── Stats ── */
+  /* ââ Stats ââ */
   const items = session?.items || []
   const completados = items.filter(i => i.status === 'completado').length
   const faltantes = items.filter(i => i.status === 'faltante').length
@@ -172,13 +172,13 @@ export default function PortalPicker({ params }: { params: { token: string } }) 
 
   // Agrupar por pasillo
   const grouped = filteredItems.reduce((acc, item) => {
-    const pasillo = item.ubicacion_bodega.split('-')[0] || 'Sin ubicación'
+    const pasillo = item.ubicacion_bodega.split('-')[0] || 'Sin ubicaciÃ³n'
     if (!acc[pasillo]) acc[pasillo] = []
     acc[pasillo].push(item)
     return acc
   }, {} as Record<string, PickItem[]>)
 
-  /* ── LOADING ── */
+  /* ââ LOADING ââ */
   if (loading) {
     return (
       <div className="min-h-screen bg-[#f5f0e8] flex items-center justify-center">
@@ -202,7 +202,7 @@ export default function PortalPicker({ params }: { params: { token: string } }) 
     )
   }
 
-  /* ── PORTAL ── */
+  /* ââ PORTAL ââ */
   return (
     <div className="min-h-screen bg-[#f5f0e8]">
       {/* Toast */}
@@ -233,13 +233,13 @@ export default function PortalPicker({ params }: { params: { token: string } }) 
 
       {!online && (
         <div className="bg-amber-50 border-b border-amber-200 px-4 py-2 text-xs text-amber-700 flex items-center gap-2">
-          <WifiOff size={12} /> Sin conexión — los picks se sincronizarán al reconectar
+          <WifiOff size={12} /> Sin conexiÃ³n â los picks se sincronizarÃ¡n al reconectar
         </div>
       )}
 
       <div className="max-w-md mx-auto px-4 py-5 space-y-4">
 
-        {/* Sin sesión */}
+        {/* Sin sesiÃ³n */}
         {!session && (
           <div className="bg-white rounded-xl p-8 text-center border border-gray-100 shadow-sm">
             <Package className="mx-auto text-gray-300 mb-3" size={40} />
@@ -283,7 +283,7 @@ export default function PortalPicker({ params }: { params: { token: string } }) 
                 type="text"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Buscar producto, ubicación, pedido..."
+                placeholder="Buscar producto, ubicaciÃ³n, pedido..."
                 className="w-full bg-white border border-gray-200 rounded-xl pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#c9a84c]"
               />
             </div>
@@ -322,7 +322,7 @@ export default function PortalPicker({ params }: { params: { token: string } }) 
                           onClick={() => setExpandedItem(isExpanded ? null : item.id)}
                           className="w-full flex items-center gap-3 p-3 text-left"
                         >
-                          {/* Ubicación */}
+                          {/* UbicaciÃ³n */}
                           <div className={`shrink-0 text-center rounded-lg p-1.5 min-w-[44px] ${
                             isDone ? 'bg-gray-100' : 'bg-[#c9a84c]/15'
                           }`}>
@@ -339,7 +339,7 @@ export default function PortalPicker({ params }: { params: { token: string } }) 
                               <span className="text-xs text-gray-400">
                                 {item.cantidad_pickeada > 0 ? item.cantidad_pickeada : '0'}/{item.cantidad_pedida} {item.unidad}
                               </span>
-                              <span className="text-xs text-gray-300">·</span>
+                              <span className="text-xs text-gray-300">Â·</span>
                               <span className="text-xs text-gray-400">Ped. #{item.pedido_numero}</span>
                               <span className={`text-xs px-1.5 py-0.5 rounded-full ${STATUS_COLORS[item.status]}`}>
                                 {STATUS_LABELS[item.status]}
@@ -372,7 +372,7 @@ export default function PortalPicker({ params }: { params: { token: string } }) 
                                 <button
                                   onClick={() => setQuantities(q => ({ ...q, [item.id]: Math.max(0, (q[item.id] ?? 0) - 1) }))}
                                   className="w-9 h-9 rounded-lg bg-gray-100 text-gray-600 font-bold flex items-center justify-center"
-                                >−</button>
+                                >â</button>
                                 <input
                                   type="number"
                                   min={0}
@@ -406,14 +406,14 @@ export default function PortalPicker({ params }: { params: { token: string } }) 
                             {/* Acciones */}
                             <div className="flex gap-2">
                               <button
-                                onClick={() => confirmPich(item.id, currentQty, true)}
+                                onClick={() => confirmPick(item.id, currentQty, true)}
                                 disabled={saving === item.id}
                                 className="flex-1 bg-amber-50 border border-amber-200 text-amber-700 rounded-xl py-2 text-xs font-medium"
                               >
                                 Producto faltante
                               </button>
                               <button
-                                onClick={() => confirmPich(item.id, currentQty, false)}
+                                onClick={() => confirmPick(item.id, currentQty, false)}
                                 disabled={saving === item.id || currentQty === 0}
                                 className="flex-1 bg-green-500 text-white rounded-xl py-2 text-xs font-semibold flex items-center justify-center gap-1.5 disabled:opacity-50"
                               >
@@ -429,9 +429,9 @@ export default function PortalPicker({ params }: { params: { token: string } }) 
                           <div className="px-3 pb-3 border-t border-gray-100 pt-2">
                             <p className="text-xs text-gray-400">
                               {item.status === 'completado'
-                                ? `✓ Pickeado: ${item.cantidad_pickeada}/${item.cantidad_pedida} ${item.unidad}`
-                                : `⚠ Faltante — ${item.cantidad_pickeada}/${item.cantidad_pedida} ${item.unidad}`}
-                              {item.notas && ` · "${item.notas}"`}
+                                ? `â Pickeado: ${item.cantidad_pickeada}/${item.cantidad_pedida} ${item.unidad}`
+                                : `â  Faltante â ${item.cantidad_pickeada}/${item.cantidad_pedida} ${item.unidad}`}
+                              {item.notas && ` Â· "${item.notas}"`}
                             </p>
                           </div>
                         )}
@@ -453,7 +453,7 @@ export default function PortalPicker({ params }: { params: { token: string } }) 
 
         {/* Footer */}
         <div className="text-center text-xs text-gray-400 pb-4">
-          <p>Noma Food · Portal Picker</p>
+          <p>Noma Food Â· Portal Picker</p>
         </div>
       </div>
     </div>
