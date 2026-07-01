@@ -73,8 +73,8 @@ export async function POST(
     await supabase.from('mayorista_pedido_items').insert(lineItems)
 
     // Crear preferencia Mercado Pago
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://nomafood-app.vercel.app'
-    const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXTAUTH_URL || 'https://nomafood-app.vercel.app'
+    const accessToken = process.env.MERCADO_PAGO_ACCESS_TOKEN || process.env.MERCADOPAGO_ACCESS_TOKEN
 
     if (accessToken) {
       try {
