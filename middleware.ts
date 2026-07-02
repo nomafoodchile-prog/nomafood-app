@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { NextResponse, type NextRequest } from 'next/server'
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Public routes — no auth needed
@@ -9,19 +9,38 @@ export function middleware(request: NextRequest) {
   const isPublic = publicPaths.some(p => pathname.startsWith(p))
   if (isPublic) return NextResponse.next()
 
-  // Check for Supabase v2 session cookie
-  // Cookie name format: sb-<project-ref>-auth-token
-  const hasSession = request.cookies.getAll().some(
-    c => c.name.startsWith('sb-') && c.name.endsWith('-auth-token')
+  let response = NextResponse.next({ request })
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+          response = NextResponse.next({ request })
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          )
+        },
+      },
+    }
   )
 
-  if (!hasSession) {
+  // Valida la sesión contra Supabase (la sola presencia de la cookie es falsificable)
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  return NextResponse.next()
+  return response
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|public).*)'],
+  // Excluye assets estáticos: _next, favicon, /images y cualquier ruta con extensión de archivo
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|images/|.*\\..*).*)'],
 }
