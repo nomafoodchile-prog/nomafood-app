@@ -62,7 +62,7 @@ CREATE POLICY "profiles_own" ON profiles
   FOR SELECT USING (id = auth.uid());
 
 CREATE POLICY "profiles_admin_all" ON profiles
-  FOR ALL USING (get_my_role() IN ('administrador', 'gerencia'));
+  FOR ALL USING (get_my_role() IN ('Administracion', 'Gerencia'));
 
 CREATE POLICY "profiles_insert_self" ON profiles
   FOR INSERT WITH CHECK (id = auth.uid());
@@ -80,7 +80,7 @@ CREATE POLICY "operators_authenticated_read" ON operators
   FOR SELECT USING (auth.role() = 'authenticated' OR auth.role() = 'service_role');
 
 CREATE POLICY "operators_admin_write" ON operators
-  FOR ALL USING (get_my_role() IN ('administrador', 'gerencia'));
+  FOR ALL USING (get_my_role() IN ('Administracion', 'Gerencia'));
 
 -- ============================================================
 -- 5. PRODUCTOS E INVENTARIO
@@ -89,7 +89,7 @@ CREATE POLICY "products_authenticated_read" ON products
   FOR SELECT USING (auth.role() IN ('authenticated', 'service_role', 'anon'));
 
 CREATE POLICY "products_admin_write" ON products
-  FOR ALL USING (get_my_role() IN ('administrador', 'gerencia'));
+  FOR ALL USING (get_my_role() IN ('Administracion', 'Gerencia'));
 
 CREATE POLICY "inventory_authenticated_read" ON inventory_movements
   FOR SELECT USING (auth.role() IN ('authenticated', 'service_role'));
@@ -101,7 +101,7 @@ CREATE POLICY "inventory_catalog_read" ON inventory_catalog_items
   FOR SELECT USING (auth.role() IN ('authenticated', 'service_role', 'anon'));
 
 CREATE POLICY "inventory_catalog_write" ON inventory_catalog_items
-  FOR ALL USING (get_my_role() IN ('administrador', 'gerencia'));
+  FOR ALL USING (get_my_role() IN ('Administracion', 'Gerencia'));
 
 -- ============================================================
 -- 6. PEDIDOS Y PRODUCCIÓN
@@ -110,7 +110,7 @@ CREATE POLICY "orders_authenticated_read" ON orders
   FOR SELECT USING (auth.role() IN ('authenticated', 'service_role'));
 
 CREATE POLICY "orders_write" ON orders
-  FOR ALL USING (get_my_role() IN ('administrador', 'gerencia') OR auth.role() = 'service_role');
+  FOR ALL USING (get_my_role() IN ('Administracion', 'Gerencia') OR auth.role() = 'service_role');
 
 CREATE POLICY "order_lines_read" ON order_lines
   FOR SELECT USING (auth.role() IN ('authenticated', 'service_role'));
@@ -152,22 +152,22 @@ CREATE POLICY "dispatches_update" ON dispatches
   FOR UPDATE USING (auth.role() IN ('authenticated', 'service_role'));
 
 -- ============================================================
--- 8. FINANZAS — solo administrador y gerencia
+-- 8. FINANZAS — solo Administracion y Gerencia
 -- ============================================================
 CREATE POLICY "cash_entries_admin" ON cash_entries
-  FOR ALL USING (get_my_role() IN ('administrador', 'gerencia') OR auth.role() = 'service_role');
+  FOR ALL USING (get_my_role() IN ('Administracion', 'Gerencia') OR auth.role() = 'service_role');
 
 CREATE POLICY "receivables_admin" ON customer_receivables
-  FOR ALL USING (get_my_role() IN ('administrador', 'gerencia') OR auth.role() = 'service_role');
+  FOR ALL USING (get_my_role() IN ('Administracion', 'Gerencia') OR auth.role() = 'service_role');
 
 CREATE POLICY "payments_admin" ON payments
-  FOR ALL USING (get_my_role() IN ('administrador', 'gerencia') OR auth.role() = 'service_role');
+  FOR ALL USING (get_my_role() IN ('Administracion', 'Gerencia') OR auth.role() = 'service_role');
 
 CREATE POLICY "payment_webhooks_service" ON payment_webhook_events
   FOR ALL USING (auth.role() = 'service_role');
 
 CREATE POLICY "balance_snapshots_admin" ON balance_snapshots
-  FOR ALL USING (get_my_role() IN ('administrador', 'gerencia') OR auth.role() = 'service_role');
+  FOR ALL USING (get_my_role() IN ('Administracion', 'Gerencia') OR auth.role() = 'service_role');
 
 -- ============================================================
 -- 9. CLIENTES Y MARKETING
@@ -176,23 +176,23 @@ CREATE POLICY "customers_read" ON customers
   FOR SELECT USING (auth.role() IN ('authenticated', 'service_role'));
 
 CREATE POLICY "customers_write" ON customers
-  FOR ALL USING (get_my_role() IN ('administrador', 'gerencia') OR auth.role() = 'service_role');
+  FOR ALL USING (get_my_role() IN ('Administracion', 'Gerencia') OR auth.role() = 'service_role');
 
 -- Clientes mayoristas: anon puede ver su propio registro (para portal)
 CREATE POLICY "marketing_customers_own" ON marketing_customers
   FOR SELECT USING (auth.role() IN ('authenticated', 'service_role', 'anon'));
 
 CREATE POLICY "marketing_customers_write" ON marketing_customers
-  FOR ALL USING (get_my_role() IN ('administrador', 'gerencia') OR auth.role() = 'service_role');
+  FOR ALL USING (get_my_role() IN ('Administracion', 'Gerencia') OR auth.role() = 'service_role');
 
 CREATE POLICY "campaigns_admin" ON marketing_campaigns
-  FOR ALL USING (get_my_role() IN ('administrador', 'gerencia') OR auth.role() = 'service_role');
+  FOR ALL USING (get_my_role() IN ('Administracion', 'Gerencia') OR auth.role() = 'service_role');
 
 CREATE POLICY "campaign_templates_read" ON campaign_templates
   FOR SELECT USING (auth.role() IN ('authenticated', 'service_role'));
 
 CREATE POLICY "campaign_templates_write" ON campaign_templates
-  FOR ALL USING (get_my_role() IN ('administrador', 'gerencia') OR auth.role() = 'service_role');
+  FOR ALL USING (get_my_role() IN ('Administracion', 'Gerencia') OR auth.role() = 'service_role');
 
 CREATE POLICY "campaign_deliveries_service" ON campaign_deliveries
   FOR ALL USING (auth.role() = 'service_role');
@@ -204,7 +204,7 @@ CREATE POLICY "supplier_products_read" ON supplier_products
   FOR SELECT USING (auth.role() IN ('authenticated', 'service_role'));
 
 CREATE POLICY "supplier_products_write" ON supplier_products
-  FOR ALL USING (get_my_role() IN ('administrador', 'gerencia') OR auth.role() = 'service_role');
+  FOR ALL USING (get_my_role() IN ('Administracion', 'Gerencia') OR auth.role() = 'service_role');
 
 CREATE POLICY "supplier_price_history_read" ON supplier_price_history
   FOR SELECT USING (auth.role() IN ('authenticated', 'service_role'));
@@ -216,7 +216,7 @@ CREATE POLICY "purchase_requests_write" ON purchase_requests
   FOR ALL USING (auth.role() IN ('authenticated', 'service_role'));
 
 CREATE POLICY "purchase_orders_admin" ON purchase_orders
-  FOR ALL USING (get_my_role() IN ('administrador', 'gerencia') OR auth.role() = 'service_role');
+  FOR ALL USING (get_my_role() IN ('Administracion', 'Gerencia') OR auth.role() = 'service_role');
 
 CREATE POLICY "purchase_receipts_read" ON purchase_receipts
   FOR SELECT USING (auth.role() IN ('authenticated', 'service_role'));
@@ -246,7 +246,7 @@ CREATE POLICY "warehouse_locations_read" ON warehouse_locations
   FOR SELECT USING (auth.role() IN ('authenticated', 'service_role', 'anon'));
 
 CREATE POLICY "warehouse_locations_write" ON warehouse_locations
-  FOR ALL USING (get_my_role() IN ('administrador', 'gerencia') OR auth.role() = 'service_role');
+  FOR ALL USING (get_my_role() IN ('Administracion', 'Gerencia') OR auth.role() = 'service_role');
 
 CREATE POLICY "cleaning_reports_write" ON cleaning_reports
   FOR ALL USING (auth.role() IN ('authenticated', 'service_role'));
@@ -267,10 +267,10 @@ CREATE POLICY "maintenance_events_write" ON maintenance_events
 -- 14. CONFIGURACIÓN Y AUDITORÍA
 -- ============================================================
 CREATE POLICY "business_settings_admin" ON business_settings
-  FOR ALL USING (get_my_role() IN ('administrador', 'gerencia') OR auth.role() = 'service_role');
+  FOR ALL USING (get_my_role() IN ('Administracion', 'Gerencia') OR auth.role() = 'service_role');
 
 CREATE POLICY "audit_logs_admin" ON audit_logs
-  FOR SELECT USING (get_my_role() IN ('administrador', 'gerencia') OR auth.role() = 'service_role');
+  FOR SELECT USING (get_my_role() IN ('Administracion', 'Gerencia') OR auth.role() = 'service_role');
 
 CREATE POLICY "audit_logs_insert_service" ON audit_logs
   FOR INSERT WITH CHECK (auth.role() = 'service_role');
@@ -279,10 +279,10 @@ CREATE POLICY "audit_logs_insert_service" ON audit_logs
 -- 15. CRÉDITO Y RESERVAS DE STOCK
 -- ============================================================
 CREATE POLICY "credit_rules_admin" ON credit_rules
-  FOR ALL USING (get_my_role() IN ('administrador', 'gerencia') OR auth.role() = 'service_role');
+  FOR ALL USING (get_my_role() IN ('Administracion', 'Gerencia') OR auth.role() = 'service_role');
 
 CREATE POLICY "credit_limits_admin" ON customer_credit_limits
-  FOR ALL USING (get_my_role() IN ('administrador', 'gerencia') OR auth.role() = 'service_role');
+  FOR ALL USING (get_my_role() IN ('Administracion', 'Gerencia') OR auth.role() = 'service_role');
 
 CREATE POLICY "stock_reservations_service" ON stock_reservations
   FOR ALL USING (auth.role() = 'service_role');
@@ -294,7 +294,7 @@ CREATE POLICY "recipes_read" ON recipes
   FOR SELECT USING (auth.role() IN ('authenticated', 'service_role'));
 
 CREATE POLICY "recipes_write" ON recipes
-  FOR ALL USING (get_my_role() IN ('administrador', 'gerencia') OR auth.role() = 'service_role');
+  FOR ALL USING (get_my_role() IN ('Administracion', 'Gerencia') OR auth.role() = 'service_role');
 
 CREATE POLICY "recipe_ingredients_read" ON recipe_ingredients
   FOR SELECT USING (auth.role() IN ('authenticated', 'service_role'));
