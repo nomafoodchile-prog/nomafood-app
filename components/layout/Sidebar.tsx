@@ -49,6 +49,7 @@ const navItems: NavItem[] = [
     icon: ChefHat,
     children: [
       { label: 'Pedidos', href: '/operaciones/pedidos', icon: ClipboardList },
+      { label: 'Pedidos Mayoristas', href: '/operaciones/pedidos-mayoristas', icon: ShoppingCart },
       { label: 'ProducciÃ³n', href: '/operaciones/produccion', icon: ChefHat },
       { label: 'Tareas', href: '/operaciones/tareas', icon: CheckSquare },
       { label: 'Inventario', href: '/operaciones/inventario', icon: Package },
