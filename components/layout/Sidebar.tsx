@@ -30,6 +30,7 @@ import {
   X,
   Menu,
   Activity,
+  Radio,
 } from 'lucide-react'
 import { Logo } from './Logo'
 import { supabase } from '@/lib/supabase/client'
@@ -49,6 +50,7 @@ const navItems: NavItem[] = [
     icon: ChefHat,
     children: [
       { label: 'Pedidos', href: '/operaciones/pedidos', icon: ClipboardList },
+      { label: 'Monitoreo en vivo', href: '/operaciones/monitoreo', icon: Radio },
       { label: 'ProducciÃ³n', href: '/operaciones/produccion', icon: ChefHat },
       { label: 'Tareas', href: '/operaciones/tareas', icon: CheckSquare },
       { label: 'Inventario', href: '/operaciones/inventario', icon: Package },

@@ -8,6 +8,7 @@ const routeLabels: Record<string, string> = {
   dashboard: 'Dashboard',
   operaciones: 'Operaciones',
   pedidos: 'Pedidos',
+  monitoreo: 'Monitoreo en vivo',
   produccion: 'Producción',
   tareas: 'Tareas',
   inventario: 'Inventario',
