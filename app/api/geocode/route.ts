@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
     for (const c of candidatos(q)) {
       const hit = await buscar(c.q)
       if (hit) return NextResponse.json({ found: true, precision: c.precision, ...hit })
-      await new Promise(res => setTimeout(res, 300)) // no saturar Nominatim
+      await new Promise(res => setTimeout(res, 1100)) // Nominatim: máx 1 request/seg
     }
     return NextResponse.json({ found: false })
   } catch {
