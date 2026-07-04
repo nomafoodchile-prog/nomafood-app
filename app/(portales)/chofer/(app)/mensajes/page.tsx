@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { MessageCircle, Loader2, Megaphone, Sprout, Check, Phone } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 
@@ -17,32 +17,11 @@ function hhmm(iso: string) {
 }
 const ICON: Record<string, React.ElementType> = { alerta: Megaphone, aviso: Megaphone, motivacional: Sprout, sistema: MessageCircle, chat: MessageCircle }
 
-// Beep + vibración al llegar un mensaje nuevo
-function avisar() {
-  try {
-    const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
-    if (AC) {
-      const ctx = new AC()
-      const o = ctx.createOscillator(), g = ctx.createGain()
-      o.connect(g); g.connect(ctx.destination)
-      o.type = 'sine'; o.frequency.value = 880
-      g.gain.setValueAtTime(0.0001, ctx.currentTime)
-      g.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + 0.02)
-      g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.4)
-      o.start(); o.stop(ctx.currentTime + 0.42)
-      setTimeout(() => ctx.close(), 700)
-    }
-  } catch { /* audio bloqueado hasta interacción del usuario */ }
-  try { navigator.vibrate?.([200, 100, 200]) } catch { /* sin soporte */ }
-}
-
 export default function MensajesPage() {
   const [msgs, setMsgs] = useState<Msg[]>([])
   const [loading, setLoading] = useState(true)
   const [driverId, setDriverId] = useState<string | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
-  const knownIds = useRef<Set<string>>(new Set())
-  const primed = useRef(false)
 
   const cargar = useCallback(async () => {
     const { data: d } = await supabase.from('drivers').select('id').limit(1).maybeSingle()
@@ -51,12 +30,7 @@ export default function MensajesPage() {
     const { data } = await supabase.from('driver_messages')
       .select('id, tipo, texto, created_at, leido, recibido_at')
       .eq('driver_id', d.id).order('created_at', { ascending: false })
-    const list = (data as Msg[]) || []
-    // Sonar solo con mensajes realmente nuevos (no en la primera carga)
-    if (primed.current && list.some(m => !knownIds.current.has(m.id))) avisar()
-    knownIds.current = new Set(list.map(m => m.id))
-    primed.current = true
-    setMsgs(list)
+    setMsgs((data as Msg[]) || [])
     setLoading(false)
   }, [])
 

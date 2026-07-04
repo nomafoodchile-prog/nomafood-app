@@ -1,5 +1,6 @@
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Header } from '@/components/layout/Header'
+import { IncidenciaAlert } from '@/components/central/IncidenciaAlert'
 
 export default function CentralLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -11,6 +12,7 @@ export default function CentralLayout({ children }: { children: React.ReactNode 
           {children}
         </main>
       </div>
+      <IncidenciaAlert />
     </div>
   )
 }

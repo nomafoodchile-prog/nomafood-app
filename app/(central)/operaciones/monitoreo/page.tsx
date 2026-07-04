@@ -69,6 +69,7 @@ export default function MonitoreoEnVivo() {
   const [sync, setSync] = useState<Date>(new Date())
   const [, setTick] = useState(0)
   const [busy, setBusy] = useState<string | null>(null)
+  const [refreshing, setRefreshing] = useState(false)
   const [reasignando, setReasignando] = useState<{ pedidoId: string; incidenciaId: string } | null>(null)
   const [notaReasignar, setNotaReasignar] = useState('')
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -128,6 +129,8 @@ export default function MonitoreoEnVivo() {
 
   // Re-render suave para refrescar "hace X" de la última sync
   useEffect(() => { const t = setInterval(() => setTick(x => x + 1), 30000); return () => clearInterval(t) }, [])
+
+  async function actualizar() { setRefreshing(true); await cargar(); setRefreshing(false) }
 
   // ── Acciones de la Central (Fase 2D) ──────────────────────────────
   async function accionIncidencia(id: string, estado: 'en_revision' | 'resuelta') {
@@ -199,8 +202,8 @@ export default function MonitoreoEnVivo() {
             </span>
             En vivo
           </span>
-          <button onClick={() => cargar()} className="flex items-center gap-1.5 text-xs font-medium text-[#1b2a4a] border border-gray-200 bg-white px-3 py-1.5 rounded-full hover:bg-gray-50">
-            <RefreshCw size={13} /> Actualizar
+          <button onClick={actualizar} disabled={refreshing} className="flex items-center gap-1.5 text-xs font-medium text-[#1b2a4a] border border-gray-200 bg-white px-3 py-1.5 rounded-full hover:bg-gray-50 disabled:opacity-60">
+            <RefreshCw size={13} className={refreshing ? 'animate-spin' : ''} /> {refreshing ? 'Actualizando…' : 'Actualizar'}
           </button>
         </div>
       </div>
