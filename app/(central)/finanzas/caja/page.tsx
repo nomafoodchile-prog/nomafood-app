@@ -72,15 +72,15 @@ export default function CajaPage() {
 
       {/* KPI cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="noma-card bg-gradient-to-br from-[#0f0f0f] to-gray-800 text-white">
+        <div className="noma-card bg-gradient-to-br from-[#1b2a4a] to-gray-800 text-white">
           <div className="flex items-center justify-between mb-2">
-            <div className="w-10 h-10 bg-[#c9a84c]/20 rounded-xl flex items-center justify-center">
-              <DollarSign size={18} className="text-[#c9a84c]" />
+            <div className="w-10 h-10 bg-[#c9a24e]/20 rounded-xl flex items-center justify-center">
+              <DollarSign size={18} className="text-[#c9a24e]" />
             </div>
             <span className="text-xs text-gray-400">Balance</span>
           </div>
           <p className="text-xs text-gray-400">Saldo actual</p>
-          <p className="text-2xl font-bold text-[#c9a84c] mt-1">{currency(balance)}</p>
+          <p className="text-2xl font-bold text-[#c9a24e] mt-1">{currency(balance)}</p>
         </div>
 
         <div className="noma-card border-l-4 border-green-400">
@@ -137,13 +137,13 @@ export default function CajaPage() {
           <div>
             <div className="flex justify-between text-xs mb-1">
               <span className="text-gray-600 font-medium">Margen neto</span>
-              <span className="text-[#c9a84c] font-bold">
+              <span className="text-[#c9a24e] font-bold">
                 {totalIncome > 0 ? Math.round(((totalIncome - totalExpenses) / totalIncome) * 100) : 0}%
               </span>
             </div>
             <div className="w-full bg-gray-100 rounded-full h-3">
               <div
-                className="h-3 rounded-full bg-[#c9a84c]"
+                className="h-3 rounded-full bg-[#c9a24e]"
                 style={{ width: `${totalIncome > 0 ? ((totalIncome - totalExpenses) / totalIncome) * 100 : 0}%` }}
               />
             </div>
@@ -162,7 +162,7 @@ export default function CajaPage() {
                 onClick={() => setTypeFilter(t)}
                 className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${
                   typeFilter === t
-                    ? 'bg-[#c9a84c] text-[#0f0f0f]'
+                    ? 'bg-[#c9a24e] text-[#1b2a4a]'
                     : 'text-gray-500 hover:text-gray-700'
                 }`}
               >

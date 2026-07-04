@@ -38,7 +38,7 @@ export default function RecuperarPage() {
       <div className="bg-white rounded-2xl shadow-card p-8">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-16 h-16 bg-[#c9a84c] rounded-2xl flex items-center justify-center font-black text-[#0f0f0f] text-2xl mb-4 shadow-lg">
+          <div className="w-16 h-16 bg-[#c9a24e] rounded-2xl flex items-center justify-center font-black text-[#1b2a4a] text-2xl mb-4 shadow-lg">
             NF
           </div>
           <h1 className="text-2xl font-bold text-[#1a1a1a] tracking-tight">Noma Food</h1>
@@ -62,7 +62,7 @@ export default function RecuperarPage() {
             </p>
             <a
               href="/login"
-              className="flex items-center justify-center gap-1.5 text-xs text-[#c9a84c] hover:text-[#b8962e] hover:underline transition-colors mt-2"
+              className="flex items-center justify-center gap-1.5 text-xs text-[#c9a24e] hover:text-[#b8923f] hover:underline transition-colors mt-2"
             >
               <ArrowLeft size={12} />
               Volver al inicio de sesión
@@ -113,7 +113,7 @@ export default function RecuperarPage() {
             <div className="mt-4 text-center">
               <a
                 href="/login"
-                className="flex items-center justify-center gap-1.5 text-xs text-[#c9a84c] hover:text-[#b8962e] hover:underline transition-colors"
+                className="flex items-center justify-center gap-1.5 text-xs text-[#c9a24e] hover:text-[#b8923f] hover:underline transition-colors"
               >
                 <ArrowLeft size={12} />
                 Volver al inicio de sesión

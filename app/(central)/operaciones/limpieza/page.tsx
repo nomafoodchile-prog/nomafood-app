@@ -198,12 +198,12 @@ export default function LimpiezaPage() {
 
       {/* KPI cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="noma-card bg-gradient-to-br from-[#0f0f0f] to-gray-800 text-white">
-          <div className="w-9 h-9 bg-[#c9a84c]/20 rounded-xl flex items-center justify-center mb-3">
-            <ClipboardList size={16} className="text-[#c9a84c]" />
+        <div className="noma-card bg-gradient-to-br from-[#1b2a4a] to-gray-800 text-white">
+          <div className="w-9 h-9 bg-[#c9a24e]/20 rounded-xl flex items-center justify-center mb-3">
+            <ClipboardList size={16} className="text-[#c9a24e]" />
           </div>
           <p className="text-xs text-gray-400">Total tareas</p>
-          <p className="text-2xl font-bold text-[#c9a84c]">{totalTareas}</p>
+          <p className="text-2xl font-bold text-[#c9a24e]">{totalTareas}</p>
         </div>
         <div className="noma-card border-l-4 border-green-400">
           <div className="w-9 h-9 bg-green-50 rounded-xl flex items-center justify-center mb-3">
@@ -212,12 +212,12 @@ export default function LimpiezaPage() {
           <p className="text-xs text-gray-500">Al día</p>
           <p className="text-2xl font-bold text-green-600">{alDia}</p>
         </div>
-        <div className="noma-card border-l-4 border-[#c9a84c]">
+        <div className="noma-card border-l-4 border-[#c9a24e]">
           <div className="w-9 h-9 bg-amber-50 rounded-xl flex items-center justify-center mb-3">
-            <Clock size={16} className="text-[#c9a84c]" />
+            <Clock size={16} className="text-[#c9a24e]" />
           </div>
           <p className="text-xs text-gray-500">Pendientes</p>
-          <p className="text-2xl font-bold text-[#c9a84c]">{pendientes}</p>
+          <p className="text-2xl font-bold text-[#c9a24e]">{pendientes}</p>
         </div>
         <div className="noma-card border-l-4 border-red-400">
           <div className="w-9 h-9 bg-red-50 rounded-xl flex items-center justify-center mb-3">
@@ -239,7 +239,7 @@ export default function LimpiezaPage() {
                 onClick={() => setFiltroEstado(e)}
                 className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${
                   filtroEstado === e
-                    ? 'bg-[#c9a84c] text-[#0f0f0f]'
+                    ? 'bg-[#c9a24e] text-[#1b2a4a]'
                     : 'text-gray-500 hover:text-gray-700'
                 }`}
               >

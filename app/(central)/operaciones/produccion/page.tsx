@@ -14,7 +14,7 @@ function ProgressBar({ value }: { value: number }) {
   return (
     <div className="w-full bg-gray-100 rounded-full h-1.5">
       <div
-        className="h-1.5 rounded-full bg-[#c9a84c] transition-all"
+        className="h-1.5 rounded-full bg-[#c9a24e] transition-all"
         style={{ width: `${Math.min(100, value)}%` }}
       />
     </div>
@@ -75,7 +75,7 @@ export default function ProduccionPage() {
                 </div>
                 <span
                   className={`text-sm font-bold ${
-                    progress === 100 ? 'text-green-600' : 'text-[#c9a84c]'
+                    progress === 100 ? 'text-green-600' : 'text-[#c9a24e]'
                   }`}
                 >
                   {progress}%
@@ -97,7 +97,7 @@ export default function ProduccionPage() {
                       {task.status === 'Lista' ? (
                         <CheckCircle2 size={16} className="text-green-500 flex-shrink-0 mt-0.5" />
                       ) : task.status === 'En proceso' ? (
-                        <Circle size={16} className="text-[#c9a84c] flex-shrink-0 mt-0.5 animate-pulse" />
+                        <Circle size={16} className="text-[#c9a24e] flex-shrink-0 mt-0.5 animate-pulse" />
                       ) : (
                         <Circle size={16} className="text-gray-300 flex-shrink-0 mt-0.5" />
                       )}

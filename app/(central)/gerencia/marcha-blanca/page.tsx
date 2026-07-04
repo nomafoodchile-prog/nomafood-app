@@ -366,7 +366,7 @@ function DataBadge({ tipo }: { tipo: DataType }) {
 
 function ProgressBar({ value, color = 'gold' }: { value: number; color?: string }) {
   const colors = {
-    gold: 'bg-[#c9a84c]', green: 'bg-green-500', red: 'bg-red-500', blue: 'bg-blue-500'
+    gold: 'bg-[#c9a24e]', green: 'bg-green-500', red: 'bg-red-500', blue: 'bg-blue-500'
   }
   const c = value >= 80 ? colors.green : value >= 50 ? colors.gold : value >= 30 ? 'bg-orange-400' : colors.red
   return (
@@ -416,7 +416,7 @@ function ModuleCard({ mod, expanded, onToggle }: { mod: ModuleInfo; expanded: bo
               href={mod.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs text-[#c9a84c] hover:text-[#b8943b]"
+              className="inline-flex items-center gap-1 text-xs text-[#c9a24e] hover:text-[#b8943b]"
             >
               <ExternalLink size={11} /> Ver módulo → {mod.url}
             </a>
@@ -463,8 +463,8 @@ export default function MarchaBlancoPage() {
       {/* HEADER */}
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-1">
-          <Zap size={20} className="text-[#c9a84c]" />
-          <h1 className="text-xl font-bold text-[#0f0f0f]">Marcha Blanca / Estado de Implementación</h1>
+          <Zap size={20} className="text-[#c9a24e]" />
+          <h1 className="text-xl font-bold text-[#1b2a4a]">Marcha Blanca / Estado de Implementación</h1>
         </div>
         <p className="text-sm text-gray-500">Centro de control de lanzamiento — Noma Food Sistema Operacional</p>
       </div>
@@ -474,7 +474,7 @@ export default function MarchaBlancoPage() {
         {[
           {
             label: 'Avance General', value: `${overallPct}%`,
-            sub: 'módulos + integraciones', color: overallPct >= 70 ? 'text-green-600' : 'text-[#c9a84c]'
+            sub: 'módulos + integraciones', color: overallPct >= 70 ? 'text-green-600' : 'text-[#c9a24e]'
           },
           {
             label: 'Módulos Parciales', value: `${parcialCount}/${MODULOS.length}`,
@@ -501,11 +501,11 @@ export default function MarchaBlancoPage() {
       <div className="bg-white rounded-2xl p-4 mb-6 shadow-sm border border-gray-100">
         <div className="flex justify-between items-center mb-2">
           <span className="text-sm font-semibold text-gray-700">Progreso hacia Marcha Blanca Real</span>
-          <span className="text-sm font-bold text-[#c9a84c]">{overallPct}%</span>
+          <span className="text-sm font-bold text-[#c9a24e]">{overallPct}%</span>
         </div>
         <div className="w-full bg-gray-100 rounded-full h-3">
           <div
-            className="h-3 rounded-full bg-gradient-to-r from-[#c9a84c] to-[#e8c76a] transition-all"
+            className="h-3 rounded-full bg-gradient-to-r from-[#c9a24e] to-[#e8c76a] transition-all"
             style={{ width: `${overallPct}%` }}
           />
         </div>
@@ -569,7 +569,7 @@ export default function MarchaBlancoPage() {
                         <button
                           onClick={() => runModuleTest(mod.nombre)}
                           disabled={testRunning === mod.nombre}
-                          className="shrink-0 p-1.5 rounded-lg bg-[#c9a84c]/10 hover:bg-[#c9a84c]/20 text-[#c9a84c] transition-colors"
+                          className="shrink-0 p-1.5 rounded-lg bg-[#c9a24e]/10 hover:bg-[#c9a24e]/20 text-[#c9a24e] transition-colors"
                           title="Ejecutar prueba"
                         >
                           {testRunning === mod.nombre
@@ -593,7 +593,7 @@ export default function MarchaBlancoPage() {
           className="w-full flex items-center justify-between p-4 border-b border-gray-100"
         >
           <h2 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-            <Globe size={16} className="text-[#c9a84c]" /> Estado de Integraciones
+            <Globe size={16} className="text-[#c9a24e]" /> Estado de Integraciones
           </h2>
           {showIntegraciones ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
         </button>
@@ -628,7 +628,7 @@ export default function MarchaBlancoPage() {
           className="w-full flex items-center justify-between p-4 border-b border-gray-100"
         >
           <h2 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-            <ClipboardList size={16} className="text-[#c9a84c]" />
+            <ClipboardList size={16} className="text-[#c9a24e]" />
             Checklist de Lanzamiento ({checklistOk}/{checklistTotal})
           </h2>
           {showChecklist ? <ChevronUp size={16} /> : <ChevronDown size={16} />}

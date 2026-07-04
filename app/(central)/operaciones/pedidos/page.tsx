@@ -89,7 +89,7 @@ export default function PedidosPage() {
                 onClick={() => { setStatusFilter(s); setPage(1) }}
                 className={`px-2.5 py-1 rounded-md text-xs font-semibold whitespace-nowrap transition-all ${
                   statusFilter === s
-                    ? 'bg-[#c9a84c] text-[#0f0f0f]'
+                    ? 'bg-[#c9a24e] text-[#1b2a4a]'
                     : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
@@ -141,10 +141,10 @@ export default function PedidosPage() {
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex items-center justify-end gap-1">
-                        <button className="p-1.5 rounded-lg text-gray-400 hover:text-[#c9a84c] hover:bg-[#c9a84c]/10 transition-colors">
+                        <button className="p-1.5 rounded-lg text-gray-400 hover:text-[#c9a24e] hover:bg-[#c9a24e]/10 transition-colors">
                           <Eye size={14} />
                         </button>
-                        <button className="p-1.5 rounded-lg text-gray-400 hover:text-[#c9a84c] hover:bg-[#c9a84c]/10 transition-colors">
+                        <button className="p-1.5 rounded-lg text-gray-400 hover:text-[#c9a24e] hover:bg-[#c9a24e]/10 transition-colors">
                           <Pencil size={14} />
                         </button>
                       </div>
@@ -166,7 +166,7 @@ export default function PedidosPage() {
               <button
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="px-3 py-1.5 text-xs rounded-lg border border-gray-200 text-gray-600 hover:border-[#c9a84c] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="px-3 py-1.5 text-xs rounded-lg border border-gray-200 text-gray-600 hover:border-[#c9a24e] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 Anterior
               </button>
@@ -176,8 +176,8 @@ export default function PedidosPage() {
                   onClick={() => setPage(p)}
                   className={`w-8 h-8 text-xs rounded-lg border transition-colors ${
                     p === page
-                      ? 'bg-[#c9a84c] border-[#c9a84c] text-[#0f0f0f] font-bold'
-                      : 'border-gray-200 text-gray-600 hover:border-[#c9a84c]'
+                      ? 'bg-[#c9a24e] border-[#c9a24e] text-[#1b2a4a] font-bold'
+                      : 'border-gray-200 text-gray-600 hover:border-[#c9a24e]'
                   }`}
                 >
                   {p}
@@ -186,7 +186,7 @@ export default function PedidosPage() {
               <button
                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="px-3 py-1.5 text-xs rounded-lg border border-gray-200 text-gray-600 hover:border-[#c9a84c] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="px-3 py-1.5 text-xs rounded-lg border border-gray-200 text-gray-600 hover:border-[#c9a24e] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 Siguiente
               </button>

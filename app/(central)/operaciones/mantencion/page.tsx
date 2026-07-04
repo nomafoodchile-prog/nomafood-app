@@ -255,7 +255,7 @@ export default function MantencionPage() {
                 onClick={() => setFiltroEstado(e)}
                 className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${
                   filtroEstado === e
-                    ? 'bg-[#c9a84c] text-[#0f0f0f]'
+                    ? 'bg-[#c9a24e] text-[#1b2a4a]'
                     : 'text-gray-500 hover:text-gray-700'
                 }`}
               >

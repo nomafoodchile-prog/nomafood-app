@@ -216,12 +216,12 @@ export default function ProveedoresPage() {
 
       {/* KPI cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-        <div className="noma-card bg-gradient-to-br from-[#0f0f0f] to-gray-800 text-white">
-          <div className="w-9 h-9 bg-[#c9a84c]/20 rounded-xl flex items-center justify-center mb-3">
-            <Truck size={16} className="text-[#c9a84c]" />
+        <div className="noma-card bg-gradient-to-br from-[#1b2a4a] to-gray-800 text-white">
+          <div className="w-9 h-9 bg-[#c9a24e]/20 rounded-xl flex items-center justify-center mb-3">
+            <Truck size={16} className="text-[#c9a24e]" />
           </div>
           <p className="text-xs text-gray-400">Total proveedores</p>
-          <p className="text-2xl font-bold text-[#c9a84c]">{proveedores.length}</p>
+          <p className="text-2xl font-bold text-[#c9a24e]">{proveedores.length}</p>
         </div>
         <div className="noma-card border-l-4 border-green-400">
           <div className="w-9 h-9 bg-green-50 rounded-xl flex items-center justify-center mb-3">
@@ -313,7 +313,7 @@ export default function ProveedoresPage() {
                       <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Contacto</p>
                       <p className="text-sm font-medium text-[#1a1a1a]">{p.contacto}</p>
                       <p className="text-sm text-gray-500">{p.telefono}</p>
-                      <a href={`mailto:${p.email}`} className="text-sm text-[#c9a84c] hover:underline">{p.email}</a>
+                      <a href={`mailto:${p.email}`} className="text-sm text-[#c9a24e] hover:underline">{p.email}</a>
                     </div>
                     <div>
                       <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Detalles</p>

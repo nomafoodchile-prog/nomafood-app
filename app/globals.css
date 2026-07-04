@@ -48,14 +48,14 @@
   }
 
   .noma-btn-primary {
-    @apply bg-[#c9a84c] text-[#0f0f0f] font-semibold px-4 py-2 rounded-lg hover:bg-[#b8962e] transition-colors;
+    @apply bg-[#c9a24e] text-[#1b2a4a] font-semibold px-4 py-2 rounded-lg hover:bg-[#b8923f] transition-colors;
   }
 
   .noma-btn-secondary {
-    @apply border border-[#c9a84c] text-[#c9a84c] font-semibold px-4 py-2 rounded-lg hover:bg-[#c9a84c] hover:text-[#0f0f0f] transition-colors;
+    @apply border border-[#c9a24e] text-[#c9a24e] font-semibold px-4 py-2 rounded-lg hover:bg-[#c9a24e] hover:text-[#1b2a4a] transition-colors;
   }
 
   .noma-input {
-    @apply w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#c9a84c] focus:border-transparent;
+    @apply w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#c9a24e] focus:border-transparent;
   }
 }

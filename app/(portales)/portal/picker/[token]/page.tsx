@@ -7,9 +7,9 @@ import {
   User, Star, Send, Search
 } from 'lucide-react'
 
-/* âââââââââââââââââââââââââââââââââââââââââââââ
+/* ─────────────────────────────────────────────
    TIPOS
-âââââââââââââââââââââââââââââââââââââââââââââ */
+───────────────────────────────────────────── */
 type PickStatus = 'pendiente' | 'en_proceso' | 'completado' | 'faltante'
 
 interface Picker {
@@ -39,9 +39,9 @@ interface PickSession {
   items: PickItem[]
 }
 
-/* âââââââââââââââââââââââââââââââââââââââââââââ
+/* ─────────────────────────────────────────────
    HELPERS
-âââââââââââââââââââââââââââââââââââââââââââââ */
+───────────────────────────────────────────── */
 const STATUS_COLORS: Record<PickStatus, string> = {
   pendiente: 'bg-gray-100 text-gray-600',
   en_proceso: 'bg-blue-100 text-blue-700',
@@ -56,9 +56,9 @@ const STATUS_LABELS: Record<PickStatus, string> = {
   faltante: 'Faltante',
 }
 
-/* âââââââââââââââââââââââââââââââââââââââââââââ
+/* ─────────────────────────────────────────────
    COMPONENTE PRINCIPAL
-âââââââââââââââââââââââââââââââââââââââââââââ */
+───────────────────────────────────────────── */
 export default function PortalPicker({ params }: { params: { token: string } }) {
   const { token } = params
 
@@ -77,14 +77,14 @@ export default function PortalPicker({ params }: { params: { token: string } }) 
   const [quantities, setQuantities] = useState<Record<string, number>>({})
   const [itemNotas, setItemNotas] = useState<Record<string, string>>({})
 
-  /* ââ Carga ââ */
+  /* ── Carga ── */
   const loadData = useCallback(async () => {
     try {
       setOnline(navigator.onLine)
       const res = await fetch(`/api/portal/picker/${token}`)
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
-        setError(err.error || 'Token invÃ¡lido')
+        setError(err.error || 'Token inválido')
         setLoading(false)
         return
       }
@@ -102,7 +102,7 @@ export default function PortalPicker({ params }: { params: { token: string } }) 
       setError(null)
     } catch {
       setOnline(false)
-      setError('Sin conexiÃ³n')
+      setError('Sin conexión')
     } finally {
       setLoading(false)
     }
@@ -123,7 +123,7 @@ export default function PortalPicker({ params }: { params: { token: string } }) 
     setTimeout(() => setSuccessMsg(null), 3000)
   }
 
-  /* ââ Acciones ââ */
+  /* ── Acciones ── */
   async function confirmPick(itemId: string, qty: number, isFaltante: boolean) {
     setSaving(itemId)
     try {
@@ -151,11 +151,11 @@ export default function PortalPicker({ params }: { params: { token: string } }) 
         }
       })
       setExpandedItem(null)
-      showSuccess(isFaltante ? 'Faltante registrado' : 'Â¡Pick confirmado!')
+      showSuccess(isFaltante ? 'Faltante registrado' : '¡Pick confirmado!')
     } finally { setSaving(null) }
   }
 
-  /* ââ Stats ââ */
+  /* ── Stats ── */
   const items = session?.items || []
   const completados = items.filter(i => i.status === 'completado').length
   const faltantes = items.filter(i => i.status === 'faltante').length
@@ -172,18 +172,18 @@ export default function PortalPicker({ params }: { params: { token: string } }) 
 
   // Agrupar por pasillo
   const grouped = filteredItems.reduce((acc, item) => {
-    const pasillo = item.ubicacion_bodega.split('-')[0] || 'Sin ubicaciÃ³n'
+    const pasillo = item.ubicacion_bodega.split('-')[0] || 'Sin ubicación'
     if (!acc[pasillo]) acc[pasillo] = []
     acc[pasillo].push(item)
     return acc
   }, {} as Record<string, PickItem[]>)
 
-  /* ââ LOADING ââ */
+  /* ── LOADING ── */
   if (loading) {
     return (
       <div className="min-h-screen bg-[#f5f0e8] flex items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-[#c9a84c] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <div className="w-12 h-12 border-4 border-[#c9a24e] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-gray-600 text-sm">Cargando portal...</p>
         </div>
       </div>
@@ -202,7 +202,7 @@ export default function PortalPicker({ params }: { params: { token: string } }) 
     )
   }
 
-  /* ââ PORTAL ââ */
+  /* ── PORTAL ── */
   return (
     <div className="min-h-screen bg-[#f5f0e8]">
       {/* Toast */}
@@ -213,10 +213,10 @@ export default function PortalPicker({ params }: { params: { token: string } }) 
       )}
 
       {/* Header */}
-      <div className="bg-[#0f0f0f] text-white px-4 py-3 flex items-center justify-between sticky top-0 z-40">
+      <div className="bg-[#1b2a4a] text-white px-4 py-3 flex items-center justify-between sticky top-0 z-40">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-[#c9a84c] flex items-center justify-center">
-            <Package size={16} className="text-[#0f0f0f]" />
+          <div className="w-8 h-8 rounded-lg bg-[#c9a24e] flex items-center justify-center">
+            <Package size={16} className="text-[#1b2a4a]" />
           </div>
           <div>
             <p className="text-xs text-gray-400">Portal Picker</p>
@@ -233,13 +233,13 @@ export default function PortalPicker({ params }: { params: { token: string } }) 
 
       {!online && (
         <div className="bg-amber-50 border-b border-amber-200 px-4 py-2 text-xs text-amber-700 flex items-center gap-2">
-          <WifiOff size={12} /> Sin conexiÃ³n â los picks se sincronizarÃ¡n al reconectar
+          <WifiOff size={12} /> Sin conexión — los picks se sincronizarán al reconectar
         </div>
       )}
 
       <div className="max-w-md mx-auto px-4 py-5 space-y-4">
 
-        {/* Sin sesiÃ³n */}
+        {/* Sin sesión */}
         {!session && (
           <div className="bg-white rounded-xl p-8 text-center border border-gray-100 shadow-sm">
             <Package className="mx-auto text-gray-300 mb-3" size={40} />
@@ -272,7 +272,7 @@ export default function PortalPicker({ params }: { params: { token: string } }) 
                 <span className="text-xs text-gray-400">{pct}%</span>
               </div>
               <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                <div className="h-full bg-[#c9a84c] transition-all" style={{ width: `${pct}%` }} />
+                <div className="h-full bg-[#c9a24e] transition-all" style={{ width: `${pct}%` }} />
               </div>
             </div>
 
@@ -283,8 +283,8 @@ export default function PortalPicker({ params }: { params: { token: string } }) 
                 type="text"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Buscar producto, ubicaciÃ³n, pedido..."
-                className="w-full bg-white border border-gray-200 rounded-xl pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#c9a84c]"
+                placeholder="Buscar producto, ubicación, pedido..."
+                className="w-full bg-white border border-gray-200 rounded-xl pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#c9a24e]"
               />
             </div>
 
@@ -292,7 +292,7 @@ export default function PortalPicker({ params }: { params: { token: string } }) 
             {Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b)).map(([pasillo, pasilloItems]) => (
               <div key={pasillo}>
                 <div className="flex items-center gap-2 mb-2 px-1">
-                  <MapPin size={13} className="text-[#c9a84c]" />
+                  <MapPin size={13} className="text-[#c9a24e]" />
                   <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">
                     Pasillo {pasillo}
                   </h3>
@@ -322,11 +322,11 @@ export default function PortalPicker({ params }: { params: { token: string } }) 
                           onClick={() => setExpandedItem(isExpanded ? null : item.id)}
                           className="w-full flex items-center gap-3 p-3 text-left"
                         >
-                          {/* UbicaciÃ³n */}
+                          {/* Ubicación */}
                           <div className={`shrink-0 text-center rounded-lg p-1.5 min-w-[44px] ${
-                            isDone ? 'bg-gray-100' : 'bg-[#c9a84c]/15'
+                            isDone ? 'bg-gray-100' : 'bg-[#c9a24e]/15'
                           }`}>
-                            <p className={`text-xs font-bold ${isDone ? 'text-gray-400' : 'text-[#c9a84c]'}`}>
+                            <p className={`text-xs font-bold ${isDone ? 'text-gray-400' : 'text-[#c9a24e]'}`}>
                               {item.ubicacion_bodega}
                             </p>
                           </div>
@@ -339,7 +339,7 @@ export default function PortalPicker({ params }: { params: { token: string } }) 
                               <span className="text-xs text-gray-400">
                                 {item.cantidad_pickeada > 0 ? item.cantidad_pickeada : '0'}/{item.cantidad_pedida} {item.unidad}
                               </span>
-                              <span className="text-xs text-gray-300">Â·</span>
+                              <span className="text-xs text-gray-300">·</span>
                               <span className="text-xs text-gray-400">Ped. #{item.pedido_numero}</span>
                               <span className={`text-xs px-1.5 py-0.5 rounded-full ${STATUS_COLORS[item.status]}`}>
                                 {STATUS_LABELS[item.status]}
@@ -372,14 +372,14 @@ export default function PortalPicker({ params }: { params: { token: string } }) 
                                 <button
                                   onClick={() => setQuantities(q => ({ ...q, [item.id]: Math.max(0, (q[item.id] ?? 0) - 1) }))}
                                   className="w-9 h-9 rounded-lg bg-gray-100 text-gray-600 font-bold flex items-center justify-center"
-                                >â</button>
+                                >−</button>
                                 <input
                                   type="number"
                                   min={0}
                                   max={item.cantidad_pedida * 2}
                                   value={currentQty}
                                   onChange={e => setQuantities(q => ({ ...q, [item.id]: Number(e.target.value) }))}
-                                  className="flex-1 border border-gray-200 rounded-lg text-center py-2 text-base font-bold focus:outline-none focus:ring-1 focus:ring-[#c9a84c]"
+                                  className="flex-1 border border-gray-200 rounded-lg text-center py-2 text-base font-bold focus:outline-none focus:ring-1 focus:ring-[#c9a24e]"
                                 />
                                 <button
                                   onClick={() => setQuantities(q => ({ ...q, [item.id]: (q[item.id] ?? 0) + 1 }))}
@@ -387,7 +387,7 @@ export default function PortalPicker({ params }: { params: { token: string } }) 
                                 >+</button>
                                 <button
                                   onClick={() => setQuantities(q => ({ ...q, [item.id]: item.cantidad_pedida }))}
-                                  className="text-xs text-[#c9a84c] underline whitespace-nowrap"
+                                  className="text-xs text-[#c9a24e] underline whitespace-nowrap"
                                 >
                                   Completo
                                 </button>
@@ -400,7 +400,7 @@ export default function PortalPicker({ params }: { params: { token: string } }) 
                               value={itemNotas[item.id] || ''}
                               onChange={e => setItemNotas(n => ({ ...n, [item.id]: e.target.value }))}
                               placeholder="Nota (opcional)..."
-                              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-[#c9a84c]"
+                              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-[#c9a24e]"
                             />
 
                             {/* Acciones */}
@@ -429,9 +429,9 @@ export default function PortalPicker({ params }: { params: { token: string } }) 
                           <div className="px-3 pb-3 border-t border-gray-100 pt-2">
                             <p className="text-xs text-gray-400">
                               {item.status === 'completado'
-                                ? `â Pickeado: ${item.cantidad_pickeada}/${item.cantidad_pedida} ${item.unidad}`
-                                : `â  Faltante â ${item.cantidad_pickeada}/${item.cantidad_pedida} ${item.unidad}`}
-                              {item.notas && ` Â· "${item.notas}"`}
+                                ? `✓ Pickeado: ${item.cantidad_pickeada}/${item.cantidad_pedida} ${item.unidad}`
+                                : `⚠ Faltante — ${item.cantidad_pickeada}/${item.cantidad_pedida} ${item.unidad}`}
+                              {item.notas && ` · "${item.notas}"`}
                             </p>
                           </div>
                         )}
@@ -453,7 +453,7 @@ export default function PortalPicker({ params }: { params: { token: string } }) 
 
         {/* Footer */}
         <div className="text-center text-xs text-gray-400 pb-4">
-          <p>Noma Food Â· Portal Picker</p>
+          <p>Noma Food · Portal Picker</p>
         </div>
       </div>
     </div>

@@ -49,7 +49,7 @@ export function DriverMapClient({
 
       // Custom gold marker icon
       const icon = L.divIcon({
-        html: `<div style="width:36px;height:36px;background:#c9a84c;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #0f0f0f;box-shadow:0 2px 8px rgba(0,0,0,0.4)"></div>`,
+        html: `<div style="width:36px;height:36px;background:#c9a24e;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #1b2a4a;box-shadow:0 2px 8px rgba(0,0,0,0.4)"></div>`,
         className: '',
         iconSize: [36, 36],
         iconAnchor: [18, 36],
@@ -76,8 +76,8 @@ export function DriverMapClient({
     <div className="relative w-full h-full min-h-[300px] rounded-xl overflow-hidden">
       <div ref={mapRef} className="w-full h-full" />
       {/* Overlay badge */}
-      <div className="absolute top-3 left-3 z-[1000] bg-[#0f0f0f] text-white text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-lg">
-        <MapPin size={12} className="text-[#c9a84c]" />
+      <div className="absolute top-3 left-3 z-[1000] bg-[#1b2a4a] text-white text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-lg">
+        <MapPin size={12} className="text-[#c9a24e]" />
         <span>Santiago, Chile</span>
       </div>
     </div>

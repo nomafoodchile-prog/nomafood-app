@@ -69,13 +69,13 @@ export default function TareasPage() {
           <p className="text-sm font-semibold text-[#1a1a1a]">
             Progreso global — {completed}/{total} tareas completadas
           </p>
-          <span className="text-sm font-bold text-[#c9a84c]">
+          <span className="text-sm font-bold text-[#c9a24e]">
             {total > 0 ? Math.round((completed / total) * 100) : 0}%
           </span>
         </div>
         <div className="w-full bg-gray-100 rounded-full h-2">
           <div
-            className="h-2 rounded-full bg-[#c9a84c] transition-all duration-500"
+            className="h-2 rounded-full bg-[#c9a24e] transition-all duration-500"
             style={{ width: `${total > 0 ? (completed / total) * 100 : 0}%` }}
           />
         </div>
@@ -90,7 +90,7 @@ export default function TareasPage() {
             onClick={() => setWorkerFilter(w)}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
               workerFilter === w
-                ? 'bg-[#c9a84c] text-[#0f0f0f]'
+                ? 'bg-[#c9a24e] text-[#1b2a4a]'
                 : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
             }`}
           >
@@ -110,7 +110,7 @@ export default function TareasPage() {
                 task.status === 'Lista'
                   ? 'border-green-400 opacity-80'
                   : task.status === 'En proceso'
-                  ? 'border-[#c9a84c]'
+                  ? 'border-[#c9a24e]'
                   : 'border-gray-200'
               }`}
             >
@@ -123,7 +123,7 @@ export default function TareasPage() {
                       task.status === 'Lista'
                         ? 'text-green-500'
                         : task.status === 'En proceso'
-                        ? 'text-[#c9a84c]'
+                        ? 'text-[#c9a24e]'
                         : 'text-gray-300'
                     }
                   />
@@ -143,7 +143,7 @@ export default function TareasPage() {
 
               {/* Operator + area */}
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-6 h-6 rounded-full bg-[#c9a84c]/20 flex items-center justify-center text-[9px] font-bold text-[#c9a84c]">
+                <div className="w-6 h-6 rounded-full bg-[#c9a24e]/20 flex items-center justify-center text-[9px] font-bold text-[#c9a24e]">
                   {task.operatorName.split(' ').map(n => n[0]).join('').slice(0, 2)}
                 </div>
                 <div>
@@ -158,7 +158,7 @@ export default function TareasPage() {
                   {task.status === 'Pendiente' && (
                     <button
                       onClick={() => updateStatus(task.id, 'En proceso')}
-                      className="flex-1 text-xs font-semibold py-1.5 rounded-lg bg-[#c9a84c]/10 text-[#c9a84c] hover:bg-[#c9a84c] hover:text-[#0f0f0f] transition-colors"
+                      className="flex-1 text-xs font-semibold py-1.5 rounded-lg bg-[#c9a24e]/10 text-[#c9a24e] hover:bg-[#c9a24e] hover:text-[#1b2a4a] transition-colors"
                     >
                       Iniciar
                     </button>

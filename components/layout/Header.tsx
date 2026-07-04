@@ -70,7 +70,7 @@ export function Header() {
             onClick={() => changeLocale(l)}
             className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${
               locale === l
-                ? 'bg-[#c9a84c] text-[#0f0f0f]'
+                ? 'bg-[#c9a24e] text-[#1b2a4a]'
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -86,7 +86,7 @@ export function Header() {
       </button>
 
       {/* User avatar */}
-      <div className="w-9 h-9 rounded-full bg-[#c9a84c]/20 border-2 border-[#c9a84c]/40 flex items-center justify-center text-[#c9a84c] text-xs font-black cursor-pointer hover:border-[#c9a84c] transition-colors">
+      <div className="w-9 h-9 rounded-full bg-[#c9a24e]/20 border-2 border-[#c9a24e]/40 flex items-center justify-center text-[#c9a24e] text-xs font-black cursor-pointer hover:border-[#c9a24e] transition-colors">
         AD
       </div>
     </header>

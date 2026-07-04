@@ -76,7 +76,7 @@ const modulos: Modulo[] = [
 ]
 
 const rolHeaderColor: Record<Rol, string> = {
-  Gerencia: 'text-[#c9a84c]',
+  Gerencia: 'text-[#c9a24e]',
   'Administración': 'text-blue-600',
   'Enc. Producción': 'text-blue-500',
   Operario: 'text-gray-500',
@@ -98,8 +98,8 @@ export default function AccesosPage() {
           <h1 className="text-2xl font-bold text-[#1a1a1a]">Control de Accesos</h1>
           <p className="text-sm text-gray-500 mt-0.5">Matriz de permisos por rol</p>
         </div>
-        <div className="w-10 h-10 bg-[#c9a84c]/10 rounded-xl flex items-center justify-center">
-          <ShieldCheck size={20} className="text-[#c9a84c]" />
+        <div className="w-10 h-10 bg-[#c9a24e]/10 rounded-xl flex items-center justify-center">
+          <ShieldCheck size={20} className="text-[#c9a24e]" />
         </div>
       </div>
 
@@ -122,7 +122,7 @@ export default function AccesosPage() {
               <p className="text-lg font-bold text-[#1a1a1a]">{count}/{modulos.length}</p>
               <p className="text-xs text-gray-400">módulos ({pct}%)</p>
               <div className="w-full bg-gray-100 rounded-full h-1.5 mt-2">
-                <div className="h-1.5 rounded-full bg-[#c9a84c]" style={{ width: `${pct}%` }} />
+                <div className="h-1.5 rounded-full bg-[#c9a24e]" style={{ width: `${pct}%` }} />
               </div>
             </div>
           )

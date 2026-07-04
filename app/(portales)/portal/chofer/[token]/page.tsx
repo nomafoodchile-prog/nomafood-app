@@ -205,7 +205,7 @@ export default function PortalChofer({ params }: { params: { token: string } }) 
     return (
       <div className="min-h-screen bg-[#f5f0e8] flex items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-[#c9a84c] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <div className="w-12 h-12 border-4 border-[#c9a24e] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-gray-600 text-sm">Cargando portal...</p>
         </div>
       </div>
@@ -235,10 +235,10 @@ export default function PortalChofer({ params }: { params: { token: string } }) 
       )}
 
       {/* Header */}
-      <div className="bg-[#0f0f0f] text-white px-4 py-3 flex items-center justify-between sticky top-0 z-40">
+      <div className="bg-[#1b2a4a] text-white px-4 py-3 flex items-center justify-between sticky top-0 z-40">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-[#c9a84c] flex items-center justify-center">
-            <Truck size={16} className="text-[#0f0f0f]" />
+          <div className="w-8 h-8 rounded-lg bg-[#c9a24e] flex items-center justify-center">
+            <Truck size={16} className="text-[#1b2a4a]" />
           </div>
           <div>
             <p className="text-xs text-gray-400">Portal Chofer</p>
@@ -305,7 +305,7 @@ export default function PortalChofer({ params }: { params: { token: string } }) 
               {/* Barra de progreso */}
               <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-[#c9a84c] transition-all"
+                  className="h-full bg-[#c9a24e] transition-all"
                   style={{ width: `${stops.length > 0 ? ((entregados / stops.length) * 100) : 0}%` }}
                 />
               </div>
@@ -315,7 +315,7 @@ export default function PortalChofer({ params }: { params: { token: string } }) 
                 <button
                   onClick={startRoute}
                   disabled={saving === 'route'}
-                  className="mt-3 w-full bg-[#0f0f0f] text-white rounded-xl py-2.5 text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="mt-3 w-full bg-[#1b2a4a] text-white rounded-xl py-2.5 text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {saving === 'route' ? <RefreshCw size={14} className="animate-spin" /> : <Play size={14} />}
                   Iniciar ruta
@@ -367,7 +367,7 @@ export default function PortalChofer({ params }: { params: { token: string } }) 
                       <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${
                         stop.status === 'entregado' ? 'bg-green-100 text-green-700' :
                         stop.status === 'fallido' ? 'bg-red-100 text-red-600' :
-                        'bg-[#c9a84c]/20 text-[#c9a84c]'
+                        'bg-[#c9a24e]/20 text-[#c9a24e]'
                       }`}>
                         {stop.status === 'entregado'
                           ? <CheckCircle2 size={16} />
@@ -428,7 +428,7 @@ export default function PortalChofer({ params }: { params: { token: string } }) 
                             value={notas[stop.id] || ''}
                             onChange={e => setNotas(n => ({ ...n, [stop.id]: e.target.value }))}
                             placeholder="Nota de entrega (opcional)..."
-                            className="w-full border border-gray-200 rounded-lg p-2 text-xs resize-none focus:outline-none focus:ring-1 focus:ring-[#c9a84c]"
+                            className="w-full border border-gray-200 rounded-lg p-2 text-xs resize-none focus:outline-none focus:ring-1 focus:ring-[#c9a24e]"
                             rows={2}
                           />
                         )}
@@ -474,7 +474,7 @@ export default function PortalChofer({ params }: { params: { token: string } }) 
               onClick={() => setShowGasto(true)}
               className="w-full bg-white border border-gray-200 rounded-xl py-3 text-sm font-medium text-gray-600 flex items-center justify-center gap-2 hover:bg-gray-50"
             >
-              <DollarSign size={16} className="text-[#c9a84c]" /> Registrar gasto de ruta
+              <DollarSign size={16} className="text-[#c9a24e]" /> Registrar gasto de ruta
             </button>
           </>
         )}
@@ -490,7 +490,7 @@ export default function PortalChofer({ params }: { params: { token: string } }) 
         <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4">
           <div className="bg-white rounded-2xl p-5 w-full max-w-sm shadow-xl">
             <h3 className="text-base font-bold text-gray-800 mb-4 flex items-center gap-2">
-              <DollarSign size={18} className="text-[#c9a84c]" /> Registrar Gasto
+              <DollarSign size={18} className="text-[#c9a24e]" /> Registrar Gasto
             </h3>
             <div className="space-y-3">
               <div>
@@ -506,7 +506,7 @@ export default function PortalChofer({ params }: { params: { token: string } }) 
                       key={value}
                       onClick={() => setGasto(g => ({ ...g, tipo: value }))}
                       className={`py-2 px-3 rounded-lg text-xs font-medium flex items-center gap-1.5 border ${
-                        gasto.tipo === value ? 'bg-[#c9a84c]/10 border-[#c9a84c] text-[#c9a84c]' : 'border-gray-200 text-gray-500'
+                        gasto.tipo === value ? 'bg-[#c9a24e]/10 border-[#c9a24e] text-[#c9a24e]' : 'border-gray-200 text-gray-500'
                       }`}
                     >
                       <Icon size={13} /> {label}
@@ -521,7 +521,7 @@ export default function PortalChofer({ params }: { params: { token: string } }) 
                   value={gasto.monto || ''}
                   onChange={e => setGasto(g => ({ ...g, monto: Number(e.target.value) }))}
                   placeholder="Ej: 15000"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#c9a84c]"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#c9a24e]"
                 />
               </div>
               <div>
@@ -531,7 +531,7 @@ export default function PortalChofer({ params }: { params: { token: string } }) 
                   value={gasto.descripcion}
                   onChange={e => setGasto(g => ({ ...g, descripcion: e.target.value }))}
                   placeholder="Descripción del gasto..."
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#c9a84c]"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#c9a24e]"
                 />
               </div>
               <div className="flex gap-2 pt-1">
@@ -542,7 +542,7 @@ export default function PortalChofer({ params }: { params: { token: string } }) 
                 <button
                   onClick={submitGasto}
                   disabled={!gasto.monto || saving === 'gasto'}
-                  className="flex-1 bg-[#0f0f0f] text-white rounded-xl py-2.5 text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="flex-1 bg-[#1b2a4a] text-white rounded-xl py-2.5 text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {saving === 'gasto' ? <RefreshCw size={14} className="animate-spin" /> : <Send size={14} />}
                   Registrar

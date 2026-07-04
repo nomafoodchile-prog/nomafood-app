@@ -13,7 +13,7 @@ function StatusBadge({ status }: { status: Dispatch['status'] }) {
 
 function DriverMapPlaceholder({ address }: { address?: string }) {
   return (
-    <div className="relative w-full h-64 md:h-80 rounded-2xl overflow-hidden bg-gradient-to-br from-[#0f0f0f] via-gray-900 to-gray-800 flex items-center justify-center">
+    <div className="relative w-full h-64 md:h-80 rounded-2xl overflow-hidden bg-gradient-to-br from-[#1b2a4a] via-gray-900 to-gray-800 flex items-center justify-center">
       {/* Grid lines to simulate map */}
       <div className="absolute inset-0 opacity-10">
         {Array.from({ length: 8 }).map((_, i) => (
@@ -34,18 +34,18 @@ function DriverMapPlaceholder({ address }: { address?: string }) {
 
       {/* Marker */}
       <div className="relative z-10 flex flex-col items-center">
-        <div className="w-12 h-12 bg-[#c9a84c] rounded-full flex items-center justify-center shadow-xl animate-pulse mb-2">
-          <Truck size={20} className="text-[#0f0f0f]" />
+        <div className="w-12 h-12 bg-[#c9a24e] rounded-full flex items-center justify-center shadow-xl animate-pulse mb-2">
+          <Truck size={20} className="text-[#1b2a4a]" />
         </div>
         <div className="bg-white/90 backdrop-blur rounded-xl px-4 py-2 text-center shadow-lg">
-          <p className="text-xs font-bold text-[#0f0f0f]">Santiago, Chile</p>
+          <p className="text-xs font-bold text-[#1b2a4a]">Santiago, Chile</p>
           <p className="text-[10px] text-gray-600">lat: -33.45 · lng: -70.66</p>
-          {address && <p className="text-[10px] text-[#c9a84c] mt-1 font-medium truncate max-w-48">{address}</p>}
+          {address && <p className="text-[10px] text-[#c9a24e] mt-1 font-medium truncate max-w-48">{address}</p>}
         </div>
       </div>
 
       {/* Badge */}
-      <div className="absolute top-3 left-3 bg-[#c9a84c]/20 backdrop-blur border border-[#c9a84c]/40 text-[#c9a84c] text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+      <div className="absolute top-3 left-3 bg-[#c9a24e]/20 backdrop-blur border border-[#c9a24e]/40 text-[#c9a24e] text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5">
         <MapPin size={11} />
         <span>Mapa en tiempo real</span>
       </div>
@@ -104,7 +104,7 @@ export default function DespachosPage() {
         {/* Map */}
         <div className="noma-card">
           <h2 className="font-bold text-[#1a1a1a] mb-4 flex items-center gap-2">
-            <MapPin size={16} className="text-[#c9a84c]" />
+            <MapPin size={16} className="text-[#c9a24e]" />
             Mapa de rutas
           </h2>
           <DriverMapPlaceholder address="Santiago, Región Metropolitana" />

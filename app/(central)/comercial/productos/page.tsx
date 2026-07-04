@@ -103,20 +103,20 @@ export default function ProductosPage() {
 
       {/* KPI cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="noma-card bg-gradient-to-br from-[#0f0f0f] to-gray-800 text-white">
-          <div className="w-9 h-9 bg-[#c9a84c]/20 rounded-xl flex items-center justify-center mb-3">
-            <Package size={16} className="text-[#c9a84c]" />
+        <div className="noma-card bg-gradient-to-br from-[#1b2a4a] to-gray-800 text-white">
+          <div className="w-9 h-9 bg-[#c9a24e]/20 rounded-xl flex items-center justify-center mb-3">
+            <Package size={16} className="text-[#c9a24e]" />
           </div>
           <p className="text-xs text-gray-400">Total productos</p>
-          <p className="text-2xl font-bold text-[#c9a84c]">{productos.length}</p>
+          <p className="text-2xl font-bold text-[#c9a24e]">{productos.length}</p>
         </div>
         <div className="noma-card border-l-4 border-green-400">
           <p className="text-xs text-gray-500 mb-1">Activos</p>
           <p className="text-2xl font-bold text-green-600">{activos}</p>
         </div>
-        <div className="noma-card border-l-4 border-[#c9a84c]">
+        <div className="noma-card border-l-4 border-[#c9a24e]">
           <p className="text-xs text-gray-500 mb-1">Pausados</p>
-          <p className="text-2xl font-bold text-[#c9a84c]">{pausados}</p>
+          <p className="text-2xl font-bold text-[#c9a24e]">{pausados}</p>
         </div>
         <div className="noma-card border-l-4 border-red-400">
           <p className="text-xs text-gray-500 mb-1">Agotados</p>

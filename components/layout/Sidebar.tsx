@@ -51,12 +51,12 @@ const navItems: NavItem[] = [
     children: [
       { label: 'Pedidos', href: '/operaciones/pedidos', icon: ClipboardList },
       { label: 'Monitoreo en vivo', href: '/operaciones/monitoreo', icon: Radio },
-      { label: 'ProducciÃ³n', href: '/operaciones/produccion', icon: ChefHat },
+      { label: 'Producción', href: '/operaciones/produccion', icon: ChefHat },
       { label: 'Tareas', href: '/operaciones/tareas', icon: CheckSquare },
       { label: 'Inventario', href: '/operaciones/inventario', icon: Package },
       { label: 'Despachos', href: '/operaciones/despachos', icon: Truck },
       { label: 'Limpieza', href: '/operaciones/limpieza', icon: SprayCan },
-      { label: 'MantenciÃ³n', href: '/operaciones/mantencion', icon: Wrench },
+      { label: 'Mantención', href: '/operaciones/mantencion', icon: Wrench },
     ],
   },
   {
@@ -65,7 +65,7 @@ const navItems: NavItem[] = [
     children: [
       { label: 'Productos', href: '/comercial/productos', icon: Tag },
       { label: 'Clientes', href: '/comercial/clientes', icon: Users },
-      { label: 'CampaÃ±as', href: '/comercial/campanas', icon: Megaphone },
+      { label: 'Campañas', href: '/comercial/campanas', icon: Megaphone },
     ],
   },
   {
@@ -114,7 +114,7 @@ function NavGroup({ item, pathname, onNavigate }: { item: NavItem; pathname: str
         onClick={onNavigate}
         className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition-all ${
           active
-            ? 'border-l-2 border-[#c9a84c] text-[#c9a84c] bg-white/5 pl-[14px]'
+            ? 'border-l-2 border-[#c9a24e] text-[#c9a24e] bg-white/5 pl-[14px]'
             : 'text-gray-400 hover:text-white hover:bg-white/5'
         }`}
       >
@@ -129,7 +129,7 @@ function NavGroup({ item, pathname, onNavigate }: { item: NavItem; pathname: str
       <button
         onClick={() => setOpen(o => !o)}
         className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition-all ${
-          isChildActive ? 'text-[#c9a84c]' : 'text-gray-400 hover:text-white hover:bg-white/5'
+          isChildActive ? 'text-[#c9a24e]' : 'text-gray-400 hover:text-white hover:bg-white/5'
         }`}
       >
         <item.icon size={16} className="flex-shrink-0" />
@@ -147,7 +147,7 @@ function NavGroup({ item, pathname, onNavigate }: { item: NavItem; pathname: str
                 onClick={onNavigate}
                 className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-all ${
                   active
-                    ? 'text-[#c9a84c] bg-white/5 font-semibold'
+                    ? 'text-[#c9a24e] bg-white/5 font-semibold'
                     : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'
                 }`}
               >
@@ -173,10 +173,10 @@ export function Sidebar() {
   }
 
   const SidebarContent = ({ onNavigate }: { onNavigate?: () => void }) => (
-    <div className="flex flex-col h-full bg-[#0f0f0f] text-white">
+    <div className="flex flex-col h-full bg-[#1b2a4a] text-white">
       {/* Logo */}
       <div className="flex items-center gap-3 px-4 py-5 border-b border-white/10">
-        <div className="w-9 h-9 bg-[#c9a84c] rounded-lg flex items-center justify-center font-black text-[#0f0f0f] text-sm flex-shrink-0">
+        <div className="w-9 h-9 bg-[#c9a24e] rounded-lg flex items-center justify-center font-black text-[#1b2a4a] text-sm flex-shrink-0">
           NF
         </div>
         <div>
@@ -195,7 +195,7 @@ export function Sidebar() {
       {/* User info + logout */}
       <div className="border-t border-white/10 px-4 py-4">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-[#c9a84c]/20 border border-[#c9a84c]/40 flex items-center justify-center text-[#c9a84c] text-xs font-bold flex-shrink-0">
+          <div className="w-8 h-8 rounded-full bg-[#c9a24e]/20 border border-[#c9a24e]/40 flex items-center justify-center text-[#c9a24e] text-xs font-bold flex-shrink-0">
             NF
           </div>
           <div className="flex-1 min-w-0">
@@ -205,7 +205,7 @@ export function Sidebar() {
           <button
             onClick={handleLogout}
             className="p-1.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-400/10 transition-colors"
-            title="Cerrar sesiÃ³n"
+            title="Cerrar sesión"
           >
             <LogOut size={14} />
           </button>
@@ -223,7 +223,7 @@ export function Sidebar() {
 
       {/* Mobile Hamburger */}
       <button
-        className="lg:hidden fixed top-3 left-3 z-50 w-9 h-9 bg-[#0f0f0f] text-white rounded-lg flex items-center justify-center shadow-lg"
+        className="lg:hidden fixed top-3 left-3 z-50 w-9 h-9 bg-[#1b2a4a] text-white rounded-lg flex items-center justify-center shadow-lg"
         onClick={() => setMobileOpen(true)}
       >
         <Menu size={18} />

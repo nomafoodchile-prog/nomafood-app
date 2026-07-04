@@ -10,8 +10,8 @@ const config: Config = {
     extend: {
       colors: {
         noma: {
-          black: "#0f0f0f",
-          gold: "#c9a84c",
+          black: "#1b2a4a",
+          gold: "#c9a24e",
           goldLight: "#e8d5a3",
           cream: "#f5f0e8",
           white: "#ffffff",

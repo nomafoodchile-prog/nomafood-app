@@ -45,12 +45,12 @@ export default function BalancePage() {
 
       {/* KPI Summary */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="noma-card bg-gradient-to-br from-[#0f0f0f] to-gray-800 text-white">
-          <div className="w-9 h-9 bg-[#c9a84c]/20 rounded-xl flex items-center justify-center mb-3">
-            <DollarSign size={16} className="text-[#c9a84c]" />
+        <div className="noma-card bg-gradient-to-br from-[#1b2a4a] to-gray-800 text-white">
+          <div className="w-9 h-9 bg-[#c9a24e]/20 rounded-xl flex items-center justify-center mb-3">
+            <DollarSign size={16} className="text-[#c9a24e]" />
           </div>
           <p className="text-xs text-gray-400">Ingresos totales</p>
-          <p className="text-xl font-bold text-[#c9a84c] mt-1">{currency(totalRevenue)}</p>
+          <p className="text-xl font-bold text-[#c9a24e] mt-1">{currency(totalRevenue)}</p>
         </div>
 
         <div className="noma-card">
@@ -72,8 +72,8 @@ export default function BalancePage() {
         </div>
 
         <div className="noma-card">
-          <div className="w-9 h-9 bg-[#c9a84c]/10 rounded-xl flex items-center justify-center mb-3">
-            <BarChart3 size={16} className="text-[#c9a84c]" />
+          <div className="w-9 h-9 bg-[#c9a24e]/10 rounded-xl flex items-center justify-center mb-3">
+            <BarChart3 size={16} className="text-[#c9a24e]" />
           </div>
           <p className="text-xs text-gray-500">Margen neto</p>
           <p className={`text-xl font-bold mt-1 ${netMargin >= 20 ? 'text-green-600' : 'text-yellow-600'}`}>
@@ -88,7 +88,7 @@ export default function BalancePage() {
           <h2 className="font-bold text-[#1a1a1a]">Evolución mensual</h2>
           <div className="flex items-center gap-4 text-xs">
             <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-sm bg-[#c9a84c]" />
+              <div className="w-3 h-3 rounded-sm bg-[#c9a24e]" />
               <span className="text-gray-500">Ingresos</span>
             </div>
             <div className="flex items-center gap-1.5">
@@ -106,7 +106,7 @@ export default function BalancePage() {
               <div key={i} className="flex-1 flex flex-col items-center gap-1">
                 <div className="w-full flex items-end gap-0.5 h-32">
                   <div
-                    className="flex-1 bg-[#c9a84c] rounded-t-md transition-all hover:bg-[#b8962e]"
+                    className="flex-1 bg-[#c9a24e] rounded-t-md transition-all hover:bg-[#b8923f]"
                     style={{ height: `${incomePct}%` }}
                     title={`Ingresos: ${currency(s.income)}`}
                   />
@@ -169,11 +169,11 @@ export default function BalancePage() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-sm font-medium text-[#1a1a1a] truncate">{p.name}</span>
-                  <span className="text-sm font-bold text-[#c9a84c] flex-shrink-0 ml-2">{p.margin}%</span>
+                  <span className="text-sm font-bold text-[#c9a24e] flex-shrink-0 ml-2">{p.margin}%</span>
                 </div>
                 <div className="w-full bg-gray-100 rounded-full h-1.5">
                   <div
-                    className="h-1.5 rounded-full bg-[#c9a84c]"
+                    className="h-1.5 rounded-full bg-[#c9a24e]"
                     style={{ width: `${p.margin}%` }}
                   />
                 </div>

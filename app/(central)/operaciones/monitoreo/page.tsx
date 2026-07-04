@@ -1,11 +1,19 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import dynamic from 'next/dynamic'
 import {
   Radio, RefreshCw, Truck, Package, CheckCircle2, AlertTriangle, MapPin,
-  Clock, Boxes, Loader2, User, Navigation, Circle, Route,
+  Clock, Boxes, Loader2, User, Navigation, Circle, Route, Map as MapIcon, Gauge,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
+import type { MapaPunto } from './MonitoreoMapa'
+
+// Leaflet accede a window → cargar solo en cliente, sin SSR
+const MonitoreoMapa = dynamic(() => import('./MonitoreoMapa'), {
+  ssr: false,
+  loading: () => <div className="h-full flex items-center justify-center"><Loader2 className="w-5 h-5 text-[#1b2a4a] animate-spin" /></div>,
+})
 
 /* ── Tipos ───────────────────────────────────────────────────────── */
 interface Driver { id: string; nombre: string; telefono: string | null }
@@ -52,6 +60,7 @@ export default function MonitoreoEnVivo() {
   const [drivers, setDrivers] = useState<Driver[]>([])
   const [enRuta, setEnRuta] = useState<Set<string>>(new Set())
   const [pos, setPos] = useState<Record<string, Pos>>({})
+  const [cumpl, setCumpl] = useState<Record<string, number>>({})
   const [pedidos, setPedidos] = useState<Pedido[]>([])
   const [incidencias, setIncidencias] = useState<Incidencia[]>([])
   const [loading, setLoading] = useState(true)
@@ -76,11 +85,22 @@ export default function MonitoreoEnVivo() {
         .order('created_at', { ascending: false }),
     ])
     if (dr.error) { setErr(dr.error.message) } else { setErr(null) }
-    setDrivers((dr.data as Driver[]) || [])
+    const driversList = (dr.data as Driver[]) || []
+    setDrivers(driversList)
     setEnRuta(new Set(((rt.data as { driver_id: string }[]) || []).map(r => r.driver_id)))
     setPos(Object.fromEntries(((ps.data as Pos[]) || []).map(p => [p.driver_id, p])))
     setPedidos((pe.data as unknown as Pedido[]) || [])
     setIncidencias((inc.data as unknown as Incidencia[]) || [])
+
+    // Cumplimiento (puntualidad de entregas de hoy) por chofer
+    const cumplPairs = await Promise.all(
+      driversList.map(async d => {
+        const { data } = await supabase.rpc('calcular_cumplimiento', { p_driver: d.id, p_fecha: hoy })
+        return [d.id, typeof data === 'number' ? data : 100] as const
+      })
+    )
+    setCumpl(Object.fromEntries(cumplPairs))
+
     setSync(new Date())
     setLoading(false)
   }, [])
@@ -109,6 +129,25 @@ export default function MonitoreoEnVivo() {
   const porAsignar = pedidos.filter(p => !p.chofer_id)
   const entregadasHoy = pedidos.filter(p => p.estado_entrega === 'entregado').length
   const enPipeline = pedidos.length
+
+  // Puntos del mapa: choferes con GPS + destinos de pedidos con coordenadas
+  const puntos: MapaPunto[] = [
+    ...drivers
+      .filter(d => pos[d.id]?.lat != null && pos[d.id]?.lng != null)
+      .map(d => ({
+        id: `d-${d.id}`, tipo: 'chofer' as const, nombre: d.nombre,
+        detalle: enRuta.has(d.id) ? 'En ruta' : 'Disponible',
+        lat: pos[d.id]!.lat as number, lng: pos[d.id]!.lng as number, activo: enRuta.has(d.id),
+      })),
+    ...pedidos
+      .filter(p => p.lat != null && p.lng != null && p.estado_entrega !== 'entregado')
+      .map(p => ({
+        id: `p-${p.id}`, tipo: 'pedido' as const,
+        nombre: p.mayorista?.empresa || p.mayorista?.nombre || p.numero_pedido,
+        detalle: p.direccion_entrega || undefined, lat: p.lat as number, lng: p.lng as number,
+      })),
+  ]
+  const conGps = puntos.some(p => p.tipo === 'chofer')
 
   if (loading) return (
     <div className="min-h-[60vh] flex items-center justify-center">
@@ -150,6 +189,22 @@ export default function MonitoreoEnVivo() {
         <Kpi icon={AlertTriangle} label="Incidencias abiertas" value={incidencias.length} tone={incidencias.length ? 'red' : 'muted'} />
       </div>
 
+      {/* Mapa en vivo */}
+      <div className="bg-white rounded-2xl shadow-card overflow-hidden">
+        <div className="flex items-center justify-between px-5 pt-4 pb-3">
+          <h2 className="font-bold text-[#1b2a4a] flex items-center gap-2"><MapIcon size={17} className="text-[#c9a24e]" /> Mapa en vivo</h2>
+          <span className="text-xs text-gray-400">{conGps ? 'GPS activo' : 'Sin señal GPS todavía'}</span>
+        </div>
+        <div className="relative h-72 lg:h-80">
+          <MonitoreoMapa puntos={puntos} />
+          {!conGps && (
+            <div className="absolute inset-x-0 bottom-0 z-[500] bg-[#1b2a4a]/85 text-white text-xs text-center py-1.5 pointer-events-none">
+              Esperando ubicación GPS de los choferes (se activa al iniciar ruta desde el teléfono).
+            </div>
+          )}
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         {/* Choferes en vivo */}
         <div className="xl:col-span-2 space-y-3">
@@ -165,6 +220,8 @@ export default function MonitoreoEnVivo() {
                 const hechas = mios.filter(p => p.estado_entrega === 'entregado').length
                 const actual = pend.find(p => p.estado_entrega === 'llego_cliente') || pend.find(p => p.estado_entrega === 'en_ruta') || pend[0]
                 const gps = pos[d.id]
+                const cval = cumpl[d.id] ?? 100
+                const cc = cval >= 90 ? '#3b6d11' : cval >= 70 ? '#c9a24e' : '#c0392b'
                 return (
                   <div key={d.id} className="bg-white rounded-2xl border border-gray-100 p-4">
                     <div className="flex items-center justify-between">
@@ -196,6 +253,19 @@ export default function MonitoreoEnVivo() {
                     ) : (
                       <p className="mt-3 text-xs text-gray-400">{ruta ? 'Sin entrega en curso.' : 'Sin ruta iniciada.'}</p>
                     )}
+
+                    {/* Cumplimiento — puntualidad de entregas de hoy */}
+                    <div className="mt-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[11px] text-gray-500 flex items-center gap-1"><Gauge size={12} /> Cumplimiento</span>
+                        {hechas > 0
+                          ? <span className="text-[11px] font-bold" style={{ color: cc }}>{cval}%</span>
+                          : <span className="text-[11px] text-gray-400">Sin entregas aún</span>}
+                      </div>
+                      <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
+                        <div className="h-full rounded-full transition-all" style={{ width: hechas > 0 ? `${cval}%` : '0%', background: cc }} />
+                      </div>
+                    </div>
 
                     {/* Base para GPS (Fase 2E) */}
                     <div className="mt-2 flex items-center justify-between text-[11px] text-gray-400">

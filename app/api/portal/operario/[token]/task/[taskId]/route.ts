@@ -10,7 +10,7 @@ export async function PATCH(
     const supabase = createServerClient()
     const body = await req.json()
 
-    // Verificar que el token corresponde al operario dueÃ±o de la tarea
+    // Verificar que el token corresponde al operario dueño de la tarea
     const { data: operator } = await supabase
       .from('operators')
       .select('id')

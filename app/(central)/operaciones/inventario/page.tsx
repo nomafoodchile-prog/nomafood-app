@@ -53,8 +53,8 @@ export default function InventarioPage() {
       {/* Summary cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="noma-card !py-4">
-          <div className="w-9 h-9 bg-[#c9a84c]/10 rounded-xl flex items-center justify-center mb-2">
-            <Package size={16} className="text-[#c9a84c]" />
+          <div className="w-9 h-9 bg-[#c9a24e]/10 rounded-xl flex items-center justify-center mb-2">
+            <Package size={16} className="text-[#c9a24e]" />
           </div>
           <p className="text-xs text-gray-500">Total productos</p>
           <p className="text-xl font-bold text-[#1a1a1a]">{catalogItems.length}</p>
@@ -126,7 +126,7 @@ export default function InventarioPage() {
                 onClick={() => setTypeFilter(t)}
                 className={`px-2.5 py-1 rounded-md text-xs font-semibold whitespace-nowrap transition-all ${
                   typeFilter === t
-                    ? 'bg-[#c9a84c] text-[#0f0f0f]'
+                    ? 'bg-[#c9a24e] text-[#1b2a4a]'
                     : 'text-gray-500 hover:text-gray-700'
                 }`}
               >

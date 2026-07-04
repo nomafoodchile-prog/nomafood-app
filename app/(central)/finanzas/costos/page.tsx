@@ -57,9 +57,9 @@ export default function CostosPage() {
 
       {/* KPI cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="noma-card bg-gradient-to-br from-[#0f0f0f] to-gray-800 text-white">
+        <div className="noma-card bg-gradient-to-br from-[#1b2a4a] to-gray-800 text-white">
           <p className="text-xs text-gray-400 mb-1">Costo total junio</p>
-          <p className="text-2xl font-bold text-[#c9a84c]">{currency(totalActual)}</p>
+          <p className="text-2xl font-bold text-[#c9a24e]">{currency(totalActual)}</p>
           <div className={`flex items-center gap-1 mt-2 text-xs ${variacionTotal > 0 ? 'text-red-400' : 'text-green-400'}`}>
             {variacionTotal > 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
             <span>{pct(variacionTotal)} vs mayo</span>
@@ -72,7 +72,7 @@ export default function CostosPage() {
           <p className="text-xs text-gray-400 mt-1">Sobre ventas de {currency(ventasJunio)}</p>
         </div>
 
-        <div className="noma-card border-l-4 border-[#c9a84c]">
+        <div className="noma-card border-l-4 border-[#c9a24e]">
           <p className="text-xs text-gray-500 mb-1">Costo por kg producido</p>
           <p className="text-2xl font-bold text-[#1a1a1a]">{currency(costoPorKg)}</p>
           <p className="text-xs text-gray-400 mt-1">{kgProducidos.toLocaleString('es-CL')} kg producidos</p>
@@ -104,7 +104,7 @@ export default function CostosPage() {
                   <tr key={cat.nombre} className="hover:bg-gray-50/50 transition-colors">
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-[#c9a84c]/10 rounded-lg flex items-center justify-center text-[#c9a84c]">
+                        <div className="w-8 h-8 bg-[#c9a24e]/10 rounded-lg flex items-center justify-center text-[#c9a24e]">
                           {cat.icon}
                         </div>
                         <span className="font-medium text-[#1a1a1a]">{cat.nombre}</span>
@@ -124,7 +124,7 @@ export default function CostosPage() {
                     <td className="py-3 px-4 hidden lg:table-cell">
                       <div className="w-full bg-gray-100 rounded-full h-2">
                         <div
-                          className="h-2 rounded-full bg-[#c9a84c]"
+                          className="h-2 rounded-full bg-[#c9a24e]"
                           style={{ width: `${porcentaje}%` }}
                         />
                       </div>
@@ -168,11 +168,11 @@ export default function CostosPage() {
                 </span>
                 <div className="w-full flex items-end" style={{ height: '120px' }}>
                   <div
-                    className={`w-full rounded-t-md transition-all ${esMesActual ? 'bg-[#c9a84c]' : 'bg-gray-200'}`}
+                    className={`w-full rounded-t-md transition-all ${esMesActual ? 'bg-[#c9a24e]' : 'bg-gray-200'}`}
                     style={{ height: `${altura}%` }}
                   />
                 </div>
-                <span className={`text-xs font-semibold ${esMesActual ? 'text-[#c9a84c]' : 'text-gray-500'}`}>
+                <span className={`text-xs font-semibold ${esMesActual ? 'text-[#c9a24e]' : 'text-gray-500'}`}>
                   {m.mes}
                 </span>
               </div>
@@ -181,7 +181,7 @@ export default function CostosPage() {
         </div>
         <div className="flex items-center gap-4 mt-4 pt-4 border-t border-gray-100">
           <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded bg-[#c9a84c]" />
+            <div className="w-3 h-3 rounded bg-[#c9a24e]" />
             <span className="text-xs text-gray-500">Mes actual</span>
           </div>
           <div className="flex items-center gap-1.5">
@@ -205,7 +205,7 @@ export default function CostosPage() {
                 </div>
                 <div className="w-full bg-gray-100 rounded-full h-2.5">
                   <div
-                    className="h-2.5 rounded-full bg-[#c9a84c]"
+                    className="h-2.5 rounded-full bg-[#c9a24e]"
                     style={{ width: `${porcentaje}%`, opacity: 0.4 + (porcentaje / 60) }}
                   />
                 </div>

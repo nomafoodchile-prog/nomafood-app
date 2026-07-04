@@ -166,12 +166,12 @@ export default function CampanasPage() {
 
       {/* KPI cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="noma-card bg-gradient-to-br from-[#0f0f0f] to-gray-800 text-white">
-          <div className="w-9 h-9 bg-[#c9a84c]/20 rounded-xl flex items-center justify-center mb-3">
-            <Send size={16} className="text-[#c9a84c]" />
+        <div className="noma-card bg-gradient-to-br from-[#1b2a4a] to-gray-800 text-white">
+          <div className="w-9 h-9 bg-[#c9a24e]/20 rounded-xl flex items-center justify-center mb-3">
+            <Send size={16} className="text-[#c9a24e]" />
           </div>
           <p className="text-xs text-gray-400">Total campañas</p>
-          <p className="text-2xl font-bold text-[#c9a84c]">{campanas.length}</p>
+          <p className="text-2xl font-bold text-[#c9a24e]">{campanas.length}</p>
         </div>
         <div className="noma-card border-l-4 border-green-400">
           <div className="w-9 h-9 bg-green-50 rounded-xl flex items-center justify-center mb-3">
@@ -187,12 +187,12 @@ export default function CampanasPage() {
           <p className="text-xs text-gray-500">Programadas</p>
           <p className="text-2xl font-bold text-blue-600">{programadas}</p>
         </div>
-        <div className="noma-card border-l-4 border-[#c9a84c]">
+        <div className="noma-card border-l-4 border-[#c9a24e]">
           <div className="w-9 h-9 bg-amber-50 rounded-xl flex items-center justify-center mb-3">
-            <BarChart2 size={16} className="text-[#c9a84c]" />
+            <BarChart2 size={16} className="text-[#c9a24e]" />
           </div>
           <p className="text-xs text-gray-500">Prom. apertura</p>
-          <p className="text-2xl font-bold text-[#c9a84c]">{promApertura}%</p>
+          <p className="text-2xl font-bold text-[#c9a24e]">{promApertura}%</p>
         </div>
       </div>
 
@@ -204,7 +204,7 @@ export default function CampanasPage() {
             onClick={() => setFiltroEstado(e)}
             className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
               filtroEstado === e
-                ? 'bg-[#c9a84c] text-[#0f0f0f]'
+                ? 'bg-[#c9a24e] text-[#1b2a4a]'
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >

@@ -259,7 +259,7 @@ export default function PortalOperario({ params }: { params: { token: string } }
     return (
       <div className="min-h-screen bg-[#f5f0e8] flex items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-[#c9a84c] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <div className="w-12 h-12 border-4 border-[#c9a24e] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-gray-600 text-sm">Cargando portal...</p>
         </div>
       </div>
@@ -291,10 +291,10 @@ export default function PortalOperario({ params }: { params: { token: string } }
       )}
 
       {/* Header */}
-      <div className="bg-[#0f0f0f] text-white px-4 py-3 flex items-center justify-between sticky top-0 z-40">
+      <div className="bg-[#1b2a4a] text-white px-4 py-3 flex items-center justify-between sticky top-0 z-40">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-[#c9a84c] flex items-center justify-center">
-            <User size={16} className="text-[#0f0f0f]" />
+          <div className="w-8 h-8 rounded-lg bg-[#c9a24e] flex items-center justify-center">
+            <User size={16} className="text-[#1b2a4a]" />
           </div>
           <div>
             <p className="text-xs text-gray-400">Portal Operario</p>
@@ -323,7 +323,7 @@ export default function PortalOperario({ params }: { params: { token: string } }
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3">
           <div className="bg-white rounded-xl p-3 text-center border border-gray-100 shadow-sm">
-            <p className="text-2xl font-bold text-[#0f0f0f]">{completadas}</p>
+            <p className="text-2xl font-bold text-[#1b2a4a]">{completadas}</p>
             <p className="text-xs text-gray-500 mt-0.5">Completadas</p>
           </div>
           <div className="bg-white rounded-xl p-3 text-center border border-gray-100 shadow-sm">
@@ -331,7 +331,7 @@ export default function PortalOperario({ params }: { params: { token: string } }
             <p className="text-xs text-gray-500 mt-0.5">En progreso</p>
           </div>
           <div className="bg-white rounded-xl p-3 text-center border border-gray-100 shadow-sm">
-            <p className="text-2xl font-bold text-[#c9a84c]">{pct}%</p>
+            <p className="text-2xl font-bold text-[#c9a24e]">{pct}%</p>
             <p className="text-xs text-gray-500 mt-0.5">Avance</p>
           </div>
         </div>
@@ -372,7 +372,7 @@ export default function PortalOperario({ params }: { params: { token: string } }
           </div>
           <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
             <div
-              className="h-full bg-[#c9a84c] transition-all duration-500"
+              className="h-full bg-[#c9a24e] transition-all duration-500"
               style={{ width: `${pct}%` }}
             />
           </div>
@@ -458,7 +458,7 @@ export default function PortalOperario({ params }: { params: { token: string } }
                         value={nota}
                         onChange={e => setNota(e.target.value)}
                         placeholder="Nota opcional al completar..."
-                        className="w-full text-xs border border-gray-200 rounded-lg p-2 resize-none focus:outline-none focus:ring-1 focus:ring-[#c9a84c]"
+                        className="w-full text-xs border border-gray-200 rounded-lg p-2 resize-none focus:outline-none focus:ring-1 focus:ring-[#c9a24e]"
                         rows={2}
                       />
                     )}
@@ -469,7 +469,7 @@ export default function PortalOperario({ params }: { params: { token: string } }
                         <button
                           onClick={() => startTask(task.id)}
                           disabled={!!activeTaskId || saving === task.id}
-                          className="flex-1 bg-[#0f0f0f] text-white rounded-lg py-2 text-xs font-semibold flex items-center justify-center gap-1.5 disabled:opacity-50"
+                          className="flex-1 bg-[#1b2a4a] text-white rounded-lg py-2 text-xs font-semibold flex items-center justify-center gap-1.5 disabled:opacity-50"
                         >
                           {saving === task.id
                             ? <RefreshCw size={13} className="animate-spin" />
@@ -554,7 +554,7 @@ export default function PortalOperario({ params }: { params: { token: string } }
                 <select
                   value={incidencia.tipo}
                   onChange={e => setIncidencia(p => ({ ...p, tipo: e.target.value as Incidencia['tipo'] }))}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#c9a84c]"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#c9a24e]"
                 >
                   <option value="maquina">Falla de máquina</option>
                   <option value="material">Falta de material</option>
@@ -589,7 +589,7 @@ export default function PortalOperario({ params }: { params: { token: string } }
                   value={incidencia.descripcion}
                   onChange={e => setIncidencia(p => ({ ...p, descripcion: e.target.value }))}
                   placeholder="Describe la incidencia..."
-                  className="w-full border border-gray-200 rounded-lg p-2.5 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-[#c9a84c]"
+                  className="w-full border border-gray-200 rounded-lg p-2.5 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-[#c9a24e]"
                   rows={3}
                 />
               </div>
@@ -602,7 +602,7 @@ export default function PortalOperario({ params }: { params: { token: string } }
                 <button
                   onClick={submitIncidencia}
                   disabled={!incidencia.descripcion.trim() || saving === 'incidencia'}
-                  className="flex-1 bg-[#0f0f0f] text-white rounded-xl py-2.5 text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="flex-1 bg-[#1b2a4a] text-white rounded-xl py-2.5 text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {saving === 'incidencia'
                     ? <RefreshCw size={14} className="animate-spin" />
@@ -627,7 +627,7 @@ export default function PortalOperario({ params }: { params: { token: string } }
               value={reporte}
               onChange={e => setReporte(e.target.value)}
               placeholder="¿Cómo fue el turno? ¿Algo importante que reportar?"
-              className="w-full border border-gray-200 rounded-xl p-3 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-[#c9a84c]"
+              className="w-full border border-gray-200 rounded-xl p-3 text-sm resize-none focus:outline-none focus:ring-1 focus:ring-[#c9a24e]"
               rows={5}
             />
             <div className="flex gap-2 mt-3">
@@ -638,7 +638,7 @@ export default function PortalOperario({ params }: { params: { token: string } }
               <button
                 onClick={submitReporte}
                 disabled={!reporte.trim() || saving === 'reporte'}
-                className="flex-1 bg-[#c9a84c] text-[#0f0f0f] rounded-xl py-2.5 text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+                className="flex-1 bg-[#c9a24e] text-[#1b2a4a] rounded-xl py-2.5 text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 {saving === 'reporte'
                   ? <RefreshCw size={14} className="animate-spin" />

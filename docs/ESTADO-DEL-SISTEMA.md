@@ -1,7 +1,7 @@
 # NOMMA FOOD — Estado técnico del sistema
 
-_Documento de continuidad. Actualizado al cierre de la Fase 2B (Portal del Chofer completo)._
-Si abres una sesión nueva, **lee esto primero** y luego sigue con la Fase 2C.
+_Documento de continuidad. Actualizado al cierre de la Fase 2C (Panel Central de monitoreo en vivo)._
+Si abres una sesión nueva, **lee esto primero** y luego sigue con la Fase 2D.
 
 ---
 
@@ -60,18 +60,24 @@ Supabase (Auth, Postgres+RLS, Realtime, Storage). Mercado Pago (checkout+webhook
 - Auditoría + 5 bloqueantes (PR #1). Página "Pedidos Mayoristas" central (PR #2, probada).
 - Logística: Fase 0 (fundación), Fase 1 (lógica), Fase 2A (dos pistas de estado).
 - **Portal del Chofer (Fase 2B) COMPLETO y probado en teléfono:** login, dashboard operativo (próxima entrega, botones grandes, cumplimiento con "Sin entregas aún", bienvenida, resumen, última sync), entregas (pendientes/completadas), detalle con stepper del chofer (Llegué → Entregar con foto / No entregado / Incidencia), **Compras** (lista real), **Mensajes** (avisos de Central), Perfil, **tiempo real** en todas. Paleta azul marino.
+- **Panel Central de monitoreo en vivo (Fase 2C) COMPLETO y probado en preview:** página `app/(central)/operaciones/monitoreo` + ítem "Monitoreo en vivo" en el menú. KPIs, tarjetas de choferes (Disponible/En ruta + entrega actual + **barra de cumplimiento** vía `calcular_cumplimiento`), **mapa en vivo** (`MonitoreoMapa.tsx`, react-leaflet client-only, grafica choferes con GPS y destinos de pedidos), incidencias entrantes en vivo y tabla de pedidos con las dos pistas. Realtime a `mayorista_pedidos`, `incidencias`, `driver_positions`, `routes`. **Sin migración** (RLS `is_admin()` + tablas ya en `supabase_realtime`).
+- **Rediseño visual + consistencia (esta sesión):**
+  - **Dashboard central** rearmado al mockup de la usuaria (saludo, 4 KPIs, flujo operativo, alertas y pendientes, ventas/gastos con `recharts`, pedidos recientes, equipo conectado).
+  - **Componentes base reutilizables** en `components/central/`: `Panel`, `KpiCard`, `SalesChart` (para ir aplicando el estilo al resto).
+  - **Paleta de marca unificada** en todo el repo: dorado `#c9a24e`, azul marino `#1b2a4a`, crema `#f5f0e8` (se reemplazó el viejo `#c9a84c`/`#0f0f0f` en 32 archivos).
+  - **Mojibake corregido** (doble UTF-8) en menú Sidebar (Producción/Mantención/Campañas), Portal Picker y API operario.
 
-## 10. SIGUIENTE — Fase 2C (empezar aquí en la sesión nueva)
-**Panel Central de monitoreo en vivo:** que la Central vea, en tiempo real y sin recargar:
-- Todos los choferes y su estado (Disponible/En ruta).
-- Estado de cada pedido (las dos pistas) actualizándose en vivo.
-- Incidencias entrantes al instante, con opción de responder/reasignar/cerrar (2D).
-- Base para el mapa GPS (2E) usando `driver_positions` / `location_pings`.
-Construir como página nueva en la app central (ej. `app/(central)/operaciones/monitoreo`), con suscripción Realtime a `mayorista_pedidos`, `incidencias`, `driver_positions`.
+## 10. SIGUIENTE — Fase 2D (empezar aquí en la sesión nueva)
+**Gestión de incidencias + firma desde la Central**, sobre el panel de monitoreo (2C):
+- Responder / reasignar chofer / marcar en revisión / **cerrar** una incidencia → `incidencias.estado_resolucion` (`abierta → en_revision → resuelta`), `resolved_by`, `resolved_at`.
+- Reasignar un pedido con entrega fallida (No entregado / Incidencia) a otro chofer o reprogramar.
+- Firma del receptor en la entrega (`entregas.firma_url`, la columna ya existe).
+- Nota: hoy los pedidos en estado terminal del chofer siguen "en curso" en 2C porque requieren esta acción de la Central.
 
 ## 11. Roadmap restante
-- **2C** panel central en vivo ← siguiente. **2D** firma + gestión de incidencias desde Central. **2E** GPS en vivo (mapa, velocidad, ETA, km, historial). **2F** Compras (iniciar/finalizar + comprobante), Mensajes badges, Perfil con vehículo real, badges numéricos en el menú.
+- **2D** gestión de incidencias + firma desde Central ← siguiente. **2E** GPS en vivo completo (velocidad, ETA, km, historial) sobre el `MonitoreoMapa` ya montado + `location_pings`. **2F** Compras (iniciar/finalizar + comprobante), Mensajes badges, Perfil con vehículo real, badges numéricos en el menú.
+- **Diseño:** seguir aplicando `components/central/` (Panel/KpiCard) al resto de páginas de la central para que todas queden como el Dashboard.
 - **Config:** token real de Mercado Pago; merge de PR #1 y #2; limpiar datos demo antes de producción.
 
 ## 12. Cómo continuar en sesión nueva
-Decir: **"lee `docs/ESTADO-DEL-SISTEMA.md` (rama feature/portal-chofer) y seguimos con la Fase 2C"**. El asistente sube código directo (git ok); tú corres migraciones y das clics sensibles.
+Decir: **"lee `docs/ESTADO-DEL-SISTEMA.md` (rama feature/portal-chofer) y seguimos con la Fase 2D"**. El asistente sube código directo (git ok); tú corres migraciones y das clics sensibles.
