@@ -38,7 +38,7 @@ export default function ChoferAppLayout({ children }: { children: React.ReactNod
   if (!ready) {
     return (
       <div className="min-h-screen bg-[#f7f6f2] flex items-center justify-center">
-        <Loader2 className="w-6 h-6 text-[#1f3d2c] animate-spin" />
+        <Loader2 className="w-6 h-6 text-[#1b2a4a] animate-spin" />
       </div>
     )
   }
@@ -50,7 +50,7 @@ export default function ChoferAppLayout({ children }: { children: React.ReactNod
     <div className="min-h-screen bg-[#f7f6f2] flex flex-col">
       <main className="flex-1 pb-20 max-w-md w-full mx-auto">{children}</main>
 
-      <nav className="fixed bottom-0 inset-x-0 bg-[#1f3d2c] text-white">
+      <nav className="fixed bottom-0 inset-x-0 bg-[#1b2a4a] text-white">
         <div className="max-w-md mx-auto flex justify-around py-2.5 px-2">
           {NAV.map(item => {
             const active = isActive(item.href)

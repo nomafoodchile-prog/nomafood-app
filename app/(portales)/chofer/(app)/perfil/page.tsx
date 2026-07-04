@@ -22,17 +22,17 @@ export default function PerfilPage() {
 
   return (
     <div>
-      <div className="bg-[#1f3d2c] text-white px-5 py-4">
+      <div className="bg-[#1b2a4a] text-white px-5 py-4">
         <h1 className="text-lg font-semibold text-center">Perfil</h1>
       </div>
       <div className="px-5 py-6">
         <div className="bg-white rounded-2xl border border-gray-100 p-6 flex flex-col items-center">
-          <div className="w-16 h-16 rounded-full bg-[#eef3ee] flex items-center justify-center mb-3">
-            <User className="w-8 h-8 text-[#1f3d2c]" />
+          <div className="w-16 h-16 rounded-full bg-[#eef1f6] flex items-center justify-center mb-3">
+            <User className="w-8 h-8 text-[#1b2a4a]" />
           </div>
           <p className="font-semibold text-gray-900">{nombre || 'Chofer'}</p>
           <p className="text-sm text-gray-500">{email}</p>
-          <span className="mt-2 flex items-center gap-1 text-xs text-[#1f3d2c] bg-[#eef3ee] px-2.5 py-1 rounded-full">
+          <span className="mt-2 flex items-center gap-1 text-xs text-[#1b2a4a] bg-[#eef1f6] px-2.5 py-1 rounded-full">
             <Truck className="w-3 h-3" /> Chofer
           </span>
         </div>

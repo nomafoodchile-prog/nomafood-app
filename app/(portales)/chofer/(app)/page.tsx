@@ -114,7 +114,7 @@ export default function ChoferDashboard() {
   const cumplColor = cumpl >= 90 ? '#3b6d11' : cumpl >= 70 ? '#c9a24e' : '#c0392b'
   const cumplBg = cumpl >= 90 ? '#eaf3de' : cumpl >= 70 ? '#faf0d7' : '#fbeaea'
 
-  if (loading) return <div className="min-h-[60vh] flex items-center justify-center"><Loader2 className="w-6 h-6 text-[#1f3d2c] animate-spin" /></div>
+  if (loading) return <div className="min-h-[60vh] flex items-center justify-center"><Loader2 className="w-6 h-6 text-[#1b2a4a] animate-spin" /></div>
   if (noDriver) return (
     <div className="p-6"><div className="bg-white rounded-2xl border border-gray-100 p-6 text-center mt-10">
       <AlertTriangle className="w-10 h-10 text-[#c9a24e] mx-auto mb-3" />
@@ -125,16 +125,16 @@ export default function ChoferDashboard() {
 
   return (
     <div>
-      <div className="bg-[#1f3d2c] text-white px-5 pt-5 pb-4 flex items-center justify-between">
+      <div className="bg-[#1b2a4a] text-white px-5 pt-5 pb-4 flex items-center justify-between">
         <span className="flex items-center gap-2"><Sprout className="w-6 h-6 text-[#c9a24e]" /><span className="text-sm font-semibold tracking-wide">NOMMA FOOD</span></span>
         <Bell className="w-5 h-5 text-white/70" />
       </div>
 
       {welcome && (
-        <div className="mx-5 mt-4 bg-[#eef3ee] text-[#1f3d2c] text-sm rounded-xl px-4 py-3 flex items-start gap-2">
+        <div className="mx-5 mt-4 bg-[#eef1f6] text-[#1b2a4a] text-sm rounded-xl px-4 py-3 flex items-start gap-2">
           <Sprout className="w-4 h-4 mt-0.5 flex-shrink-0 text-[#c9a24e]" />
           <span className="flex-1">{welcome}</span>
-          <button onClick={() => setWelcome(null)}><X className="w-4 h-4 text-[#1f3d2c]/50" /></button>
+          <button onClick={() => setWelcome(null)}><X className="w-4 h-4 text-[#1b2a4a]/50" /></button>
         </div>
       )}
 
@@ -155,7 +155,7 @@ export default function ChoferDashboard() {
                 <p className="font-bold text-gray-900 text-lg truncate">{proxima.mayorista?.empresa || proxima.mayorista?.nombre || 'Cliente'}</p>
                 <p className="text-sm text-gray-500 flex items-center gap-1 mt-0.5"><MapPin size={14} />{proxima.direccion_entrega || 'Sin dirección'}</p>
               </div>
-              <span className="text-xs font-semibold px-2 py-1 rounded-full bg-[#eef3ee] text-[#1f3d2c] flex-shrink-0">{EE_LABEL[proxima.estado_entrega]}</span>
+              <span className="text-xs font-semibold px-2 py-1 rounded-full bg-[#eef1f6] text-[#1b2a4a] flex-shrink-0">{EE_LABEL[proxima.estado_entrega]}</span>
             </div>
             <div className="grid grid-cols-3 gap-2 mt-3 text-xs text-gray-500">
               <span className="flex items-center gap-1"><Clock size={13} />{hhmm(proxima.hora_programada)}</span>
@@ -167,21 +167,21 @@ export default function ChoferDashboard() {
             <div className="grid grid-cols-2 gap-2 mt-4">
               <a href={proxima.telefono_entrega || proxima.mayorista?.telefono ? `tel:${proxima.telefono_entrega || proxima.mayorista?.telefono}` : undefined}
                 className="flex items-center justify-center gap-2 py-3 rounded-xl border border-gray-200 text-gray-700 font-medium text-sm">
-                <Phone size={16} className="text-[#1f3d2c]" /> Llamar
+                <Phone size={16} className="text-[#1b2a4a]" /> Llamar
               </a>
               <button onClick={() => { const d = proxima.lat && proxima.lng ? `${proxima.lat},${proxima.lng}` : encodeURIComponent(proxima.direccion_entrega || ''); window.open(`https://www.google.com/maps/dir/?api=1&destination=${d}`, '_blank') }}
                 className="flex items-center justify-center gap-2 py-3 rounded-xl border border-gray-200 text-gray-700 font-medium text-sm">
-                <Navigation size={16} className="text-[#1f3d2c]" /> Navegar
+                <Navigation size={16} className="text-[#1b2a4a]" /> Navegar
               </button>
             </div>
             {proxima.estado_entrega === 'en_ruta' ? (
               <button onClick={() => llegue(proxima.id)} disabled={acting}
-                className="w-full mt-2 bg-[#c9a24e] hover:bg-[#b8923f] text-[#1f3d2c] font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2 disabled:opacity-60">
+                className="w-full mt-2 bg-[#c9a24e] hover:bg-[#b8923f] text-[#1b2a4a] font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2 disabled:opacity-60">
                 <MapPin size={16} /> Llegué al cliente
               </button>
             ) : (
               <button onClick={() => router.push(`/chofer/entregas/${proxima.id}`)}
-                className="w-full mt-2 bg-[#1f3d2c] hover:bg-[#16301f] text-white font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2">
+                className="w-full mt-2 bg-[#1b2a4a] hover:bg-[#142033] text-white font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2">
                 <Play size={16} /> Iniciar entrega
               </button>
             )}
@@ -194,7 +194,7 @@ export default function ChoferDashboard() {
           </div>
         ) : (
           <button onClick={iniciarRuta} disabled={acting}
-            className="w-full bg-[#c9a24e] hover:bg-[#b8923f] text-[#1f3d2c] font-bold py-4 rounded-xl flex items-center justify-center gap-2 disabled:opacity-60 text-base">
+            className="w-full bg-[#c9a24e] hover:bg-[#b8923f] text-[#1b2a4a] font-bold py-4 rounded-xl flex items-center justify-center gap-2 disabled:opacity-60 text-base">
             {acting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Route className="w-5 h-5" />} Iniciar ruta
           </button>
         )}
@@ -224,7 +224,7 @@ export default function ChoferDashboard() {
 
         {ruta && (
           <button onClick={finalizarRuta} disabled={acting}
-            className="w-full bg-[#1f3d2c] hover:bg-[#16301f] text-white font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2 disabled:opacity-60">
+            className="w-full bg-[#1b2a4a] hover:bg-[#142033] text-white font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2 disabled:opacity-60">
             {acting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Flag className="w-4 h-4" />} Finalizar ruta
           </button>
         )}
@@ -239,7 +239,7 @@ export default function ChoferDashboard() {
 
 function Stat({ icon: Icon, label, value, tone }: { icon: React.ElementType; label: string; value: string | number; tone?: 'green' | 'amber' }) {
   const color = tone === 'green' ? 'text-green-600' : tone === 'amber' ? 'text-[#c9a24e]' : 'text-gray-900'
-  const iconColor = tone === 'amber' ? 'text-[#c9a24e]' : tone === 'green' ? 'text-green-600' : 'text-[#1f3d2c]'
+  const iconColor = tone === 'amber' ? 'text-[#c9a24e]' : tone === 'green' ? 'text-green-600' : 'text-[#1b2a4a]'
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-3.5">
       <Icon className={`w-5 h-5 ${iconColor} mb-2`} />

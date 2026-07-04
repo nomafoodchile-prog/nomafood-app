@@ -71,7 +71,7 @@ export default function EntregaDetalle() {
     window.open(`https://www.google.com/maps/dir/?api=1&destination=${d}`, '_blank')
   }
 
-  if (loading) return <div className="min-h-[60vh] flex items-center justify-center"><Loader2 className="w-6 h-6 text-[#1f3d2c] animate-spin" /></div>
+  if (loading) return <div className="min-h-[60vh] flex items-center justify-center"><Loader2 className="w-6 h-6 text-[#1b2a4a] animate-spin" /></div>
   if (!pedido) return <p className="text-center text-gray-400 py-16">Pedido no encontrado.</p>
 
   const idx = FLOW.indexOf(pedido.estado_entrega)
@@ -80,7 +80,7 @@ export default function EntregaDetalle() {
 
   return (
     <div className="pb-4">
-      <div className="bg-[#1f3d2c] text-white px-4 py-4 flex items-center gap-3">
+      <div className="bg-[#1b2a4a] text-white px-4 py-4 flex items-center gap-3">
         <button onClick={() => router.back()}><ArrowLeft className="w-5 h-5" /></button>
         <h1 className="text-base font-semibold flex-1">Entrega {pedido.numero_pedido}</h1>
       </div>
@@ -91,9 +91,9 @@ export default function EntregaDetalle() {
           const Icon = STEP_ICON[s]; const done = idx >= 0 && i <= idx
           return (
             <div key={s} className="flex-1 flex flex-col items-center relative">
-              {i > 0 && <div className={`absolute top-4 right-1/2 w-full h-0.5 ${idx >= 0 && i <= idx ? 'bg-[#1f3d2c]' : 'bg-gray-200'}`} />}
-              <span className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center ${done ? 'bg-[#1f3d2c] text-white' : 'bg-gray-100 text-gray-400'}`}><Icon className="w-4 h-4" /></span>
-              <span className={`text-[11px] mt-1 ${done ? 'text-[#1f3d2c] font-semibold' : 'text-gray-400'}`}>{STEP_LABEL[s]}</span>
+              {i > 0 && <div className={`absolute top-4 right-1/2 w-full h-0.5 ${idx >= 0 && i <= idx ? 'bg-[#1b2a4a]' : 'bg-gray-200'}`} />}
+              <span className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center ${done ? 'bg-[#1b2a4a] text-white' : 'bg-gray-100 text-gray-400'}`}><Icon className="w-4 h-4" /></span>
+              <span className={`text-[11px] mt-1 ${done ? 'text-[#1b2a4a] font-semibold' : 'text-gray-400'}`}>{STEP_LABEL[s]}</span>
             </div>
           )
         })}
@@ -117,7 +117,7 @@ export default function EntregaDetalle() {
                 <span>Horario {hhmm(pedido.hora_programada)}</span>
               </div>
             </div>
-            {tel && <a href={`tel:${tel}`} className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-[#1f3d2c]"><Phone className="w-4 h-4" /></a>}
+            {tel && <a href={`tel:${tel}`} className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-[#1b2a4a]"><Phone className="w-4 h-4" /></a>}
           </div>
         </div>
 
@@ -134,10 +134,10 @@ export default function EntregaDetalle() {
 
         {/* Acción principal según estado del chofer */}
         {!cerrado && pedido.estado_entrega === 'llego_cliente' && (
-          <button onClick={() => setModal('entrega')} className="w-full bg-[#1f3d2c] hover:bg-[#16301f] text-white font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2"><CheckCircle2 className="w-4 h-4" /> Marcar como entregado</button>
+          <button onClick={() => setModal('entrega')} className="w-full bg-[#1b2a4a] hover:bg-[#142033] text-white font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2"><CheckCircle2 className="w-4 h-4" /> Marcar como entregado</button>
         )}
         {!cerrado && pedido.estado_entrega !== 'llego_cliente' && (
-          <button onClick={llegue} disabled={acting} className="w-full bg-[#c9a24e] hover:bg-[#b8923f] text-[#1f3d2c] font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2 disabled:opacity-60">{acting ? <Loader2 className="w-4 h-4 animate-spin" /> : <MapPin className="w-4 h-4" />} Llegué al cliente</button>
+          <button onClick={llegue} disabled={acting} className="w-full bg-[#c9a24e] hover:bg-[#b8923f] text-[#1b2a4a] font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2 disabled:opacity-60">{acting ? <Loader2 className="w-4 h-4 animate-spin" /> : <MapPin className="w-4 h-4" />} Llegué al cliente</button>
         )}
         {pedido.estado_entrega === 'entregado' && (
           <div className="w-full bg-green-50 text-green-700 font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2"><CheckCircle2 className="w-4 h-4" /> Pedido entregado</div>
@@ -145,7 +145,7 @@ export default function EntregaDetalle() {
 
         {!cerrado && (
           <div className="grid grid-cols-3 gap-2">
-            <button onClick={navegar} className="bg-white border border-gray-200 text-gray-700 font-medium py-2.5 rounded-xl flex flex-col items-center gap-1 text-xs"><Navigation className="w-4 h-4 text-[#1f3d2c]" /> Navegar</button>
+            <button onClick={navegar} className="bg-white border border-gray-200 text-gray-700 font-medium py-2.5 rounded-xl flex flex-col items-center gap-1 text-xs"><Navigation className="w-4 h-4 text-[#1b2a4a]" /> Navegar</button>
             <button onClick={() => setModal('incidencia')} className="bg-white border border-gray-200 text-gray-700 font-medium py-2.5 rounded-xl flex flex-col items-center gap-1 text-xs"><AlertTriangle className="w-4 h-4 text-[#c9a24e]" /> Incidencia</button>
             <button onClick={() => setModal('noentregado')} className="bg-white border border-gray-200 text-gray-700 font-medium py-2.5 rounded-xl flex flex-col items-center gap-1 text-xs"><Ban className="w-4 h-4 text-red-500" /> No entregado</button>
           </div>
@@ -186,7 +186,7 @@ function EntregaModal({ pedidoId, onClose, onDone }: { pedidoId: string; onClose
       </div>
       <Field label="Observaciones (opcional)"><textarea value={obs} onChange={e => setObs(e.target.value)} rows={2} className="inp" /></Field>
       {err && <p className="text-sm text-red-600">{err}</p>}
-      <button onClick={confirmar} disabled={saving} className="w-full bg-[#1f3d2c] text-white font-semibold py-3 rounded-xl flex items-center justify-center gap-2 disabled:opacity-60">{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />} Confirmar entrega</button>
+      <button onClick={confirmar} disabled={saving} className="w-full bg-[#1b2a4a] text-white font-semibold py-3 rounded-xl flex items-center justify-center gap-2 disabled:opacity-60">{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />} Confirmar entrega</button>
     </Sheet>
   )
 }
@@ -204,7 +204,7 @@ function IncidenciaModal({ pedidoId, onClose, onDone }: { pedidoId: string; onCl
       <Field label="Tipo"><select value={tipo} onChange={e => setTipo(e.target.value)} className="inp bg-white">{INCIDENCIAS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></Field>
       <Field label="Comentario"><textarea value={comentario} onChange={e => setComentario(e.target.value)} rows={3} className="inp" /></Field>
       {err && <p className="text-sm text-red-600">{err}</p>}
-      <button onClick={reportar} disabled={saving} className="w-full bg-[#c9a24e] text-[#1f3d2c] font-semibold py-3 rounded-xl flex items-center justify-center gap-2 disabled:opacity-60">{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <AlertTriangle className="w-4 h-4" />} Enviar a la Central</button>
+      <button onClick={reportar} disabled={saving} className="w-full bg-[#c9a24e] text-[#1b2a4a] font-semibold py-3 rounded-xl flex items-center justify-center gap-2 disabled:opacity-60">{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <AlertTriangle className="w-4 h-4" />} Enviar a la Central</button>
     </Sheet>
   )
 }
@@ -233,7 +233,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 function Sheet({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40" onClick={onClose}>
-      <style>{`.inp{width:100%;padding:10px 12px;border:1px solid #e5e7eb;border-radius:12px;font-size:14px;outline:none}.inp:focus{border-color:#1f3d2c}`}</style>
+      <style>{`.inp{width:100%;padding:10px 12px;border:1px solid #e5e7eb;border-radius:12px;font-size:14px;outline:none}.inp:focus{border-color:#1b2a4a}`}</style>
       <div className="bg-white w-full max-w-md rounded-t-2xl p-5 space-y-3" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between"><h2 className="font-semibold text-gray-900">{title}</h2><button onClick={onClose}><X className="w-5 h-5 text-gray-400" /></button></div>
         {children}

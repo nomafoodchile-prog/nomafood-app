@@ -17,7 +17,7 @@ const EE_LABEL: Record<string, string> = {
 }
 const EE_COLOR: Record<string, string> = {
   pendiente: 'bg-gray-100 text-gray-600', cargado: 'bg-blue-100 text-blue-700',
-  en_ruta: 'bg-amber-100 text-amber-700', llego_cliente: 'bg-[#eef3ee] text-[#1f3d2c]',
+  en_ruta: 'bg-green-100 text-green-700', llego_cliente: 'bg-[#eef1f6] text-[#1b2a4a]',
   entregado: 'bg-green-100 text-green-700', no_entregado: 'bg-red-100 text-red-700', incidencia: 'bg-red-100 text-red-700',
 }
 function hhmm(iso: string | null) { return iso ? new Date(iso).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) : '' }
@@ -53,20 +53,20 @@ export default function EntregasPage() {
 
   return (
     <div>
-      <div className="bg-[#1f3d2c] text-white px-5 py-4"><h1 className="text-lg font-semibold text-center">Entregas</h1></div>
+      <div className="bg-[#1b2a4a] text-white px-5 py-4"><h1 className="text-lg font-semibold text-center">Entregas</h1></div>
       <div className="flex border-b border-gray-100 bg-white sticky top-0 z-10">
         <Tab active={tab === 'pendientes'} onClick={() => setTab('pendientes')} label={`Pendientes (${pendientes.length})`} />
         <Tab active={tab === 'completadas'} onClick={() => setTab('completadas')} label={`Completadas (${completadas.length})`} />
       </div>
       {loading ? (
-        <div className="py-16 flex justify-center"><Loader2 className="w-6 h-6 text-[#1f3d2c] animate-spin" /></div>
+        <div className="py-16 flex justify-center"><Loader2 className="w-6 h-6 text-[#1b2a4a] animate-spin" /></div>
       ) : lista.length === 0 ? (
         <p className="text-center text-gray-400 text-sm py-16">No hay entregas {tab}.</p>
       ) : (
         <div className="divide-y divide-gray-50 bg-white">
           {lista.map((p, i) => (
             <Link key={p.id} href={`/chofer/entregas/${p.id}`} className="flex items-center gap-3 px-5 py-4 active:bg-gray-50">
-              <span className="w-8 h-8 rounded-full bg-[#eef3ee] text-[#1f3d2c] flex items-center justify-center text-sm font-semibold flex-shrink-0">{i + 1}</span>
+              <span className="w-8 h-8 rounded-full bg-[#eef1f6] text-[#1b2a4a] flex items-center justify-center text-sm font-semibold flex-shrink-0">{i + 1}</span>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-gray-900 truncate">{p.mayorista?.empresa || p.mayorista?.nombre || 'Cliente'}</p>
                 <p className="text-xs text-gray-500 truncate flex items-center gap-1"><MapPin size={12} />{p.direccion_entrega || 'Sin dirección'}</p>
@@ -85,5 +85,5 @@ export default function EntregasPage() {
 }
 
 function Tab({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) {
-  return <button onClick={onClick} className={`flex-1 py-3 text-sm font-semibold border-b-2 transition-colors ${active ? 'border-[#1f3d2c] text-[#1f3d2c]' : 'border-transparent text-gray-400'}`}>{label}</button>
+  return <button onClick={onClick} className={`flex-1 py-3 text-sm font-semibold border-b-2 transition-colors ${active ? 'border-[#1b2a4a] text-[#1b2a4a]' : 'border-transparent text-gray-400'}`}>{label}</button>
 }

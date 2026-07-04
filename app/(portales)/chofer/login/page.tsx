@@ -34,10 +34,10 @@ export default function ChoferLoginPage() {
     <div className="min-h-screen bg-[#f7f6f2] flex flex-col items-center justify-center p-6">
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-16 h-16 rounded-2xl bg-[#1f3d2c] flex items-center justify-center mb-4">
+          <div className="w-16 h-16 rounded-2xl bg-[#1b2a4a] flex items-center justify-center mb-4">
             <Sprout className="w-8 h-8 text-[#c9a24e]" />
           </div>
-          <h1 className="text-xl font-bold text-[#1f3d2c] tracking-wide">NOMMA FOOD</h1>
+          <h1 className="text-xl font-bold text-[#1b2a4a] tracking-wide">NOMMA FOOD</h1>
           <p className="text-sm text-gray-500 mt-1">Portal Chofer</p>
         </div>
 
@@ -50,7 +50,7 @@ export default function ChoferLoginPage() {
               value={email}
               onChange={e => setEmail(e.target.value)}
               placeholder="chofer@nommafood.cl"
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1f3d2c] focus:outline-none focus:ring-2 focus:ring-[#1f3d2c]/10 text-sm"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1b2a4a] focus:outline-none focus:ring-2 focus:ring-[#1b2a4a]/10 text-sm"
             />
           </div>
           <div>
@@ -61,7 +61,7 @@ export default function ChoferLoginPage() {
               value={password}
               onChange={e => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1f3d2c] focus:outline-none focus:ring-2 focus:ring-[#1f3d2c]/10 text-sm"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1b2a4a] focus:outline-none focus:ring-2 focus:ring-[#1b2a4a]/10 text-sm"
             />
           </div>
 
@@ -72,7 +72,7 @@ export default function ChoferLoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#1f3d2c] hover:bg-[#16301f] text-white font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
+            className="w-full bg-[#1b2a4a] hover:bg-[#142033] text-white font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
             Iniciar sesión
