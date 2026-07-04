@@ -9,7 +9,7 @@ function cuando(iso: string) {
   const d = new Date(iso)
   return d.toLocaleDateString('es-CL', { day: '2-digit', month: 'short' }) + ' · ' + d.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })
 }
-const ICON: Record<string, React.ElementType> = { aviso: Megaphone, motivacional: Sprout, sistema: MessageCircle, chat: MessageCircle }
+const ICON: Record<string, React.ElementType> = { alerta: Megaphone, aviso: Megaphone, motivacional: Sprout, sistema: MessageCircle, chat: MessageCircle }
 
 export default function MensajesPage() {
   const [msgs, setMsgs] = useState<Msg[]>([])
