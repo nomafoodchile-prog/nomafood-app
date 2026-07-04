@@ -1,7 +1,7 @@
 # NOMMA FOOD — Estado técnico del sistema
 
-_Documento de continuidad. Última actualización: sesión de construcción del Portal del Chofer (Fase 2B)._
-Si abres una sesión nueva, lee esto primero para retomar sin perder el rumbo.
+_Documento de continuidad. Actualizado al cierre de la Fase 2B (Portal del Chofer completo)._
+Si abres una sesión nueva, **lee esto primero** y luego sigue con la Fase 2C.
 
 ---
 
@@ -9,83 +9,69 @@ Si abres una sesión nueva, lee esto primero para retomar sin perder el rumbo.
 App web B2B + sistema de logística de despacho para Nomma Food (Alma Libre Grupo SpA).
 Stack: **Next.js 14 (App Router) + TypeScript + Tailwind + Supabase (Auth/Postgres/Realtime/Storage) + Mercado Pago + Resend**. Deploy en **Vercel**.
 
-Identidad visual: verde bosque `#1f3d2c`, dorado `#c9a24e`, crema `#f5efe2`, verde éxito `#3b6d11`.
+Identidad visual (definitiva): **azul marino `#1b2a4a`** (nav, encabezados, botones), **dorado `#c9a24e`** (acciones clave, iconos activos, logo), **crema/blanco cálido** (fondos), **verde** solo para estados positivos (En ruta / Entregado), **rojo** solo para incidencias.
 
 ## 2. Accesos e infraestructura
-- **Repo:** `github.com/nomafoodchile-prog/nomafood-app`. Local con git: `~/Downloads/nomafood-upload/nomafood-app`. **`git push` ya funciona** (token en el llavero del Mac; el asistente sube código directo).
-- **Supabase:** proyecto `nomafood-produccion`, ref `fufmwauofcqnlrfhcenq`. La URL y anon key son públicas (van en el bundle).
-- **Vercel:** team `noma-food`, proyecto `nomafood-app`. Producción: `nomafood-app.vercel.app`. **Deployment Protection deshabilitada** (Vercel Authentication → Only Production) para poder probar previews en el teléfono.
-- **Regla de trabajo:** el asistente sube el código; la usuaria corre las migraciones en Supabase (SQL Editor → Run) y da los clics sensibles (merges, contraseñas, token MP).
+- **Repo:** `github.com/nomafoodchile-prog/nomafood-app`. Local: `~/Downloads/nomafood-upload/nomafood-app`. **`git push` funciona** (token en el llavero; el asistente sube código directo).
+- **Supabase:** proyecto `nomafood-produccion`, ref `fufmwauofcqnlrfhcenq`.
+- **Vercel:** team `noma-food`, proyecto `nomafood-app`. Producción: `nomafood-app.vercel.app`. **Deployment Protection deshabilitada** (previews públicos para probar en teléfono).
+- **Regla de trabajo:** el asistente sube código; la usuaria corre migraciones en Supabase (SQL Editor → Run) y da clics sensibles (merges, contraseñas, token MP).
 
-## 3. Ramas (branches)
+## 3. Ramas
 | Rama | Contenido | Estado |
 |---|---|---|
-| `main` | App en producción (portal mayorista, app central demo) | producción |
-| `fix/bloqueantes-produccion` | **PR #1** — 5 bloqueantes (webhook MP, confirmación pago, middleware, RLS roles, imágenes) | abierto, sin merge |
-| `feature/central-pedidos-mayoristas` | **PR #2** — página "Pedidos Mayoristas" en app central | abierto, sin merge, **probado OK** |
-| `feature/logistica-fase0` | SQL Fase 0 + funciones Fase 1 | migraciones aplicadas |
-| `feature/portal-chofer` | **Rama activa** — portal del chofer + migraciones Fase 1 setup y Fase 2A | migraciones aplicadas |
+| `main` | Producción (portal mayorista + app central demo) | producción |
+| `fix/bloqueantes-produccion` | **PR #1** — 5 bloqueantes | abierto, sin merge |
+| `feature/central-pedidos-mayoristas` | **PR #2** — página "Pedidos Mayoristas" en app central | abierto, probado OK |
+| `feature/portal-chofer` | **Rama activa** — Portal del Chofer + migraciones logística | migraciones aplicadas |
 
-## 4. Base de datos (Supabase) — migraciones APLICADAS en producción
-1. `supabase/products-schema.sql` — tabla `products` + 10 productos mayoristas.
-2. `supabase/logistica-fase0.sql` — **fundación**: 19 tablas, rol `SuperAdmin`, RLS de aislamiento por chofer, buckets de Storage (`entregas`, `incidencias`, `comprobantes`), tiempo real.
-3. `supabase/logistica-fase1-setup.sql` — funciones de negocio + semilla (bodega, chofer, pedidos asignados).
-4. `supabase/logistica-fase2a-completa.sql` — **dos pistas de estado**, funciones de despacho, `calcular_cumplimiento`, limpieza de datos de prueba.
+## 4. Migraciones APLICADAS en Supabase producción (en orden)
+1. `products-schema.sql` — tabla `products` + 10 productos.
+2. `logistica-fase0.sql` — fundación (19 tablas, rol SuperAdmin, RLS, Storage, Realtime).
+3. `logistica-fase1-setup.sql` — funciones de negocio + chofer de prueba (Carlos).
+4. `logistica-fase2a-completa.sql` — **dos pistas de estado**, funciones de despacho, `calcular_cumplimiento`, limpieza.
+5. `logistica-demo-datos-v2.sql` — 3 clientes con entregas pendientes, 1 compra con lista, 1 mensaje de la Central.
 
-### Tablas principales
-`profiles` (rol), `drivers`, `vehicles`, `warehouses`, `driver_shifts`, `routes`, `route_stops`,
-`mayorista_pedidos` (ampliada: `chofer_id`, `route_id`, `warehouse_id`, `lat/lng`, `telefono_entrega`, `hora_programada`, `bultos`, `estado`, **`estado_entrega`**, `hora_llegada_real`, `hora_entrega_real`),
-`pedido_estado_historial`, `entregas` (foto obligatoria), `incidencias`, `location_pings`, `driver_positions`,
-`compras`, `compra_items`, `compra_comprobantes`, `compras_sin_factura`, `jornada_resumen`, `driver_messages`, `notifications_outbox`.
+> Todas las migraciones están en `supabase/` de la rama `feature/portal-chofer`. El SQL Editor de Supabase corre el script como **una transacción** (revierte todo si algo falla). El `raw` de GitHub cachea ~5 min → subir con nombre nuevo para forzar fresco.
 
-### Dos pistas de estado (decisión clave)
-- **Pista Central (`estado`, texto):** `confirmado → pagado → en_preparacion → listo_para_despacho → asignado`. Solo SuperAdmin la mueve (`avanzar_estado_pedido`). Admin solo visualiza.
-- **Pista Chofer (`estado_entrega`, enum):** `pendiente → en_ruta → llego_cliente → entregado / no_entregado / incidencia`. Solo el chofer, desde su portal.
+## 5. Modelo de datos clave
+- **Dos pistas de estado** en `mayorista_pedidos`:
+  - `estado` (Central): `confirmado → pagado → en_preparacion → listo_para_despacho → asignado`. Solo SuperAdmin (`avanzar_estado_pedido`).
+  - `estado_entrega` (Chofer, enum): `pendiente → en_ruta → llego_cliente → entregado / no_entregado / incidencia`.
+- Tablas: `profiles`(rol), `drivers`, `vehicles`, `warehouses`, `driver_shifts`, `routes`, `route_stops`, `mayorista_pedidos`(ampliada: chofer_id, route_id, warehouse_id, lat/lng, telefono_entrega, hora_programada, bultos, estado_entrega, hora_llegada_real, hora_entrega_real), `pedido_estado_historial`, `entregas`(foto obligatoria), `incidencias`, `location_pings`, `driver_positions`, `compras`, `compra_items`, `compra_comprobantes`, `compras_sin_factura`, `jornada_resumen`, `driver_messages`, `notifications_outbox`.
+- Funciones (RPC): `get_my_role`, `get_my_driver_id`, `is_admin`, `is_super_admin`, `avanzar_estado_pedido`, `registrar_llegada`, `registrar_entrega`(foto+receptor), `marcar_no_entregado`, `reportar_incidencia`, `iniciar_ruta`, `finalizar_ruta`(bloquea con pendientes), `calcular_cumplimiento`.
+- **Ojo:** `driver_messages.tipo` solo acepta `sistema / alerta / motivacional / chat` (no `aviso`).
 
-### Funciones (RPC, SECURITY DEFINER)
-`get_my_role`, `get_my_driver_id`, `is_admin`, `is_super_admin`, `transicion_valida`,
-`avanzar_estado_pedido` (SuperAdmin), `registrar_llegada`, `registrar_entrega` (exige foto + receptor),
-`marcar_no_entregado`, `reportar_incidencia`, `iniciar_ruta`, `finalizar_ruta` (bloquea si hay pendientes),
-`calcular_cumplimiento`.
+## 6. Usuarios y datos
+- `admin.nommafood@gmail.com` → **SuperAdmin** (login app central).
+- `chofer1@nommafood.cl` → **Chofer** de prueba (driver "Carlos Chofer", bodega "Bodega Central"). Login portal chofer.
+- Demo: 3 clientes con entregas pendientes (Café Central 10:15, Verde Vivo 10:45, Raíces Veganas 11:30), 1 compra "Lo Valledor" con lista (tomate/lechuga/palta/cebolla/zanahoria), 1 mensaje de la Central.
 
-### Usuarios y semilla
-- `admin.nommafood@gmail.com` → **SuperAdmin** (login de la app central).
-- `chofer1@nommafood.cl` → **Chofer** de prueba (driver "Carlos Chofer", bodega "Bodega Central"). Login del portal chofer.
-- `natyladera0406@gmail.com`, `nomafoodchile@gmail.com` → Chofer (sin driver).
-- Pedidos de prueba asignados a Carlos (`estado='asignado'`, `estado_entrega='pendiente'`), mayorista de prueba renombrado a "Juan Pérez / Distribuidora Verde Ltda".
+## 7. Portales / rutas
+- **App central (auth):** `app/(central)/operaciones/pedidos-mayoristas` (PR #2). Login `/login`.
+- **Portal Chofer (auth, azul marino):** `app/(portales)/chofer/{login, "" (dashboard), entregas, entregas/[id], compras, mensajes, perfil}`. Cliente browser de Supabase + `supabase.rpc()` + **Realtime**. Middleware permite `/chofer`.
+- **Portal Mayorista (token):** `app/(portales)/portal/mayoristas/[token]`.
+- Preview chofer: `https://nomafood-app-git-feature-portal-chofer-noma-food.vercel.app/chofer/login`.
 
-## 5. Rutas / Portales (código)
-- **App central (auth):** `app/(central)/operaciones/pedidos-mayoristas` (PR #2). Login `/login` (Supabase Auth).
-- **Portal Chofer (auth, verde Nomma):** `app/(portales)/chofer/login`, `/chofer` (dashboard), `/chofer/entregas`, `/chofer/entregas/[id]`, `/chofer/compras`, `/chofer/mensajes`, `/chofer/perfil`. Usa el cliente browser de Supabase + `supabase.rpc()` + **Realtime** (respeta RLS). Middleware permite `/chofer`.
-- **Portal Mayorista (por token):** `app/(portales)/portal/mayoristas/[token]`.
-- Preview del chofer: `https://nomafood-app-git-feature-portal-chofer-noma-food.vercel.app/chofer/login` (QR para el teléfono).
+## 8. Integraciones
+Supabase (Auth, Postgres+RLS, Realtime, Storage). Mercado Pago (checkout+webhook; **el link de pago aún no genera `init_point`** → falta el token real de producción MP en Vercel). Resend (correo). Google Maps (deep link "Navegar"). WhatsApp/Push/Waze/firma/QR = futuro (`notifications_outbox` deja la estructura).
 
-## 6. Integraciones
-- **Supabase:** Auth (sesión), Postgres + RLS, **Realtime** (postgres_changes filtrado por chofer), Storage (fotos privadas).
-- **Mercado Pago:** checkout + webhook. `MERCADO_PAGO_ACCESS_TOKEN` existe en Vercel pero **el link de pago aún no genera `init_point`** → falta confirmar que el token sea el real de producción de la cuenta MP.
-- **Resend** (correo), **Google Maps** (deep link "Navegar"). **WhatsApp / Push / Waze / firma / QR** = futuro (`notifications_outbox` deja la estructura lista).
+## 9. HECHO ✅
+- Auditoría + 5 bloqueantes (PR #1). Página "Pedidos Mayoristas" central (PR #2, probada).
+- Logística: Fase 0 (fundación), Fase 1 (lógica), Fase 2A (dos pistas de estado).
+- **Portal del Chofer (Fase 2B) COMPLETO y probado en teléfono:** login, dashboard operativo (próxima entrega, botones grandes, cumplimiento con "Sin entregas aún", bienvenida, resumen, última sync), entregas (pendientes/completadas), detalle con stepper del chofer (Llegué → Entregar con foto / No entregado / Incidencia), **Compras** (lista real), **Mensajes** (avisos de Central), Perfil, **tiempo real** en todas. Paleta azul marino.
 
-## 7. Hecho ✅
-- Auditoría + 5 bloqueantes (PR #1).
-- Página "Pedidos Mayoristas" en la app central (PR #2, probada).
-- Fundación de logística (Fase 0), lógica de negocio (Fase 1), dos pistas de estado + operación (Fase 2A).
-- **Portal del Chofer (Fase 2B):** login, dashboard operativo (próxima entrega, botones grandes, cumplimiento, bienvenida, resumen), detalle con stepper del chofer, entrega con foto, incidencias, no entregado, iniciar/finalizar ruta, **tiempo real** en las 3 pantallas.
+## 10. SIGUIENTE — Fase 2C (empezar aquí en la sesión nueva)
+**Panel Central de monitoreo en vivo:** que la Central vea, en tiempo real y sin recargar:
+- Todos los choferes y su estado (Disponible/En ruta).
+- Estado de cada pedido (las dos pistas) actualizándose en vivo.
+- Incidencias entrantes al instante, con opción de responder/reasignar/cerrar (2D).
+- Base para el mapa GPS (2E) usando `driver_positions` / `location_pings`.
+Construir como página nueva en la app central (ej. `app/(central)/operaciones/monitoreo`), con suscripción Realtime a `mayorista_pedidos`, `incidencias`, `driver_positions`.
 
-## 8. Pendiente / roadmap
-- **Fase 2C:** Panel Central de monitoreo en vivo (mapa con todos los choferes, estados e incidencias en tiempo real). ← siguiente.
-- **Fase 2D:** firma digital opcional en entrega; gestión de incidencias desde la Central (responder, reasignar, cerrar).
-- **Fase 2E:** GPS en vivo (`location_pings` + `driver_positions` + mapa + velocidad/ETA/km/historial de recorrido).
-- **Fase 2F:** Compras real, Mensajes = "Avisos de Central", badges numéricos en el menú, Perfil con vehículo real.
-- **Config:** poner el **token real de Mercado Pago** en Vercel; **merge de PR #1 y #2** a producción; limpiar datos de prueba antes de producción.
+## 11. Roadmap restante
+- **2C** panel central en vivo ← siguiente. **2D** firma + gestión de incidencias desde Central. **2E** GPS en vivo (mapa, velocidad, ETA, km, historial). **2F** Compras (iniciar/finalizar + comprobante), Mensajes badges, Perfil con vehículo real, badges numéricos en el menú.
+- **Config:** token real de Mercado Pago; merge de PR #1 y #2; limpiar datos demo antes de producción.
 
-## 9. Decisiones tomadas
-- Dos pistas de estado (Central vs Chofer); el chofer solo mueve su pista; admin solo lee salvo SuperAdmin.
-- Enfoque **API-first / Supabase-native** (browser client + RLS + RPC SECURITY DEFINER + Realtime) → listo para apps nativas Android/iOS sin reescribir.
-- Arquitectura escalable: multi-chofer, multi-vehículo, multi-bodega, multi-ruta desde el día uno.
-- Sin soluciones temporales ni datos hardcodeados; toda la data viene de la base.
-
-## 10. Notas prácticas (evitar tropiezos)
-- El **SQL Editor de Supabase corre el script como UNA transacción**: si algo falla al final, revierte todo. Migraciones idempotentes.
-- El enlace **`raw.githubusercontent.com` cachea ~5 min**: para forzar contenido fresco, subir el archivo con **nombre nuevo**.
-- Para borrar pedidos, eliminar primero dependencias (`entregas`, `incidencias`, `pedido_estado_historial`, `mayorista_pedido_items`) por las llaves foráneas.
-- El asistente a veces tiene un fallo cosmético de salida repitiendo texto ("court court…"): no afecta el código ni los datos.
+## 12. Cómo continuar en sesión nueva
+Decir: **"lee `docs/ESTADO-DEL-SISTEMA.md` (rama feature/portal-chofer) y seguimos con la Fase 2C"**. El asistente sube código directo (git ok); tú corres migraciones y das clics sensibles.
