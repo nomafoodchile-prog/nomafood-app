@@ -204,11 +204,14 @@ export default function ChoferDashboard() {
           <div className="bg-white rounded-2xl border border-gray-100 p-4">
             <div className="flex justify-between items-center mb-2">
               <span className="text-sm font-semibold text-gray-700">Cumplimiento de hoy</span>
-              <span className="text-sm font-bold px-2 py-0.5 rounded-full" style={{ color: cumplColor, background: cumplBg }}>{cumpl}%</span>
+              {completadas.length > 0
+                ? <span className="text-sm font-bold px-2 py-0.5 rounded-full" style={{ color: cumplColor, background: cumplBg }}>{cumpl}%</span>
+                : <span className="text-xs text-gray-400">Sin entregas aún</span>}
             </div>
             <div className="h-2.5 rounded-full bg-gray-100 overflow-hidden">
-              <div className="h-full rounded-full transition-all" style={{ width: `${cumpl}%`, background: cumplColor }} />
+              <div className="h-full rounded-full transition-all" style={{ width: completadas.length > 0 ? `${cumpl}%` : '0%', background: cumplColor }} />
             </div>
+            {completadas.length === 0 && <p className="text-[11px] text-gray-400 mt-1.5">Se calcula a medida que cierras entregas.</p>}
           </div>
         )}
 
