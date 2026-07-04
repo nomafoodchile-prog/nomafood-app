@@ -35,6 +35,15 @@ async function geo(): Promise<{ lat: number | null; lng: number | null }> {
     navigator.geolocation.getCurrentPosition(p => res({ lat: p.coords.latitude, lng: p.coords.longitude }), () => res({ lat: null, lng: null }), { timeout: 4000 })
   })
 }
+// Distancia en metros (Haversine) entre dos coordenadas
+function metros(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
+  const R = 6371000, rad = (d: number) => (d * Math.PI) / 180
+  const dLat = rad(b.lat - a.lat), dLng = rad(b.lng - a.lng)
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLng / 2) ** 2
+  return 2 * R * Math.asin(Math.sqrt(h))
+}
+function fmtDist(m: number) { return m >= 1000 ? `${(m / 1000).toFixed(1)} km` : `${Math.round(m)} m` }
+const RADIO_LLEGADA = 300 // metros máximos para permitir "Llegué al cliente"
 
 export default function EntregaDetalle() {
   const { id } = useParams<{ id: string }>()
@@ -44,6 +53,8 @@ export default function EntregaDetalle() {
   const [acting, setActing] = useState(false)
   const [err, setErr] = useState<string | null>(null)
   const [modal, setModal] = useState<'entrega' | 'incidencia' | 'noentregado' | null>(null)
+  const [miGps, setMiGps] = useState<{ lat: number; lng: number } | null>(null)
+  const [gpsListo, setGpsListo] = useState<boolean | null>(null)
 
   const cargar = useCallback(async () => {
     const { data } = await supabase.from('mayorista_pedidos')
@@ -59,6 +70,17 @@ export default function EntregaDetalle() {
     return () => { supabase.removeChannel(ch) }
   }, [id, cargar])
 
+  // GPS del chofer en vivo (para validar la llegada)
+  useEffect(() => {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) { setGpsListo(false); return }
+    const wId = navigator.geolocation.watchPosition(
+      p => { setMiGps({ lat: p.coords.latitude, lng: p.coords.longitude }); setGpsListo(true) },
+      () => setGpsListo(false),
+      { enableHighAccuracy: true, maximumAge: 5000, timeout: 20000 }
+    )
+    return () => navigator.geolocation.clearWatch(wId)
+  }, [])
+
   async function llegue() {
     setActing(true); setErr(null)
     const g = await geo()
@@ -67,8 +89,10 @@ export default function EntregaDetalle() {
   }
   function navegar() {
     if (!pedido) return
-    const d = pedido.lat && pedido.lng ? `${pedido.lat},${pedido.lng}` : encodeURIComponent(pedido.direccion_entrega || '')
-    window.open(`https://www.google.com/maps/dir/?api=1&destination=${d}`, '_blank')
+    const url = pedido.lat != null && pedido.lng != null
+      ? `https://www.waze.com/ul?ll=${pedido.lat}%2C${pedido.lng}&navigate=yes`
+      : `https://www.waze.com/ul?q=${encodeURIComponent(pedido.direccion_entrega || '')}&navigate=yes`
+    window.open(url, '_blank')
   }
 
   if (loading) return <div className="min-h-[60vh] flex items-center justify-center"><Loader2 className="w-6 h-6 text-[#1b2a4a] animate-spin" /></div>
@@ -77,6 +101,9 @@ export default function EntregaDetalle() {
   const idx = FLOW.indexOf(pedido.estado_entrega)
   const cerrado = ['entregado', 'no_entregado'].includes(pedido.estado_entrega)
   const tel = pedido.telefono_entrega || pedido.mayorista?.telefono
+  const destino = pedido.lat != null && pedido.lng != null ? { lat: pedido.lat, lng: pedido.lng } : null
+  const dist = miGps && destino ? metros(miGps, destino) : null
+  const puedeLlegar = destino ? dist != null && dist <= RADIO_LLEGADA : miGps != null
 
   return (
     <div className="pb-4">
@@ -137,7 +164,19 @@ export default function EntregaDetalle() {
           <button onClick={() => setModal('entrega')} className="w-full bg-[#1b2a4a] hover:bg-[#142033] text-white font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2"><CheckCircle2 className="w-4 h-4" /> Marcar como entregado</button>
         )}
         {!cerrado && pedido.estado_entrega !== 'llego_cliente' && (
-          <button onClick={llegue} disabled={acting} className="w-full bg-[#c9a24e] hover:bg-[#b8923f] text-[#1b2a4a] font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2 disabled:opacity-60">{acting ? <Loader2 className="w-4 h-4 animate-spin" /> : <MapPin className="w-4 h-4" />} Llegué al cliente</button>
+          <div className="space-y-1.5">
+            <button onClick={llegue} disabled={acting || !puedeLlegar}
+              className="w-full bg-[#c9a24e] hover:bg-[#b8923f] text-[#1b2a4a] font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+              {acting ? <Loader2 className="w-4 h-4 animate-spin" /> : <MapPin className="w-4 h-4" />} Llegué al cliente
+            </button>
+            <p className={`text-[11px] text-center ${puedeLlegar ? 'text-green-600' : 'text-gray-500'}`}>
+              {gpsListo === false
+                ? '📍 Activa el GPS para poder marcar la llegada.'
+                : destino
+                  ? (dist == null ? 'Obteniendo tu ubicación…' : puedeLlegar ? '✓ Estás en el punto de entrega' : `Acércate al cliente para marcar la llegada (estás a ${fmtDist(dist)}).`)
+                  : (miGps ? 'Se registrará tu ubicación GPS al marcar la llegada.' : 'Obteniendo tu ubicación GPS…')}
+            </p>
+          </div>
         )}
         {pedido.estado_entrega === 'entregado' && (
           <div className="w-full bg-green-50 text-green-700 font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2"><CheckCircle2 className="w-4 h-4" /> Pedido entregado</div>
@@ -145,7 +184,7 @@ export default function EntregaDetalle() {
 
         {!cerrado && (
           <div className="grid grid-cols-3 gap-2">
-            <button onClick={navegar} className="bg-white border border-gray-200 text-gray-700 font-medium py-2.5 rounded-xl flex flex-col items-center gap-1 text-xs"><Navigation className="w-4 h-4 text-[#1b2a4a]" /> Navegar</button>
+            <button onClick={navegar} className="bg-white border border-gray-200 text-gray-700 font-medium py-2.5 rounded-xl flex flex-col items-center gap-1 text-xs"><Navigation className="w-4 h-4 text-[#1b2a4a]" /> Waze</button>
             <button onClick={() => setModal('incidencia')} className="bg-white border border-gray-200 text-gray-700 font-medium py-2.5 rounded-xl flex flex-col items-center gap-1 text-xs"><AlertTriangle className="w-4 h-4 text-[#c9a24e]" /> Incidencia</button>
             <button onClick={() => setModal('noentregado')} className="bg-white border border-gray-200 text-gray-700 font-medium py-2.5 rounded-xl flex flex-col items-center gap-1 text-xs"><Ban className="w-4 h-4 text-red-500" /> No entregado</button>
           </div>

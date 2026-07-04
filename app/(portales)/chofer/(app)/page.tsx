@@ -102,12 +102,6 @@ export default function ChoferDashboard() {
     if (error) { setErr(error.message); setActing(false); return }
     await cargar(); setActing(false)
   }
-  async function llegue(id: string) {
-    setActing(true); setErr(null)
-    const { error } = await supabase.rpc('registrar_llegada', { p_pedido_id: id })
-    if (error) setErr(error.message); await cargar(); setActing(false)
-  }
-
   const pendientes = pedidos.filter(p => ACTIVOS.includes(p.estado_entrega))
   const completadas = pedidos.filter(p => p.estado_entrega === 'entregado')
   const proxima = pendientes.find(p => p.estado_entrega === 'llego_cliente') || pendientes[0]
@@ -169,14 +163,14 @@ export default function ChoferDashboard() {
                 className="flex items-center justify-center gap-2 py-3 rounded-xl border border-gray-200 text-gray-700 font-medium text-sm">
                 <Phone size={16} className="text-[#1b2a4a]" /> Llamar
               </a>
-              <button onClick={() => { const d = proxima.lat && proxima.lng ? `${proxima.lat},${proxima.lng}` : encodeURIComponent(proxima.direccion_entrega || ''); window.open(`https://www.google.com/maps/dir/?api=1&destination=${d}`, '_blank') }}
+              <button onClick={() => { const u = proxima.lat && proxima.lng ? `https://www.waze.com/ul?ll=${proxima.lat}%2C${proxima.lng}&navigate=yes` : `https://www.waze.com/ul?q=${encodeURIComponent(proxima.direccion_entrega || '')}&navigate=yes`; window.open(u, '_blank') }}
                 className="flex items-center justify-center gap-2 py-3 rounded-xl border border-gray-200 text-gray-700 font-medium text-sm">
-                <Navigation size={16} className="text-[#1b2a4a]" /> Navegar
+                <Navigation size={16} className="text-[#1b2a4a]" /> Waze
               </button>
             </div>
             {proxima.estado_entrega === 'en_ruta' ? (
-              <button onClick={() => llegue(proxima.id)} disabled={acting}
-                className="w-full mt-2 bg-[#c9a24e] hover:bg-[#b8923f] text-[#1b2a4a] font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2 disabled:opacity-60">
+              <button onClick={() => router.push(`/chofer/entregas/${proxima.id}`)}
+                className="w-full mt-2 bg-[#c9a24e] hover:bg-[#b8923f] text-[#1b2a4a] font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2">
                 <MapPin size={16} /> Llegué al cliente
               </button>
             ) : (
