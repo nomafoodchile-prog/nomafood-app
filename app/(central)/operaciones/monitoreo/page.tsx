@@ -70,6 +70,7 @@ export default function MonitoreoEnVivo() {
   const [, setTick] = useState(0)
   const [busy, setBusy] = useState<string | null>(null)
   const [reasignando, setReasignando] = useState<{ pedidoId: string; incidenciaId: string } | null>(null)
+  const [notaReasignar, setNotaReasignar] = useState('')
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const cargar = useCallback(async () => {
@@ -138,12 +139,15 @@ export default function MonitoreoEnVivo() {
   async function confirmarReasignar(choferId: string) {
     if (!reasignando) return
     const { pedidoId, incidenciaId } = reasignando
+    const nota = notaReasignar.trim()
     setBusy(incidenciaId); setErr(null)
     const { error } = await supabase.rpc('reasignar_pedido', { p_pedido_id: pedidoId, p_chofer_id: choferId })
     if (error) { setErr(error.message); setBusy(null); return }
-    // Reasignar cierra la incidencia
-    await supabase.rpc('resolver_incidencia', { p_incidencia_id: incidenciaId, p_estado: 'resuelta', p_respuesta: 'Reasignada a otro chofer' })
-    setReasignando(null); await cargar(); setBusy(null)
+    // Si hay instrucción, se la mandamos como mensaje al chofer
+    if (nota) await supabase.rpc('enviar_mensaje_chofer', { p_driver_id: choferId, p_texto: nota, p_tipo: 'alerta' })
+    // Reasignar cierra la incidencia (deja la nota como respuesta)
+    await supabase.rpc('resolver_incidencia', { p_incidencia_id: incidenciaId, p_estado: 'resuelta', p_respuesta: nota || 'Reasignada' })
+    setReasignando(null); setNotaReasignar(''); await cargar(); setBusy(null)
   }
 
   const enCurso = pedidos.filter(p => p.estado_entrega !== 'entregado')
@@ -328,19 +332,21 @@ export default function MonitoreoEnVivo() {
 
                   {/* Acciones de la Central (Fase 2D) */}
                   {reasignando?.incidenciaId === i.id ? (
-                    <div className="mt-3 border-t border-gray-100 pt-3">
-                      <p className="text-[11px] font-semibold text-gray-500 mb-2">Reasignar pedido a:</p>
+                    <div className="mt-3 border-t border-gray-100 pt-3 space-y-2">
+                      <p className="text-[11px] font-semibold text-gray-500">Instrucción para el chofer (opcional)</p>
+                      <textarea value={notaReasignar} onChange={e => setNotaReasignar(e.target.value)} rows={2}
+                        placeholder="Ej: Vuelve a la fábrica a retirar el pedido de Café Central para despacho inmediato."
+                        className="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-2 focus:outline-none focus:ring-2 focus:ring-[#c9a24e] resize-none" />
+                      <p className="text-[11px] font-semibold text-gray-500">Asignar a:</p>
                       <div className="flex flex-wrap gap-1.5">
-                        {drivers.filter(d => d.id !== i.driver_id).length === 0 && (
-                          <span className="text-[11px] text-gray-400">No hay otro chofer disponible.</span>
-                        )}
-                        {drivers.filter(d => d.id !== i.driver_id).map(d => (
+                        {drivers.map(d => (
                           <button key={d.id} disabled={busy === i.id} onClick={() => confirmarReasignar(d.id)}
-                            className="text-xs px-2.5 py-1.5 rounded-lg bg-[#1b2a4a] text-white hover:bg-[#142033] disabled:opacity-60">
-                            {d.nombre}
+                            className="text-xs px-2.5 py-1.5 rounded-lg bg-[#1b2a4a] text-white hover:bg-[#142033] disabled:opacity-60 flex items-center gap-1">
+                            {busy === i.id && <Loader2 size={12} className="animate-spin" />}
+                            {d.nombre}{d.id === i.driver_id ? ' (mismo)' : ''}
                           </button>
                         ))}
-                        <button onClick={() => setReasignando(null)}
+                        <button onClick={() => { setReasignando(null); setNotaReasignar('') }}
                           className="text-xs px-2.5 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50">
                           Cancelar
                         </button>
@@ -355,9 +361,9 @@ export default function MonitoreoEnVivo() {
                         </button>
                       )}
                       {i.pedido_id && (
-                        <button disabled={busy === i.id} onClick={() => setReasignando({ pedidoId: i.pedido_id as string, incidenciaId: i.id })}
+                        <button disabled={busy === i.id} onClick={() => { setNotaReasignar(''); setReasignando({ pedidoId: i.pedido_id as string, incidenciaId: i.id }) }}
                           className="text-xs px-2.5 py-1.5 rounded-lg border border-gray-200 text-[#1b2a4a] hover:bg-gray-50 flex items-center gap-1 disabled:opacity-60">
-                          <ArrowRightLeft size={13} /> Reasignar
+                          <ArrowRightLeft size={13} /> Reasignar / avisar
                         </button>
                       )}
                       <button disabled={busy === i.id} onClick={() => accionIncidencia(i.id, 'resuelta')}
