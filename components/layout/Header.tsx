@@ -9,6 +9,7 @@ const routeLabels: Record<string, string> = {
   operaciones: 'Operaciones',
   pedidos: 'Pedidos',
   monitoreo: 'Monitoreo en vivo',
+  mensajes: 'Mensajes a choferes',
   produccion: 'Producción',
   tareas: 'Tareas',
   inventario: 'Inventario',

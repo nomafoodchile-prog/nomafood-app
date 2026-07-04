@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import {
   LayoutDashboard,
   ClipboardList,
@@ -31,10 +31,14 @@ import {
   Menu,
   Activity,
   Radio,
+  MessageCircle,
 } from 'lucide-react'
 import { Logo } from './Logo'
 import { supabase } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { notify, armAudioUnlock } from '@/lib/notify'
+
+const SEEN_KEY = 'central_msgs_seen'
 
 type NavItem = {
   label: string
@@ -51,6 +55,7 @@ const navItems: NavItem[] = [
     children: [
       { label: 'Pedidos', href: '/operaciones/pedidos', icon: ClipboardList },
       { label: 'Monitoreo en vivo', href: '/operaciones/monitoreo', icon: Radio },
+      { label: 'Mensajes a choferes', href: '/operaciones/mensajes', icon: MessageCircle },
       { label: 'Producción', href: '/operaciones/produccion', icon: ChefHat },
       { label: 'Tareas', href: '/operaciones/tareas', icon: CheckSquare },
       { label: 'Inventario', href: '/operaciones/inventario', icon: Package },
@@ -103,9 +108,14 @@ const navItems: NavItem[] = [
   },
 ]
 
-function NavGroup({ item, pathname, onNavigate }: { item: NavItem; pathname: string; onNavigate?: () => void }) {
+function Badge({ n }: { n: number }) {
+  return <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">{n > 9 ? '9+' : n}</span>
+}
+
+function NavGroup({ item, pathname, onNavigate, badges }: { item: NavItem; pathname: string; onNavigate?: () => void; badges?: Record<string, number> }) {
   const isChildActive = item.children?.some(c => c.href && pathname.startsWith(c.href))
   const [open, setOpen] = useState(isChildActive ?? false)
+  const grupoBadge = item.children?.reduce((s, c) => s + (c.href ? badges?.[c.href] || 0 : 0), 0) || 0
 
   if (!item.children) {
     const active = item.href ? pathname === item.href : false
@@ -135,6 +145,7 @@ function NavGroup({ item, pathname, onNavigate }: { item: NavItem; pathname: str
       >
         <item.icon size={16} className="flex-shrink-0" />
         <span className="flex-1 text-left">{item.label}</span>
+        {!open && grupoBadge > 0 && <Badge n={grupoBadge} />}
         {open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
       </button>
       {open && (
@@ -153,7 +164,8 @@ function NavGroup({ item, pathname, onNavigate }: { item: NavItem; pathname: str
                 }`}
               >
                 <child.icon size={13} className="flex-shrink-0" />
-                <span>{child.label}</span>
+                <span className="flex-1">{child.label}</span>
+                {child.href && badges?.[child.href] ? <Badge n={badges[child.href]} /> : null}
               </Link>
             )
           })}
@@ -167,6 +179,42 @@ export function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [novedadesMsg, setNovedadesMsg] = useState(0)
+  const conocidos = useRef<Map<string, string | null>>(new Map())
+  const primed = useRef(false)
+
+  // Novedades de mensajería: suena cuando un chofer confirma "Recibido" y cuenta
+  // los acuses posteriores a la última vez que se abrió la bandeja.
+  const recomputar = useCallback(async () => {
+    const seen = (typeof localStorage !== 'undefined' && localStorage.getItem(SEEN_KEY)) || '1970-01-01'
+    const { data } = await supabase.from('driver_messages').select('id, recibido_at')
+    const list = (data as { id: string; recibido_at: string | null }[]) || []
+    if (primed.current) {
+      const nuevoAcuse = list.some(m => m.recibido_at && conocidos.current.has(m.id) && !conocidos.current.get(m.id))
+      if (nuevoAcuse) notify(false)
+    }
+    conocidos.current = new Map(list.map(m => [m.id, m.recibido_at]))
+    primed.current = true
+    setNovedadesMsg(list.filter(m => m.recibido_at && m.recibido_at > seen).length)
+  }, [])
+
+  useEffect(() => {
+    armAudioUnlock()
+    recomputar()
+    const ch = supabase.channel('sidebar-msg-acks')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'driver_messages' }, () => recomputar())
+      .subscribe()
+    return () => { supabase.removeChannel(ch) }
+  }, [recomputar])
+
+  useEffect(() => {
+    if (pathname === '/operaciones/mensajes') {
+      try { localStorage.setItem(SEEN_KEY, new Date().toISOString()) } catch {}
+      setNovedadesMsg(0)
+    }
+  }, [pathname])
+
+  const badges = { '/operaciones/mensajes': novedadesMsg }
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -189,7 +237,7 @@ export function Sidebar() {
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
         {navItems.map(item => (
-          <NavGroup key={item.label} item={item} pathname={pathname} onNavigate={onNavigate} />
+          <NavGroup key={item.label} item={item} pathname={pathname} onNavigate={onNavigate} badges={badges} />
         ))}
       </nav>
 
