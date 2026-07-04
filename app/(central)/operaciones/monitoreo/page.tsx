@@ -75,6 +75,8 @@ export default function MonitoreoEnVivo() {
   const [reasignando, setReasignando] = useState<{ pedidoId: string; incidenciaId: string } | null>(null)
   const [comprobante, setComprobante] = useState<Comprobante | null>(null)
   const [compLoading, setCompLoading] = useState(false)
+  const [geocoding, setGeocoding] = useState(false)
+  const [geoMsg, setGeoMsg] = useState<string | null>(null)
   const [notaReasignar, setNotaReasignar] = useState('')
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -136,6 +138,26 @@ export default function MonitoreoEnVivo() {
 
   async function actualizar() { setRefreshing(true); await cargar(); setRefreshing(false) }
 
+  // Geocodifica los pedidos con dirección pero sin coordenadas (para mapa + validación de llegada)
+  async function ubicarPedidos(lista: Pedido[]) {
+    setGeocoding(true); setGeoMsg(null)
+    let ok = 0, fail = 0
+    for (const p of lista) {
+      const dir = p.direccion_entrega || ''
+      const q = /santiago|chile/i.test(dir) ? dir : `${dir}, Santiago, Chile`
+      try {
+        const r = await fetch(`/api/geocode?q=${encodeURIComponent(q)}`)
+        const d = await r.json()
+        if (d.found) { await supabase.from('mayorista_pedidos').update({ lat: d.lat, lng: d.lng }).eq('id', p.id); ok++ }
+        else fail++
+      } catch { fail++ }
+      await new Promise(res => setTimeout(res, 1100)) // respeta el límite de Nominatim (1/seg)
+    }
+    setGeoMsg(`Ubicados ${ok}${fail ? ` · ${fail} sin resultado` : ''}.`)
+    setGeocoding(false)
+    await cargar()
+  }
+
   async function verComprobante(p: Pedido) {
     setCompLoading(true)
     setComprobante({ pedido: p, foto: null, firma: null, receptor: null, obs: null, hora: null })
@@ -196,6 +218,7 @@ export default function MonitoreoEnVivo() {
       })),
   ]
   const conGps = puntos.some(p => p.tipo === 'chofer')
+  const sinUbicacion = enCurso.filter(p => (p.lat == null || p.lng == null) && p.direccion_entrega)
 
   if (loading) return (
     <div className="min-h-[60vh] flex items-center justify-center">
@@ -236,6 +259,20 @@ export default function MonitoreoEnVivo() {
         <Kpi icon={CheckCircle2} label="Entregas de hoy" value={entregadasHoy} tone="green" />
         <Kpi icon={AlertTriangle} label="Incidencias abiertas" value={incidencias.length} tone={incidencias.length ? 'red' : 'muted'} />
       </div>
+
+      {/* Pedidos sin ubicación en el mapa */}
+      {sinUbicacion.length > 0 && (
+        <div className="bg-[#faf0d7] border border-[#e7d5a6] rounded-xl px-4 py-2.5 flex flex-wrap items-center gap-3 text-sm text-[#7a5c15]">
+          <MapPin size={16} className="flex-shrink-0" />
+          <span className="flex-1">{sinUbicacion.length} {sinUbicacion.length === 1 ? 'pedido sin ubicación en el mapa' : 'pedidos sin ubicación en el mapa'} (no se puede validar la llegada por cercanía).</span>
+          {geoMsg && <span className="text-xs text-[#7a5c15]/80">{geoMsg}</span>}
+          <button onClick={() => ubicarPedidos(sinUbicacion)} disabled={geocoding}
+            className="flex items-center gap-1.5 text-xs font-semibold bg-[#c9a24e] hover:bg-[#b8923f] text-[#1b2a4a] px-3 py-1.5 rounded-full disabled:opacity-60">
+            {geocoding ? <Loader2 size={13} className="animate-spin" /> : <MapPin size={13} />}
+            {geocoding ? 'Ubicando…' : 'Ubicar en el mapa'}
+          </button>
+        </div>
+      )}
 
       {/* Mapa en vivo */}
       <div className="bg-white rounded-2xl shadow-card overflow-hidden">
