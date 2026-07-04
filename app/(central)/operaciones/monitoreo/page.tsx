@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic'
 import {
   Radio, RefreshCw, Truck, Package, CheckCircle2, AlertTriangle, MapPin,
   Clock, Boxes, Loader2, User, Navigation, Circle, Route, Map as MapIcon, Gauge,
+  Eye, ArrowRightLeft, Check,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 import type { MapaPunto } from './MonitoreoMapa'
@@ -35,7 +36,7 @@ interface Incidencia {
 // Pista Central (la mueve SuperAdmin)
 const ESTADO_CENTRAL = ['pagado', 'en_preparacion', 'listo_para_despacho', 'asignado']
 const EC_LABEL: Record<string, string> = {
-  pagado: 'Pagado', en_preparacion: 'En preparación', listo_para_despacho: 'Listo p/ despacho', asignado: 'Asignado',
+  pagado: 'Pagado', en_preparacion: 'En preparación', listo_para_despacho: 'Listo p/ despacho', asignado: 'Asignado', entregado: 'Entregado',
 }
 // Pista Chofer
 const EE_ACTIVOS = ['pendiente', 'cargado', 'en_ruta', 'llego_cliente']
@@ -67,6 +68,8 @@ export default function MonitoreoEnVivo() {
   const [err, setErr] = useState<string | null>(null)
   const [sync, setSync] = useState<Date>(new Date())
   const [, setTick] = useState(0)
+  const [busy, setBusy] = useState<string | null>(null)
+  const [reasignando, setReasignando] = useState<{ pedidoId: string; incidenciaId: string } | null>(null)
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const cargar = useCallback(async () => {
@@ -77,7 +80,7 @@ export default function MonitoreoEnVivo() {
       supabase.from('driver_positions').select('driver_id, lat, lng, velocidad, updated_at'),
       supabase.from('mayorista_pedidos')
         .select('id, numero_pedido, estado, estado_entrega, total, direccion_entrega, hora_programada, bultos, chofer_id, lat, lng, mayorista:mayoristas(nombre, empresa)')
-        .in('estado', ESTADO_CENTRAL)
+        .or(`estado.in.(${ESTADO_CENTRAL.join(',')}),and(estado.eq.entregado,hora_entrega_real.gte.${hoy})`)
         .order('hora_programada', { ascending: true, nullsFirst: false }),
       supabase.from('incidencias')
         .select('id, pedido_id, driver_id, tipo, comentario, estado_resolucion, created_at, driver:drivers(nombre), pedido:mayorista_pedidos(numero_pedido)')
@@ -125,10 +128,29 @@ export default function MonitoreoEnVivo() {
   // Re-render suave para refrescar "hace X" de la última sync
   useEffect(() => { const t = setInterval(() => setTick(x => x + 1), 30000); return () => clearInterval(t) }, [])
 
+  // ── Acciones de la Central (Fase 2D) ──────────────────────────────
+  async function accionIncidencia(id: string, estado: 'en_revision' | 'resuelta') {
+    setBusy(id); setErr(null)
+    const { error } = await supabase.rpc('resolver_incidencia', { p_incidencia_id: id, p_estado: estado })
+    if (error) setErr(error.message)
+    await cargar(); setBusy(null)
+  }
+  async function confirmarReasignar(choferId: string) {
+    if (!reasignando) return
+    const { pedidoId, incidenciaId } = reasignando
+    setBusy(incidenciaId); setErr(null)
+    const { error } = await supabase.rpc('reasignar_pedido', { p_pedido_id: pedidoId, p_chofer_id: choferId })
+    if (error) { setErr(error.message); setBusy(null); return }
+    // Reasignar cierra la incidencia
+    await supabase.rpc('resolver_incidencia', { p_incidencia_id: incidenciaId, p_estado: 'resuelta', p_respuesta: 'Reasignada a otro chofer' })
+    setReasignando(null); await cargar(); setBusy(null)
+  }
+
+  const enCurso = pedidos.filter(p => p.estado_entrega !== 'entregado')
   const asignados = pedidos.filter(p => p.chofer_id)
-  const porAsignar = pedidos.filter(p => !p.chofer_id)
+  const porAsignar = enCurso.filter(p => !p.chofer_id)
   const entregadasHoy = pedidos.filter(p => p.estado_entrega === 'entregado').length
-  const enPipeline = pedidos.length
+  const enPipeline = enCurso.length
 
   // Puntos del mapa: choferes con GPS + destinos de pedidos con coordenadas
   const puntos: MapaPunto[] = [
@@ -303,9 +325,49 @@ export default function MonitoreoEnVivo() {
                     {i.pedido?.numero_pedido && <span className="text-gray-400">· {i.pedido.numero_pedido}</span>}
                   </p>
                   {i.estado_resolucion === 'en_revision' && <span className="noma-badge-gold mt-2 inline-block">En revisión</span>}
+
+                  {/* Acciones de la Central (Fase 2D) */}
+                  {reasignando?.incidenciaId === i.id ? (
+                    <div className="mt-3 border-t border-gray-100 pt-3">
+                      <p className="text-[11px] font-semibold text-gray-500 mb-2">Reasignar pedido a:</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {drivers.filter(d => d.id !== i.driver_id).length === 0 && (
+                          <span className="text-[11px] text-gray-400">No hay otro chofer disponible.</span>
+                        )}
+                        {drivers.filter(d => d.id !== i.driver_id).map(d => (
+                          <button key={d.id} disabled={busy === i.id} onClick={() => confirmarReasignar(d.id)}
+                            className="text-xs px-2.5 py-1.5 rounded-lg bg-[#1b2a4a] text-white hover:bg-[#142033] disabled:opacity-60">
+                            {d.nombre}
+                          </button>
+                        ))}
+                        <button onClick={() => setReasignando(null)}
+                          className="text-xs px-2.5 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50">
+                          Cancelar
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="mt-3 flex flex-wrap gap-1.5">
+                      {i.estado_resolucion === 'abierta' && (
+                        <button disabled={busy === i.id} onClick={() => accionIncidencia(i.id, 'en_revision')}
+                          className="text-xs px-2.5 py-1.5 rounded-lg border border-gray-200 text-[#1b2a4a] hover:bg-gray-50 flex items-center gap-1 disabled:opacity-60">
+                          <Eye size={13} /> En revisión
+                        </button>
+                      )}
+                      {i.pedido_id && (
+                        <button disabled={busy === i.id} onClick={() => setReasignando({ pedidoId: i.pedido_id as string, incidenciaId: i.id })}
+                          className="text-xs px-2.5 py-1.5 rounded-lg border border-gray-200 text-[#1b2a4a] hover:bg-gray-50 flex items-center gap-1 disabled:opacity-60">
+                          <ArrowRightLeft size={13} /> Reasignar
+                        </button>
+                      )}
+                      <button disabled={busy === i.id} onClick={() => accionIncidencia(i.id, 'resuelta')}
+                        className="text-xs px-2.5 py-1.5 rounded-lg bg-[#c9a24e] text-[#1b2a4a] font-semibold hover:bg-[#b8923f] flex items-center gap-1 disabled:opacity-60">
+                        {busy === i.id ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />} Cerrar
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))}
-              <p className="text-[11px] text-gray-400 px-1">Responder, reasignar o cerrar llega en la Fase 2D.</p>
             </div>
           )}
         </div>
@@ -321,7 +383,7 @@ export default function MonitoreoEnVivo() {
           </div>
         )}
 
-        {pedidos.length === 0 ? (
+        {enCurso.length === 0 ? (
           <Empty texto="No hay pedidos en el flujo de despacho." />
         ) : (
           <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
@@ -339,7 +401,7 @@ export default function MonitoreoEnVivo() {
                   </tr>
                 </thead>
                 <tbody>
-                  {pedidos.map(p => (
+                  {enCurso.map(p => (
                     <tr key={p.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/60">
                       <td className="px-4 py-2.5 font-medium text-gray-700 whitespace-nowrap">{p.numero_pedido}</td>
                       <td className="px-4 py-2.5 text-gray-600 max-w-[180px] truncate">{p.mayorista?.empresa || p.mayorista?.nombre || '—'}</td>

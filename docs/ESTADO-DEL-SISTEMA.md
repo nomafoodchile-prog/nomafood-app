@@ -32,6 +32,9 @@ Identidad visual (definitiva): **azul marino `#1b2a4a`** (nav, encabezados, boto
 4. `logistica-fase2a-completa.sql` — **dos pistas de estado**, funciones de despacho, `calcular_cumplimiento`, limpieza.
 5. `logistica-demo-datos-v2.sql` — 3 clientes con entregas pendientes, 1 compra con lista, 1 mensaje de la Central.
 
+**PENDIENTE de correr** (Fase 2D):
+6. `logistica-fase2d-central.sql` — columnas `incidencias.respuesta_central`/`respondido_by` + RPCs `resolver_incidencia(uuid,text,text)` y `reasignar_pedido(uuid,uuid)` (solo `is_admin`). **Sin esto, los botones de gestión de incidencias del panel darán error "function ... does not exist".**
+
 > Todas las migraciones están en `supabase/` de la rama `feature/portal-chofer`. El SQL Editor de Supabase corre el script como **una transacción** (revierte todo si algo falla). El `raw` de GitHub cachea ~5 min → subir con nombre nuevo para forzar fresco.
 
 ## 5. Modelo de datos clave
@@ -67,12 +70,11 @@ Supabase (Auth, Postgres+RLS, Realtime, Storage). Mercado Pago (checkout+webhook
   - **Paleta de marca unificada** en todo el repo: dorado `#c9a24e`, azul marino `#1b2a4a`, crema `#f5f0e8` (se reemplazó el viejo `#c9a84c`/`#0f0f0f` en 32 archivos).
   - **Mojibake corregido** (doble UTF-8) en menú Sidebar (Producción/Mantención/Campañas), Portal Picker y API operario.
 
-## 10. SIGUIENTE — Fase 2D (empezar aquí en la sesión nueva)
-**Gestión de incidencias + firma desde la Central**, sobre el panel de monitoreo (2C):
-- Responder / reasignar chofer / marcar en revisión / **cerrar** una incidencia → `incidencias.estado_resolucion` (`abierta → en_revision → resuelta`), `resolved_by`, `resolved_at`.
-- Reasignar un pedido con entrega fallida (No entregado / Incidencia) a otro chofer o reprogramar.
-- Firma del receptor en la entrega (`entregas.firma_url`, la columna ya existe).
-- Nota: hoy los pedidos en estado terminal del chofer siguen "en curso" en 2C porque requieren esta acción de la Central.
+## 10. EN PROGRESO — Fase 2D (gestión de incidencias desde la Central)
+**Construido, pendiente correr migración `logistica-fase2d-central.sql` y probar.**
+- En el panel de monitoreo, cada incidencia tiene acciones: **En revisión** / **Reasignar** (elige otro chofer) / **Cerrar** → RPC `resolver_incidencia` y `reasignar_pedido`. Reasignar pone el pedido en `pendiente`, limpia `route_id` y cierra la incidencia.
+- Fix de paso: el panel ahora también cuenta/incluye pedidos `entregado` de hoy (antes `registrar_entrega` ponía `estado='entregado'` y quedaban fuera del filtro → "Entregas de hoy" siempre 0).
+- **Falta (2D-bis, lado chofer):** captura de **firma** del receptor en la entrega (`entregas.firma_url` ya existe; hay que sumar el canvas de firma al flujo del chofer y un parámetro a `registrar_entrega`).
 
 ## 11. Roadmap restante
 - **2D** gestión de incidencias + firma desde Central ← siguiente. **2E** GPS en vivo completo (velocidad, ETA, km, historial) sobre el `MonitoreoMapa` ya montado + `location_pings`. **2F** Compras (iniciar/finalizar + comprobante), Mensajes badges, Perfil con vehículo real, badges numéricos en el menú.
