@@ -180,9 +180,13 @@ grant execute on function public.calcular_cumplimiento(uuid,date) to authenticat
 
 -- ── LIMPIEZA: datos de prueba profesionales (fuera "Empresa Test") ──
 do $$
-declare v_mayo uuid; v_driver uuid;
+declare v_driver uuid;
 begin
-  -- Borra pedidos de diagnóstico
+  -- Borra pedidos de diagnóstico (primero sus dependencias, por las llaves foráneas)
+  delete from public.entregas where pedido_id in (select id from public.mayorista_pedidos where direccion_entrega ilike 'DIAGNOSTICO%' or direccion_entrega in ('axaxa','aaaaasssss','aaaaassssss'));
+  delete from public.incidencias where pedido_id in (select id from public.mayorista_pedidos where direccion_entrega ilike 'DIAGNOSTICO%' or direccion_entrega in ('axaxa','aaaaasssss','aaaaassssss'));
+  delete from public.pedido_estado_historial where pedido_id in (select id from public.mayorista_pedidos where direccion_entrega ilike 'DIAGNOSTICO%' or direccion_entrega in ('axaxa','aaaaasssss','aaaaassssss'));
+  delete from public.mayorista_pedido_items where pedido_id in (select id from public.mayorista_pedidos where direccion_entrega ilike 'DIAGNOSTICO%' or direccion_entrega in ('axaxa','aaaaasssss','aaaaassssss'));
   delete from public.mayorista_pedidos where direccion_entrega ilike 'DIAGNOSTICO%' or direccion_entrega in ('axaxa','aaaaasssss','aaaaassssss');
 
   -- Renombra el mayorista de prueba a algo presentable
