@@ -141,19 +141,20 @@ export default function MonitoreoEnVivo() {
   // Geocodifica los pedidos con dirección pero sin coordenadas (para mapa + validación de llegada)
   async function ubicarPedidos(lista: Pedido[]) {
     setGeocoding(true); setGeoMsg(null)
-    let ok = 0, fail = 0, aprox = 0
+    let ok = 0, sinPrecision = 0
     for (const p of lista) {
       const dir = p.direccion_entrega || ''
       const q = /santiago|chile/i.test(dir) ? dir : `${dir}, Santiago, Chile`
       try {
         const r = await fetch(`/api/geocode?q=${encodeURIComponent(q)}`)
         const d = await r.json()
-        if (d.found) { await supabase.from('mayorista_pedidos').update({ lat: d.lat, lng: d.lng }).eq('id', p.id); ok++; if (d.precision === 'sector') aprox++ }
-        else fail++
-      } catch { fail++ }
+        // Solo fijamos coordenadas precisas (exacta/calle); a nivel comuna no sirve para validar la llegada
+        if (d.found && d.precision !== 'sector') { await supabase.from('mayorista_pedidos').update({ lat: d.lat, lng: d.lng }).eq('id', p.id); ok++ }
+        else sinPrecision++
+      } catch { sinPrecision++ }
       await new Promise(res => setTimeout(res, 1100)) // respeta el límite de Nominatim (1/seg)
     }
-    setGeoMsg(`Ubicados ${ok}${aprox ? ` (${aprox} aprox.)` : ''}${fail ? ` · ${fail} sin resultado` : ''}.`)
+    setGeoMsg(`Ubicados ${ok}${sinPrecision ? ` · ${sinPrecision} sin dirección precisa (fijar el punto a mano, pendiente)` : ''}.`)
     setGeocoding(false)
     await cargar()
   }
