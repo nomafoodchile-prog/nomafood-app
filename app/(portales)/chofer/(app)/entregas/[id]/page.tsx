@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import {
   ArrowLeft, Phone, Navigation, AlertTriangle, MapPin, Truck,
@@ -162,26 +162,63 @@ export default function EntregaDetalle() {
 function EntregaModal({ pedidoId, onClose, onDone }: { pedidoId: string; onClose: () => void; onDone: () => void }) {
   const [receptor, setReceptor] = useState(''); const [obs, setObs] = useState('')
   const [file, setFile] = useState<File | null>(null); const [saving, setSaving] = useState(false); const [err, setErr] = useState<string | null>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const drawing = useRef(false)
+  const [firmada, setFirmada] = useState(false)
+
+  function ctx2d() { return canvasRef.current?.getContext('2d') || null }
+  function coords(e: React.PointerEvent) {
+    const c = canvasRef.current!; const r = c.getBoundingClientRect()
+    return { x: (e.clientX - r.left) * (c.width / r.width), y: (e.clientY - r.top) * (c.height / r.height) }
+  }
+  function down(e: React.PointerEvent) { const ctx = ctx2d(); if (!ctx) return; drawing.current = true; const p = coords(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); canvasRef.current!.setPointerCapture(e.pointerId) }
+  function move(e: React.PointerEvent) { if (!drawing.current) return; const ctx = ctx2d(); if (!ctx) return; const p = coords(e); ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.strokeStyle = '#1b2a4a'; ctx.lineTo(p.x, p.y); ctx.stroke(); if (!firmada) setFirmada(true) }
+  function up() { drawing.current = false }
+  function limpiar() { const c = canvasRef.current, ctx = ctx2d(); if (c && ctx) ctx.clearRect(0, 0, c.width, c.height); setFirmada(false) }
+
   async function confirmar() {
     if (!receptor.trim()) return setErr('Indica quién recibe.')
     if (!file) return setErr('La foto del respaldo es obligatoria.')
+    if (!firmada) return setErr('Falta la firma del cliente.')
     setSaving(true); setErr(null)
     const g = await geo()
+    // Foto de la factura/guía
     const path = `${pedidoId}/${Date.now()}-${file.name.replace(/[^a-z0-9.]/gi, '_')}`
     const up = await supabase.storage.from('entregas').upload(path, file)
     if (up.error) { setErr('No se pudo subir la foto: ' + up.error.message); setSaving(false); return }
+    // Firma del cliente (PNG del lienzo)
+    const blob = await new Promise<Blob | null>(res => canvasRef.current!.toBlob(res, 'image/png'))
+    let firmaPath: string | null = null
+    if (blob) {
+      firmaPath = `${pedidoId}/firma-${Date.now()}.png`
+      const upf = await supabase.storage.from('entregas').upload(firmaPath, blob, { contentType: 'image/png' })
+      if (upf.error) { setErr('No se pudo subir la firma: ' + upf.error.message); setSaving(false); return }
+    }
     const { error } = await supabase.rpc('registrar_entrega', { p_pedido_id: pedidoId, p_receptor: receptor, p_foto_url: path, p_obs: obs || null, p_lat: g.lat, p_lng: g.lng })
     if (error) { setErr(error.message); setSaving(false); return }
+    if (firmaPath) await supabase.rpc('guardar_firma_entrega', { p_pedido_id: pedidoId, p_firma_url: firmaPath })
     onDone()
   }
+
   return (
     <Sheet title="Confirmar entrega" onClose={onClose}>
       <Field label="Recibe"><input value={receptor} onChange={e => setReceptor(e.target.value)} placeholder="Nombre de quien recibe" className="inp" /></Field>
       <div>
-        <span className="text-xs font-semibold text-gray-500">Foto de la guía/factura firmada <span className="text-red-500">*</span></span>
+        <span className="text-xs font-semibold text-gray-500">Foto de la guía/factura <span className="text-red-500">*</span></span>
         <div className="mt-1 flex items-center gap-3">
           <label className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-dashed border-gray-300 text-sm text-gray-600 cursor-pointer"><Camera className="w-4 h-4" /> {file ? 'Cambiar foto' : 'Tomar foto'}<input type="file" accept="image/*" capture="environment" className="hidden" onChange={e => setFile(e.target.files?.[0] || null)} /></label>
           {file && <span className="text-xs text-green-600">✓ listo</span>}
+        </div>
+      </div>
+      <div>
+        <span className="text-xs font-semibold text-gray-500">Firma del cliente <span className="text-red-500">*</span></span>
+        <div className="mt-1 rounded-xl border border-gray-300 bg-white overflow-hidden">
+          <canvas ref={canvasRef} width={320} height={130} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerLeave={up}
+            className="w-full block touch-none" style={{ height: 130 }} />
+        </div>
+        <div className="flex items-center justify-between mt-1">
+          <span className="text-[11px] text-gray-400">{firmada ? 'Firma capturada ✓' : 'Pide al cliente que firme con el dedo'}</span>
+          <button type="button" onClick={limpiar} className="text-[11px] text-[#1b2a4a] underline">Borrar</button>
         </div>
       </div>
       <Field label="Observaciones (opcional)"><textarea value={obs} onChange={e => setObs(e.target.value)} rows={2} className="inp" /></Field>

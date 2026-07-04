@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic'
 import {
   Radio, RefreshCw, Truck, Package, CheckCircle2, AlertTriangle, MapPin,
   Clock, Boxes, Loader2, User, Navigation, Circle, Route, Map as MapIcon, Gauge,
-  Eye, ArrowRightLeft, Check,
+  Eye, ArrowRightLeft, Check, X, Camera, PenLine,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 import type { MapaPunto } from './MonitoreoMapa'
@@ -53,6 +53,8 @@ const INC_LABEL: Record<string, string> = {
   rechazo: 'Rechazo', retraso: 'Retraso', problema_pago: 'Problema de pago', otro: 'Otro',
 }
 
+interface Comprobante { pedido: Pedido; foto: string | null; firma: string | null; receptor: string | null; obs: string | null; hora: string | null }
+
 function clp(n: number) { return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(n || 0) }
 function hhmm(iso: string | null) { return iso ? new Date(iso).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) : '—' }
 function tipoInc(t: string) { return INC_LABEL[t] || t.replace(/_/g, ' ') }
@@ -71,6 +73,8 @@ export default function MonitoreoEnVivo() {
   const [busy, setBusy] = useState<string | null>(null)
   const [refreshing, setRefreshing] = useState(false)
   const [reasignando, setReasignando] = useState<{ pedidoId: string; incidenciaId: string } | null>(null)
+  const [comprobante, setComprobante] = useState<Comprobante | null>(null)
+  const [compLoading, setCompLoading] = useState(false)
   const [notaReasignar, setNotaReasignar] = useState('')
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -132,6 +136,20 @@ export default function MonitoreoEnVivo() {
 
   async function actualizar() { setRefreshing(true); await cargar(); setRefreshing(false) }
 
+  async function verComprobante(p: Pedido) {
+    setCompLoading(true)
+    setComprobante({ pedido: p, foto: null, firma: null, receptor: null, obs: null, hora: null })
+    const { data } = await supabase.from('entregas')
+      .select('foto_url, firma_url, receptor_nombre, observaciones, entregado_at')
+      .eq('pedido_id', p.id).order('entregado_at', { ascending: false }).limit(1).maybeSingle()
+    const d = data as { foto_url: string | null; firma_url: string | null; receptor_nombre: string | null; observaciones: string | null; entregado_at: string | null } | null
+    let foto: string | null = null, firma: string | null = null
+    if (d?.foto_url) foto = (await supabase.storage.from('entregas').createSignedUrl(d.foto_url, 3600)).data?.signedUrl ?? null
+    if (d?.firma_url) firma = (await supabase.storage.from('entregas').createSignedUrl(d.firma_url, 3600)).data?.signedUrl ?? null
+    setComprobante({ pedido: p, foto, firma, receptor: d?.receptor_nombre ?? null, obs: d?.observaciones ?? null, hora: d?.entregado_at ?? null })
+    setCompLoading(false)
+  }
+
   // ── Acciones de la Central (Fase 2D) ──────────────────────────────
   async function accionIncidencia(id: string, estado: 'en_revision' | 'resuelta') {
     setBusy(id); setErr(null)
@@ -154,6 +172,7 @@ export default function MonitoreoEnVivo() {
   }
 
   const enCurso = pedidos.filter(p => p.estado_entrega !== 'entregado')
+  const entregadas = pedidos.filter(p => p.estado_entrega === 'entregado')
   const asignados = pedidos.filter(p => p.chofer_id)
   const porAsignar = enCurso.filter(p => !p.chofer_id)
   const entregadasHoy = pedidos.filter(p => p.estado_entrega === 'entregado').length
@@ -432,9 +451,64 @@ export default function MonitoreoEnVivo() {
         )}
       </div>
 
+      {/* Entregas de hoy — comprobantes (foto + firma) */}
+      {entregadas.length > 0 && (
+        <div className="space-y-3">
+          <h2 className="text-sm font-semibold text-gray-700 flex items-center gap-2"><CheckCircle2 size={16} className="text-green-600" /> Entregas de hoy</h2>
+          <div className="bg-white rounded-2xl border border-gray-100 divide-y divide-gray-50">
+            {entregadas.map(p => (
+              <div key={p.id} className="flex items-center gap-3 px-4 py-3">
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-gray-800 truncate">{p.mayorista?.empresa || p.mayorista?.nombre || p.numero_pedido}</p>
+                  <p className="text-xs text-gray-400">{p.numero_pedido} · {hhmm(p.hora_programada)}</p>
+                </div>
+                <span className="noma-badge-green hidden sm:inline">Entregado</span>
+                <button onClick={() => verComprobante(p)} className="text-xs font-medium text-[#1b2a4a] border border-gray-200 px-2.5 py-1.5 rounded-lg hover:bg-gray-50 flex items-center gap-1">
+                  <Camera size={13} /> Comprobante
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <p className="text-center text-[11px] text-gray-400 flex items-center justify-center gap-1">
         <RefreshCw size={11} /> Última sincronización {hhmm(sync.toISOString())}
       </p>
+
+      {/* Modal comprobante de entrega */}
+      {comprobante && (
+        <div className="fixed inset-0 z-[1000] bg-black/50 flex items-center justify-center p-4" onClick={() => setComprobante(null)}>
+          <div className="bg-white rounded-2xl max-w-md w-full overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="bg-[#1b2a4a] text-white px-5 py-3 flex items-center justify-between">
+              <span className="font-semibold text-sm">Comprobante · {comprobante.pedido.numero_pedido}</span>
+              <button onClick={() => setComprobante(null)}><X size={18} /></button>
+            </div>
+            <div className="p-5 space-y-3 max-h-[75vh] overflow-y-auto">
+              {compLoading ? (
+                <div className="py-10 flex justify-center"><Loader2 className="w-5 h-5 animate-spin text-[#1b2a4a]" /></div>
+              ) : (
+                <>
+                  <p className="text-sm text-gray-600">Recibió: <span className="font-medium text-gray-900">{comprobante.receptor || '—'}</span>{comprobante.hora ? ` · ${hhmm(comprobante.hora)}` : ''}</p>
+                  {comprobante.obs && <p className="text-xs text-gray-400 italic">Obs: {comprobante.obs}</p>}
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 mb-1 flex items-center gap-1"><Camera size={13} /> Foto de la factura/guía</p>
+                    {comprobante.foto
+                      ? <img src={comprobante.foto} alt="Foto de entrega" className="w-full rounded-xl border border-gray-100" />
+                      : <p className="text-xs text-gray-400">Sin foto registrada.</p>}
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 mb-1 flex items-center gap-1"><PenLine size={13} /> Firma del cliente</p>
+                    {comprobante.firma
+                      ? <img src={comprobante.firma} alt="Firma del cliente" className="w-full rounded-xl border border-gray-100 bg-white" />
+                      : <p className="text-xs text-gray-400">Sin firma registrada.</p>}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
