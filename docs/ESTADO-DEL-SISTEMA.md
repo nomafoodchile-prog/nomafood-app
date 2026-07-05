@@ -1,96 +1,164 @@
 # NOMMA FOOD — Estado técnico del sistema
 
-_Documento de continuidad. Actualizado tras cerrar la capa de comunicación/logística/data en vivo (Fases 2C–2F parciales)._
-Si abres una sesión nueva, **lee esto primero**.
+_Actualizado: 2026-07-05. Documento de continuidad — **léelo primero** al abrir una sesión nueva._
+_Rama activa: `feature/portal-chofer` · último commit: `1aae717`._
 
-**Norte del proyecto (regla de oro de la usuaria):** CENTRALIZAR los portales con la Central, AUTOMATIZAR la comunicación (tiempo real, sin tener que estar revisando) y DEJAR HISTORIAL + DATA REAL de todo. Cada feature debe: (1) hacer viajar la info del portal → Central, (2) avisar solo (badges, sonido, alertas que no se puedan ignorar), (3) persistir historial consultable.
+**Norte del proyecto:** CENTRALIZAR los portales con la Central, AUTOMATIZAR la comunicación en tiempo real (sin tener que estar revisando) y DEJAR HISTORIAL + DATA REAL de todo. Sistema entrelazado: Central ↔ Chofer ↔ Picker ↔ Operario ↔ Mayorista (con pasarela de pago).
 
 ---
 
-## 1. Resumen
-App web B2B + sistema de logística de despacho para Nomma Food (Alma Libre Grupo SpA).
-Stack: **Next.js 14 (App Router) + TypeScript + Tailwind + Supabase (Auth/Postgres/Realtime/Storage) + Mercado Pago + Resend**. Mapas: **Leaflet/OpenStreetMap** + **Nominatim** (geocode) + **Waze** (deep link). Deploy en **Vercel**.
+## 1. Resumen ejecutivo
+App web + sistema logístico y comercial para **NOMMA FOOD** (Alma Libre Grupo SpA), fábrica de alimentos vegetarianos/veganos que abastece cafeterías, universidades, minimarkets, oficinas y restaurantes.
+Incluye: **Central administrativa** (gestión interna), **Portal Mayorista** (B2B con cuentas y pago online), **Landing pública** (captación de clientes), y **portales operativos por token** (Chofer, Picker, Operario).
 
-Identidad visual (definitiva, ya unificada en todo el repo): **azul marino `#1b2a4a`** (nav, encabezados, botones), **dorado `#c9a24e`** (acciones clave, iconos activos, logo), **crema `#f5f0e8`** (fondos), **verde** solo estados positivos, **rojo** solo incidencias.
+## 2. Arquitectura
+- **Frontend/Backend:** Next.js 14 (App Router) + TypeScript + Tailwind CSS. API routes server-side en `app/api/**`.
+- **Base de datos / Auth / Realtime / Storage:** Supabase (Postgres + RLS). Proyecto `nomafood-produccion`, ref `fufmwauofcqnlrfhcenq`.
+- **Pagos:** Mercado Pago (Checkout Pro + webhook). **Credenciales de PRODUCCIÓN puestas** en Vercel.
+- **Correos:** Resend (vía SMTP de Supabase para correos de auth). En transición a dominio propio.
+- **Mapas:** Leaflet + OpenStreetMap (mapa en vivo), Nominatim (geocodificación, `/api/geocode`), Waze (deep-link navegación chofer).
+- **Deploy:** Vercel (team `noma-food`, proyecto `nomafood-app`). Producción `nomafood-app.vercel.app`; preview de la rama activa: `https://nomafood-app-git-feature-portal-chofer-noma-food.vercel.app`.
+- **Identidad visual (unificada en todo el repo):** azul marino `#1b2a4a`, dorado `#c9a24e`, crema `#f5f0e8`; verde para estados positivos, rojo para incidencias.
+- **Utilidades:** `lib/supabase/server.ts` (`createServerClient` con service role), `lib/supabase/client.ts` (browser), `lib/notify.ts` (sonido+vibración con desbloqueo de audio), `components/central/{Panel,KpiCard,SalesChart,IncidenciaAlert}`.
 
-## 2. Accesos e infraestructura
-- **Repo:** `github.com/nomafoodchile-prog/nomafood-app`. Local: `~/Downloads/nomafood-upload/nomafood-app`. **`git push` funciona** (token en el llavero; el asistente sube código directo).
-- **Supabase:** proyecto `nomafood-produccion`, ref `fufmwauofcqnlrfhcenq`. SQL Editor: `https://supabase.com/dashboard/project/fufmwauofcqnlrfhcenq/sql/new`.
-- **Vercel:** team `noma-food`, proyecto `nomafood-app`. Producción: `nomafood-app.vercel.app`. Deployment Protection deshabilitada (previews públicos).
-- **Regla de trabajo:** el asistente sube código; **la usuaria corre las migraciones** en Supabase (SQL Editor → Run) y da clics sensibles (merges, contraseñas, token MP). No hay Node local → la validación es el preview de Vercel.
+### Autenticación y roles
+- Supabase Auth (email+contraseña). Trigger `handle_new_user` crea `profiles` al registrarse.
+- Enum `app_role`: `SuperAdmin, Gerencia, Administracion, EncargadoProduccion, Operario, Armado, Chofer, Mayorista`.
+- Helpers RLS (security definer): `get_my_role`, `is_admin` (SuperAdmin/Gerencia/Administracion), `is_super_admin`, `get_my_driver_id`, `get_my_mayorista_id`.
+- **Central** usa login `/login` (rol admin). **Portal Mayorista** usa `/portal/mayoristas/login` (rol Mayorista). **Portales Chofer/Picker/Operario** operan por **token en la URL** (además el chofer tiene login propio con sesión).
 
-## 3. Ramas
-| Rama | Contenido | Estado |
+### Storage (buckets) y Realtime
+- **Buckets:** `entregas` (foto de factura + firma del cliente), `incidencias` (fotos), `comprobantes` (fotos de compras del chofer).
+- **Realtime habilitado en:** `mayorista_pedidos`, `driver_positions`, `incidencias`, `driver_messages`, `compras`, `compra_items`, `entregas`, `access_requests`. (`routes` NO.)
+
+## 3. Módulos y estado real
+
+Leyenda: ✅ terminado y probado · 🟡 construido, falta probar · ⚪ demo (datos de `lib/`, no conectado a Supabase) · 🔧 requiere config externa.
+
+| Módulo | Ruta | Estado |
 |---|---|---|
-| `main` | Producción (portal mayorista + app central demo) | producción |
-| `fix/bloqueantes-produccion` | **PR #1** — 5 bloqueantes | abierto, sin merge |
-| `feature/central-pedidos-mayoristas` | **PR #2** — "Pedidos Mayoristas" en app central | abierto, probado OK |
-| `feature/portal-chofer` | **Rama activa** — logística completa (todo lo de abajo) | migraciones aplicadas |
+| **Dashboard Central** | `/dashboard` | ⚪ rediseñado al mockup; datos demo (`lib/operations`, `lib/finance`) |
+| **Pedidos** | `/operaciones/pedidos` | ⚪ demo |
+| **Producción** | `/operaciones/produccion` | ⚪ demo |
+| **Tareas** | `/operaciones/tareas` | ⚪ demo |
+| **Inventario** | `/operaciones/inventario` | ⚪ demo |
+| **Despachos** | `/operaciones/despachos` | ⚪ demo (el monitoreo real está en `/operaciones/monitoreo`) |
+| **Monitoreo en vivo** (GPS, choferes, pedidos, incidencias, entregas de hoy) | `/operaciones/monitoreo` | ✅ Supabase + Realtime + mapa Leaflet |
+| **Incidencias (repositorio/historial)** | `/operaciones/incidencias` | ✅ Supabase + Realtime |
+| **Mensajes a choferes** (bandeja, acuse, envío) | `/operaciones/mensajes` | ✅ Supabase + Realtime |
+| **Limpieza** | `/operaciones/limpieza` | ⚪ demo |
+| **Mantención** | `/operaciones/mantencion` | ⚪ demo |
+| **Compras — Proveedores** | `/compras/proveedores` | ⚪ demo |
+| **Compras — En curso** (checklist del chofer en vivo) | `/compras/en-curso` | ✅ Supabase + Realtime |
+| **Finanzas** (Caja, Cobranza, Costos, Balance) | `/finanzas/*` | ⚪ demo (`lib/finance`) |
+| **Comercial — Productos/Clientes/Campañas** | `/comercial/*` | ⚪ demo |
+| **Comercial — Solicitudes de acceso** | `/comercial/solicitudes` | ✅ Supabase + Realtime (badge+sonido) |
+| **Personas — Usuarios/Accesos** | `/personas/*` | ⚪ demo |
+| **Gerencia — Marcha Blanca** | `/gerencia/marcha-blanca` | ⚪ demo |
+| **Portal Chofer** (app con sesión) | `/chofer/*` | ✅ entregas, compras, mensajes, perfil, GPS, tiempo real |
+| **Portal Mayorista (cuenta)** | `/portal/mayoristas/{login,crear-clave,cuenta}` | 🟡 login+cuenta+historial (falta Fase 2: catálogo/pago integrado) |
+| **Portal Mayorista (token)** | `/portal/mayoristas/[token]` | ✅ catálogo + checkout + pago Mercado Pago |
+| **Portal Picker (token)** | `/portal/picker/[token]` | 🟡 existe de fase previa |
+| **Portal Operario (token)** | `/portal/operario/[token]` | 🟡 existe de fase previa |
+| **Landing pública** | `/mayoristas` | ✅ mobile-first, SEO/OG, productos reales, formulario |
 
-Preview de la rama activa: `https://nomafood-app-git-feature-portal-chofer-noma-food.vercel.app`
+## 4. Portal Chofer (detalle) — ✅
+Login, dashboard operativo (próxima entrega, cumplimiento, resumen, última sync), entregas con stepper (**Llegué → Entregar con foto + firma / No entregado / Incidencia**), **Compras** en checklist (precio por insumo, foto, agregar productos, total vs tope, finalizar), **Mensajes** (badge de no leídos + sonido/vibración + "Recibido" + "Llamar a la central"), Perfil, **reporte de GPS** en vivo (`driver_positions`), navegación **Waze**. El botón "Llegué al cliente" se **bloquea por cercanía GPS** (≤300 m si el pedido tiene coordenadas).
 
-## 4. Migraciones en Supabase producción (en orden) — TODAS APLICADAS ✅
-1. `products-schema.sql` — `products` + 10 productos.
-2. `logistica-fase0.sql` — fundación (19 tablas, rol SuperAdmin, RLS, Storage, Realtime).
-3. `logistica-fase1-setup.sql` — funciones de negocio + chofer de prueba (Carlos).
-4. `logistica-fase2a-completa.sql` — **dos pistas de estado**, funciones de despacho, `calcular_cumplimiento`.
-5. `logistica-demo-datos-v2.sql` — datos demo.
-6. `logistica-fase2d-central.sql` — `incidencias.respuesta_central`/`respondido_by` + RPCs `resolver_incidencia`, `reasignar_pedido` (solo `is_admin`).
-7. `logistica-fase2d-plus.sql` — `driver_messages.recibido_at`; RPCs `enviar_mensaje_chofer`, `marcar_mensaje_recibido`; **Compras**: `compra_items` (+`precio_unitario/comprado/foto_url/nota/comprado_at`) + RPCs `guardar_item_compra`, `agregar_item_compra`; `compra_items` a Realtime.
-8. `logistica-fase2d-firma.sql` — RPC `guardar_firma_entrega`; `entregas` a Realtime.
+## 5. Flujo de estados de pedido (dos pistas)
+`mayorista_pedidos`:
+- **Pista Central** (`estado`): `borrador → confirmado → pagado → en_preparacion → listo_para_despacho → asignado` (+ `entregado` lo pone `registrar_entrega`; `cancelado`). Solo SuperAdmin avanza vía `avanzar_estado_pedido`.
+- **Pista Chofer** (`estado_entrega`, enum): `pendiente → cargado → en_ruta → llego_cliente → entregado / no_entregado / incidencia`.
 
-> `raw` de GitHub cachea ~5 min. Para **resetear datos de prueba** del chofer hay un script en el historial de chat (borra entregas/incidencias/mensajes/compras de Carlos y reinserta 3 entregas sin coords + compra "Lo Valledor" + 2 mensajes).
+## 6. Migraciones (SQL en `supabase/`) — TODAS APLICADAS en producción
+1. `products-schema.sql` — `products` (foundacional; SQL vive en rama de logística). 
+2. `schema.sql` / `rls-policies.sql` — núcleo demo (inventario, recetas, pedidos, etc.).
+3. `mayoristas-schema.sql` — `mayoristas`, `mayorista_pedidos`, `mayorista_pedido_items` (+ Mercado Pago).
+4. `logistica-fase0.sql` — fundación logística (19 tablas, roles, RLS, Storage, Realtime; SQL en rama logística).
+5. `logistica-fase1-setup.sql` — funciones de negocio + chofer de prueba.
+6. `logistica-fase2a-completa.sql` — dos pistas de estado + funciones de despacho + `calcular_cumplimiento`.
+7. `logistica-demo-datos-v2.sql` — datos demo (choferes/pedidos/compra/mensaje).
+8. `logistica-fase2d-central.sql` — `incidencias.respuesta_central` + RPCs `resolver_incidencia`, `reasignar_pedido`.
+9. `logistica-fase2d-plus.sql` — `driver_messages.recibido_at`; RPCs `enviar_mensaje_chofer`, `marcar_mensaje_recibido`; Compras (`compra_items` + precio/comprado/foto/nota) + RPCs `guardar_item_compra`, `agregar_item_compra`; realtime `compra_items`.
+10. `logistica-fase2d-firma.sql` — RPC `guardar_firma_entrega` + realtime `entregas`.
+11. `comercial-solicitudes.sql` — enum `solicitud_estado`; tablas `access_requests`, `access_request_events`, `landing_config`; `products.destacado/foto_url/descripcion_publica`; RLS; realtime `access_requests`.
+12. `mayoristas-cuentas.sql` — rol `Mayorista`; `mayoristas.profile_id`; `get_my_mayorista_id()`.
 
-## 5. Modelo de datos clave
-- **Dos pistas de estado** en `mayorista_pedidos`:
-  - `estado` (Central): `confirmado → pagado → en_preparacion → listo_para_despacho → asignado` (+ `entregado` lo pone `registrar_entrega`). Solo SuperAdmin avanza vía `avanzar_estado_pedido`.
-  - `estado_entrega` (Chofer, enum): `pendiente → cargado → en_ruta → llego_cliente → entregado / no_entregado / incidencia`.
-- Tablas núcleo: `drivers`, `vehicles`, `warehouses`, `driver_shifts`, `routes`, `route_stops`, `mayorista_pedidos`, `pedido_estado_historial`, `entregas`(foto obligatoria + `firma_url`), `incidencias`(+`respuesta_central`,`respondido_by`), `location_pings`, `driver_positions`, `compras`, `compra_items`(+precio/comprado/foto/nota), `driver_messages`(+`recibido_at`), `notifications_outbox`.
-- RPCs (todas security definer): `get_my_driver_id`, `is_admin`, `is_super_admin`, `avanzar_estado_pedido`, `registrar_llegada`, `registrar_entrega`, `guardar_firma_entrega`, `marcar_no_entregado`, `reportar_incidencia`, `resolver_incidencia`, `reasignar_pedido`, `iniciar_ruta`, `finalizar_ruta`, `calcular_cumplimiento`, `enviar_mensaje_chofer`, `marcar_mensaje_recibido`, `guardar_item_compra`, `agregar_item_compra`.
-- **Realtime** habilitado: `mayorista_pedidos`, `driver_positions`, `incidencias`, `driver_messages`, `compras`, `compra_items`, `entregas`, (`routes` NO).
-- **Ojo:** `driver_messages.tipo` solo `sistema / alerta / motivacional / chat`. `registrar_entrega` guarda `foto_url` = **ruta** de Storage (bucket `entregas`), no URL; la Central genera signed URL. Fotos de incidencia → bucket `incidencias`; fotos de compra → bucket `comprobantes`.
+### Funciones (RPC) principales
+`get_my_role, is_admin, is_super_admin, get_my_driver_id, get_my_mayorista_id, avanzar_estado_pedido, registrar_llegada, registrar_entrega, guardar_firma_entrega, marcar_no_entregado, reportar_incidencia, resolver_incidencia, reasignar_pedido, iniciar_ruta, finalizar_ruta, calcular_cumplimiento, enviar_mensaje_chofer, marcar_mensaje_recibido, guardar_item_compra, agregar_item_compra, handle_new_user`.
 
-## 6. Usuarios y datos
-- `admin.nommafood@gmail.com` → **SuperAdmin** (login central).
-- `chofer1@nommafood.cl` → **Chofer** de prueba (driver "Carlos Chofer"). Login portal chofer.
-- Datos demo tras reset: 3 entregas (Café Central, Verde Vivo, Raíces Veganas) **sin coordenadas a propósito** (para poder marcar llegada desde cualquier lugar), 1 compra "Lo Valledor" (tomate/lechuga/palta/cebolla/zanahoria), 2 mensajes de la Central.
-- **Teléfono central** para "Llamar a la central": `+56967493679` (default; override con `NEXT_PUBLIC_CENTRAL_PHONE`).
+### RLS (resumen)
+- `access_requests`/`access_request_events`: solo `is_admin()` (inserción pública vía API con service role). `landing_config`: lectura pública.
+- Tablas con `driver_id`: el chofer ve/edita lo suyo (`= get_my_driver_id()`), admin lee. `mayoristas`: el cliente ve su ficha (`profile_id = auth.uid()`), admin todo. `mayorista_pedidos`/items: política permisiva `to authenticated` (⚠️ ver Riesgos).
 
-## 7. Portales / rutas y archivos clave
-- **App central (auth):** login `/login`. Layout `app/(central)/layout.tsx` monta `<IncidenciaAlert/>` (alerta global). Páginas nuevas de logística:
-  - `operaciones/monitoreo` — panel en vivo (KPIs, mapa, choferes+cumplimiento, incidencias con acciones, pedidos dos pistas, entregas de hoy con comprobante, "Ubicar en el mapa").
-  - `operaciones/incidencias` — repositorio/historial con filtros y evidencia.
-  - `operaciones/mensajes` — centro de mensajes a choferes (historial + acuse + enviar).
-  - `compras/en-curso` — checklist de compras de cada chofer en vivo.
-  - Dashboard rediseñado (mockup) usa `components/central/{Panel,KpiCard,SalesChart}`.
-- **Portal Chofer (auth, azul marino, mobile):** `app/(portales)/chofer/(app)/{"" dashboard, entregas, entregas/[id], compras, mensajes, perfil}` + `chofer/login`. Layout: badge de no leídos + sonido global + **reporte de GPS** (`driver_positions`).
-- **Portal Mayorista (token):** `app/(portales)/portal/mayoristas/[token]`. **Picker/Operario:** `app/(portales)/portal/{picker,operario}/[token]`.
-- Utilidades: `lib/notify.ts` (sonido+vibración, desbloqueo de audio), `app/api/geocode/route.ts` (Nominatim server-side con fallback calle→sector).
+## 7. APIs (`app/api/`)
+- `mayoristas/solicitud` (POST público, service role): valida, **dedup por email/RUT/teléfono**, crea solicitud + evento + outbox.
+- `mayoristas/crear-cuenta` (POST): crea/vincula cuenta Auth del cliente + invitación por SMTP.
+- `mayoristas/enviar-acceso` (POST): envía link de acceso por email/WhatsApp (flujo alternativo por token).
+- `geocode` (GET): Nominatim con fallback calle→sector.
+- `portal/mayoristas/[token]/pedido` (POST): crea pedido + **preferencia de Mercado Pago** (init_point).
+- `portal/mayoristas/webhook` (POST): recibe notificación de pago → marca pedido `pagado` (acepta formato moderno e IPN/legacy).
+- `portal/chofer/[token]/*` (dispatch, gasto, stop), `portal/operario/[token]/*` (incidencia, reporte, task), `portal/picker/[token]/item/*`.
 
-## 8. Integraciones
-Supabase (Auth, Postgres+RLS, Realtime, Storage). **Waze** deep link para navegación del chofer. **Nominatim/OpenStreetMap** para geocodificar direcciones (gratis, sin key; solo se fijan coords precisas calle/exacta, no a nivel comuna). GPS del navegador (`watchPosition`) reportado a `driver_positions`. Firma del cliente en `<canvas>` → PNG a Storage. Mercado Pago (checkout+webhook; **falta token real de producción** → el link de pago aún no genera `init_point`). Resend (correo). WhatsApp/Push = futuro (`notifications_outbox`).
+## 8. Integraciones y su estado
+- **Mercado Pago:** ✅ operativo. Credenciales de producción (`APP_USR-…`) en Vercel; webhook registrado en modo productivo (evento "Pagos"). Regla MP: **el dueño de la cuenta no puede pagarse a sí mismo** (se prueba con otra cuenta/tarjeta o usuarios de prueba). **Pendiente:** ingreso automático en Caja al aprobarse (la Caja hoy es demo).
+- **Resend (correos):** 🔧 funciona en **modo prueba** (remitente `onboarding@resend.dev`) → **solo entrega a `nomafoodchile@gmail.com`**. **Pendiente Nataly:** verificar dominio `nomafood.cl` en Resend (registros DNS en NIC Chile) y cambiar el "Sender email" del SMTP de Supabase a `portal@nomafood.cl`.
+- **SMTP de Supabase con Resend:** ✅ activado (host `smtp.resend.com`, puerto 465, user `resend`). Plantillas "Invite user" y "Reset Password" personalizadas con marca NOMMA FOOD.
+- **WhatsApp Business API:** ⚪ preparado (envs + `notifications_outbox`), sin conectar. Hoy se usa botón `wa.me` de un toque desde el panel.
 
-## 9. HECHO ✅
-- **Fase 2B** Portal del Chofer completo (login, dashboard, entregas con stepper, compras, mensajes, perfil, tiempo real).
-- **Fase 2C** Panel Central de monitoreo en vivo (KPIs, mapa react-leaflet, cumplimiento por chofer, incidencias, dos pistas).
-- **Fase 2D** Gestión de incidencias desde la Central: En revisión / **Reasignar (con nota → mensaje al chofer, incluso al mismo)** / Cerrar. Repositorio/historial de incidencias con filtros y evidencia.
-- **Comunicación en vivo:** badge de no leídos + sonido/vibración en el chofer; ventana **"¡INCIDENCIA!"** + sonido fuerte global en la central; **Centro de mensajes** central→chofer con **acuse "Recibido"**, historial por chofer y **badge+sonido en la central** cuando el chofer confirma.
-- **GPS en vivo:** el chofer reporta ubicación; mapa con **camión que se mueve y lo sigue**. Botón **"Llegué al cliente" bloqueado por cercanía** (≤300 m si el pedido tiene coords; si no, exige GPS activo). Navegación con **Waze**.
-- **Geocodificación:** `/api/geocode` + botón "Ubicar en el mapa" en la Central (fija coords precisas de los pedidos).
-- **Entregas con evidencia:** foto de factura **+ firma del cliente** (canvas) → llegan a la Central (Monitoreo → Entregas de hoy → **Comprobante**).
-- **Compras (Parte B):** checklist del chofer (marcar comprado, **precio por insumo**, **foto**, agregar productos, total vs tope, finalizar) visible **en vivo** en la Central (Compras → En curso).
-- **Rediseño + consistencia:** Dashboard estilo mockup; componentes base `components/central/`; **paleta de marca unificada** (32 archivos); **mojibake UTF-8 corregido** en menú, Picker y API operario.
+## 9. Estado Git
+- Rama activa: **`feature/portal-chofer`** (worktree). Origin en `github.com/nomafoodchile-prog/nomafood-app`.
+- Últimos commits: `1aae717` (rebuild SUPABASE key), `ce092c9`/`b15caff` (fixes webhook MP), `d03d8f0`/`4aca5c3` (cuentas mayorista + landing).
+- PRs abiertos sin merge: **PR #1** `fix/bloqueantes-produccion`, **PR #2** `feature/central-pedidos-mayoristas`.
+- `main` = producción (aún sin la logística/comercial nueva; todo vive en `feature/portal-chofer`).
 
-## 10. SIGUIENTE (elige en la sesión nueva)
-- **Repaso pestaña por pestaña** del rediseño: aplicar el estilo del Dashboard (Panel/KpiCard) al resto de la central (Pedidos, Despachos, Finanzas, Comercial, etc.). ← pedido por la usuaria.
-- **Pin manual de ubicación** en el mapa para direcciones que solo geocodifican a nivel comuna (precisión 100% para el bloqueo de llegada).
-- **Foto en la incidencia** del chofer (hoy `reportar_incidencia` va con `foto_url` null).
+## 10. Terminado y probado ✅
+Landing pública + solicitudes → Central; cuentas mayorista con email+contraseña + recuperación; correo de invitación con marca (a `nomafoodchile@gmail.com` en modo prueba); Monitoreo en vivo (mapa GPS, cumplimiento, incidencias, entregas de hoy con comprobante); repositorio de incidencias; centro de mensajes a choferes; compras en curso; Portal Chofer completo; **pago Mercado Pago operativo** (checkout + webhook).
 
-## 11. Roadmap restante
-- **2E** GPS avanzado: velocidad/ETA/km/historial de recorrido sobre `location_pings`.
-- **2F** Compras: comprobante final (boleta) + estados; Perfil con vehículo real; más badges.
-- **Mensajería bidireccional** (chat de ida y vuelta) — hoy es una vía + acuse (decisión de la usuaria).
-- **Config producción:** token real de Mercado Pago; merge de PR #1 y #2; limpiar datos demo.
+## 11. Construido, falta probar 🟡
+Portal Mayorista con cuenta (login/cuenta/historial) — funciona pero le falta la **Fase 2** (catálogo con especificaciones, pago y promociones DENTRO de la cuenta; hoy "Ver catálogo" reusa el portal por token). Portales Picker/Operario (token) de fase previa: revisar y conectar al flujo central.
 
-## 12. Cómo continuar en sesión nueva
-Decir: **"lee `docs/ESTADO-DEL-SISTEMA.md` (rama feature/portal-chofer) y seguimos con [lo que sea]"**. El asistente sube código directo (git ok) y entrega el SQL listo para pegar; tú corres migraciones en Supabase y das clics sensibles. La rama trabaja sobre un worktree; el preview de Vercel valida.
+## 12. Pendiente
+- **Ingreso automático en Caja** al aprobarse un pago (Caja real en base, no demo).
+- **Verificar dominio en Resend** (para correos a clientes reales).
+- **Migrar páginas demo de la Central a Supabase** (Pedidos, Producción, Inventario, Finanzas, etc.).
+- **Fase 2 Portal Mayorista** (catálogo+specs+pago+promos en la cuenta).
+- **GPS avanzado (2E):** velocidad/ETA/km/historial sobre `location_pings`.
+- **WhatsApp Business API** real; **firma de webhook MP** (x-signature).
+- Aplicar el estilo del Dashboard (components/central) al resto de páginas.
+
+## 13. Problemas / riesgos / bloqueos
+- ⚠️ **RLS permisiva** en `mayoristas`/`mayorista_pedidos`/`mayorista_pedido_items` (`to authenticated using(true)`) → un cliente logueado podría leer datos de otros. **Endurecer antes de producción.**
+- ⚠️ **Datos cruzados de prueba:** un mismo correo (`nomafoodchile@gmail.com`) quedó ligado a varios mayoristas por pruebas → la cuenta toma el más reciente (parche `limit(1)`). En producción cada cliente tendrá su correo.
+- ⚠️ **Resend modo prueba:** correos solo a `nomafoodchile@gmail.com` hasta verificar dominio.
+- Sensible a que Nataly corra migraciones y edite envs (ya ocurrió una confusión anon vs service_role, resuelta).
+
+## 14. Configuraciones externas pendientes por Nataly
+1. **Resend:** verificar `nomafood.cl` (registros DNS en NIC Chile: DKIM `resend._domainkey` TXT, `send` MX+TXT SPF, `_dmarc` TXT) → luego cambiar Sender del SMTP a `portal@nomafood.cl`.
+2. **Mercado Pago:** ✅ credenciales de producción y webhook ya configurados. (Opcional: agregar firma secreta.)
+3. **Vercel:** (opcional) `NEXT_PUBLIC_SITE_URL` = URL pública, para back_urls/webhook.
+4. **Prueba de pago real** con otra persona/tarjeta o usuarios de prueba de MP.
+5. **Merge de PR #1 y #2** cuando corresponda.
+
+## 15. Datos demo a limpiar antes de producción
+- Solicitudes de prueba en `access_requests` (ej. "Diag …", "kkkk", "Osumed Latam", "Aldea vegetal", "A.V").
+- Mayoristas/cuentas de prueba ligadas a `nomafoodchile@gmail.com` / `natyladera0406@gmail.com`.
+- Pedidos/compras/mensajes/incidencias demo del chofer "Carlos".
+- `landing_config` con zonas por defecto (ajustar a reales).
+- Toda la data de páginas Central que hoy sale de `lib/` (es demo, no producción).
+
+## 16. Usuarios de prueba (SIN contraseñas)
+- `brotesladera@gmail.com` → **SuperAdmin** (Central). *(Se recuperó el acceso creando/ajustando su perfil como SuperAdmin.)*
+- `chofer1@nommafood.cl` → **Chofer** de prueba (driver "Carlos Chofer").
+- Cuentas mayorista de prueba: `nomafoodchile@gmail.com`, `natyladera0406@gmail.com`, `vicentea.0801@gmail.com` (rol Mayorista).
+- Otros usuarios Auth existentes: `admin.nommafood@gmail.com`.
+
+## 17. Ambientes / URLs de prueba
+- Preview rama: `https://nomafood-app-git-feature-portal-chofer-noma-food.vercel.app`
+  - Landing: `/mayoristas` · Login mayorista: `/portal/mayoristas/login` · Central: `/login`
+  - Portal chofer: `/chofer/login`
+- Producción (main, sin lo nuevo): `nomafood-app.vercel.app`
+- Supabase SQL Editor: `https://supabase.com/dashboard/project/fufmwauofcqnlrfhcenq/sql/new`
+
+## 18. Cómo continuar
+Ver `docs/GUIA-REANUDAR-PROYECTO.md`. En resumen: leer este documento + el `RESPALDO-SESION` más reciente + `CHECKLIST-MAESTRO-NOMMA.md`, revisar `git log` en `feature/portal-chofer`, y continuar. El asistente sube código directo (git ok); Nataly corre migraciones en Supabase y da clics sensibles (envs, dominios, pagos).
