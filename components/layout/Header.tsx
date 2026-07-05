@@ -22,6 +22,7 @@ const routeLabels: Record<string, string> = {
   clientes: 'Clientes',
   campanas: 'Campañas',
   compras: 'Compras',
+  solicitudes: 'Solicitudes de acceso',
   'en-curso': 'Compras en curso',
   proveedores: 'Proveedores',
   finanzas: 'Finanzas',

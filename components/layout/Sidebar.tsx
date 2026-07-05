@@ -70,6 +70,7 @@ const navItems: NavItem[] = [
     label: 'Comercial',
     icon: ShoppingBag,
     children: [
+      { label: 'Solicitudes de acceso', href: '/comercial/solicitudes', icon: UserCircle },
       { label: 'Productos', href: '/comercial/productos', icon: Tag },
       { label: 'Clientes', href: '/comercial/clientes', icon: Users },
       { label: 'Campañas', href: '/comercial/campanas', icon: Megaphone },
@@ -216,7 +217,27 @@ export function Sidebar() {
     }
   }, [pathname])
 
-  const badges = { '/operaciones/mensajes': novedadesMsg }
+  // Solicitudes de acceso mayorista: badge de "nuevas" + sonido al entrar una
+  const [nuevasSol, setNuevasSol] = useState(0)
+  const solIds = useRef<Set<string>>(new Set())
+  const solPrimed = useRef(false)
+  const recomputarSol = useCallback(async () => {
+    const { data } = await supabase.from('access_requests').select('id, estado')
+    const list = (data as { id: string; estado: string }[]) || []
+    if (solPrimed.current && list.some(s => s.estado === 'nueva' && !solIds.current.has(s.id))) notify(true)
+    solIds.current = new Set(list.map(s => s.id))
+    solPrimed.current = true
+    setNuevasSol(list.filter(s => s.estado === 'nueva').length)
+  }, [])
+  useEffect(() => {
+    recomputarSol()
+    const ch = supabase.channel('sidebar-solicitudes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'access_requests' }, () => recomputarSol())
+      .subscribe()
+    return () => { supabase.removeChannel(ch) }
+  }, [recomputarSol])
+
+  const badges = { '/operaciones/mensajes': novedadesMsg, '/comercial/solicitudes': nuevasSol }
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
