@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 import { createServerClient } from '@/lib/supabase/server'
 
 export const runtime = 'nodejs'
+
+// Cliente anon (para disparar el correo de recuperación por el SMTP de Supabase)
+function anonClient() {
+  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+}
 
 // Crea la cuenta del cliente mayorista en Supabase Auth y le ENVÍA la invitación
 // para crear su contraseña a través del SMTP de Supabase (Resend). No envía
@@ -28,8 +34,10 @@ export async function POST(req: NextRequest) {
   // Invita al cliente: Supabase crea la cuenta y envía el correo por su SMTP (Resend)
   const inv = await db.auth.admin.inviteUserByEmail(email, { redirectTo, data: { full_name: nombre } })
   if (inv.error) {
-    // Ya tenía cuenta → generamos enlace de recuperación (para reenviar manual o "olvidé mi contraseña")
+    // Ya tenía cuenta → enviamos correo de recuperación por el SMTP para que (re)cree su contraseña
     yaExistia = true
+    const rp = await anonClient().auth.resetPasswordForEmail(email, { redirectTo })
+    if (!rp.error) emailSent = true
     const rec = await db.auth.admin.generateLink({ type: 'recovery', email, options: { redirectTo } })
     if (rec.error) return NextResponse.json({ error: 'No se pudo generar el acceso: ' + rec.error.message }, { status: 500 })
     userId = rec.data.user?.id ?? null
