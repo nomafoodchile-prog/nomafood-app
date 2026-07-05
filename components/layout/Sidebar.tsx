@@ -32,6 +32,7 @@ import {
   Activity,
   Radio,
   MessageCircle,
+  AlertTriangle,
 } from 'lucide-react'
 import { Logo } from './Logo'
 import { supabase } from '@/lib/supabase/client'
@@ -55,6 +56,7 @@ const navItems: NavItem[] = [
     children: [
       { label: 'Pedidos', href: '/operaciones/pedidos', icon: ClipboardList },
       { label: 'Monitoreo en vivo', href: '/operaciones/monitoreo', icon: Radio },
+      { label: 'Incidencias', href: '/operaciones/incidencias', icon: AlertTriangle },
       { label: 'Mensajes a choferes', href: '/operaciones/mensajes', icon: MessageCircle },
       { label: 'Producción', href: '/operaciones/produccion', icon: ChefHat },
       { label: 'Tareas', href: '/operaciones/tareas', icon: CheckSquare },
