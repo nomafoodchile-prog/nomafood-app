@@ -27,7 +27,7 @@ export default function CuentaMayorista() {
   const cargar = useCallback(async () => {
     const { data: s } = await supabase.auth.getSession()
     if (!s.session) { router.replace('/portal/mayoristas/login'); return }
-    const { data: m } = await supabase.from('mayoristas').select('id, nombre, empresa, token, descuento_pct').eq('profile_id', s.session.user.id).maybeSingle()
+    const { data: m } = await supabase.from('mayoristas').select('id, nombre, empresa, token, descuento_pct').eq('profile_id', s.session.user.id).order('created_at', { ascending: false }).limit(1).maybeSingle()
     if (!m) { setNoCuenta(true); setLoading(false); return }
     setMay(m as May)
     const { data: p } = await supabase.from('mayorista_pedidos')
