@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Users, Loader2, RefreshCw, X, Check, Ban, UserPlus, MessageSquarePlus, Building2, MapPin, Phone, Mail } from 'lucide-react'
+import { Users, Loader2, RefreshCw, X, Check, Ban, UserPlus, MessageSquarePlus, Building2, MapPin, Phone, Mail, Send, Link2, Copy } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 
 interface Sol {
@@ -26,6 +26,7 @@ export default function SolicitudesAcceso() {
   const [eventos, setEventos] = useState<Evt[]>([])
   const [nota, setNota] = useState('')
   const [busy, setBusy] = useState(false)
+  const [acceso, setAcceso] = useState<{ link: string; waLink: string | null; emailSent: boolean; whatsappSent: boolean } | null>(null)
 
   const cargar = useCallback(async () => {
     const { data } = await supabase.from('access_requests').select('*').order('created_at', { ascending: false }).limit(300)
@@ -41,10 +42,20 @@ export default function SolicitudesAcceso() {
   }, [cargar])
 
   const abrir = useCallback(async (s: Sol) => {
-    setSel(s); setNota('')
+    setSel(s); setNota(''); setAcceso(null)
     const { data } = await supabase.from('access_request_events').select('*').eq('request_id', s.id).order('created_at', { ascending: false })
     setEventos((data as Evt[]) || [])
   }, [])
+
+  async function enviarAcceso(mayoristaId: string, requestId: string) {
+    setBusy(true)
+    try {
+      const r = await fetch('/api/mayoristas/enviar-acceso', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mayorista_id: mayoristaId, request_id: requestId }) })
+      const d = await r.json()
+      if (r.ok) { setAcceso({ link: d.link, waLink: d.waLink, emailSent: d.emailSent, whatsappSent: d.whatsappSent }); if (sel) await abrir({ ...sel }) }
+    } catch { /* nada */ }
+    setBusy(false)
+  }
 
   async function cambiar(nuevo: string) {
     if (!sel) return
@@ -67,8 +78,11 @@ export default function SolicitudesAcceso() {
       notas: `Creado desde solicitud ${sel.numero}`,
     }).select('id, token').single()
     await supabase.from('access_requests').update({ estado: 'cuenta_creada', mayorista_id: may?.id }).eq('id', sel.id)
-    await supabase.from('access_request_events').insert({ request_id: sel.id, tipo: 'estado', estado: 'cuenta_creada', canal: 'sistema', mensaje: `Cliente creado. Portal: /portal/mayoristas/${may?.token}` })
-    await cargar(); await abrir({ ...sel, estado: 'cuenta_creada' }); setBusy(false)
+    await supabase.from('access_request_events').insert({ request_id: sel.id, tipo: 'estado', estado: 'cuenta_creada', canal: 'sistema', mensaje: 'Cliente creado.' })
+    await cargar()
+    // Enviar el acceso automáticamente (email/WhatsApp) y mostrar el link
+    if (may?.id) await enviarAcceso(may.id, sel.id)
+    else { await abrir({ ...sel, estado: 'cuenta_creada' }); setBusy(false) }
   }
 
   const filtradas = rows.filter(r =>
@@ -174,6 +188,21 @@ export default function SolicitudesAcceso() {
                 </div>
               </div>
 
+              {/* Acceso al portal (tras crear cliente) */}
+              {acceso && (
+                <div className="border border-[#c9a24e]/40 bg-[#faf7ef] rounded-xl p-3 space-y-2">
+                  <p className="text-xs font-semibold text-[#1b2a4a] flex items-center gap-1"><Link2 size={13} /> Acceso al Portal Mayorista</p>
+                  <div className="flex items-center gap-2">
+                    <input readOnly value={acceso.link} onFocus={e => e.currentTarget.select()} className="flex-1 text-xs px-2 py-1.5 border border-gray-200 rounded-lg bg-white" />
+                    <button onClick={() => navigator.clipboard?.writeText(acceso.link)} className="text-xs px-2 py-1.5 border border-gray-200 rounded-lg flex items-center gap-1"><Copy size={12} /> Copiar</button>
+                  </div>
+                  {acceso.waLink && <a href={acceso.waLink} target="_blank" rel="noreferrer" className="block text-center text-sm font-semibold bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg">Enviar por WhatsApp</a>}
+                  <p className="text-[11px] text-gray-500">
+                    {acceso.emailSent ? '✓ Email enviado' : 'Email no enviado (configura RESEND_API_KEY)'} · {acceso.whatsappSent ? '✓ WhatsApp enviado' : 'WhatsApp: usa el botón (o conecta Business API)'}
+                  </p>
+                </div>
+              )}
+
               {/* Nota + acciones */}
               <div className="flex gap-2">
                 <input value={nota} onChange={e => setNota(e.target.value)} placeholder="Nota / motivo…" className="flex-1 text-sm px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c9a24e]" />
@@ -186,6 +215,7 @@ export default function SolicitudesAcceso() {
               {sel.estado === 'en_revision' && <Accion onClick={() => cambiar('contactado')} busy={busy} label="Marcar contactado" />}
               {['en_revision', 'contactado'].includes(sel.estado) && <Accion onClick={() => cambiar('aprobado')} busy={busy} label="Aprobar" icon={Check} tone="green" />}
               {sel.estado === 'aprobado' && <Accion onClick={crearCliente} busy={busy} label="Crear cliente + acceso" icon={UserPlus} tone="gold" />}
+              {sel.estado === 'cuenta_creada' && sel.mayorista_id && <Accion onClick={() => enviarAcceso(sel.mayorista_id!, sel.id)} busy={busy} label="Reenviar acceso" icon={Send} tone="gold" />}
               {!['rechazado', 'cuenta_creada'].includes(sel.estado) && <Accion onClick={() => cambiar('rechazado')} busy={busy} label="Rechazar" icon={Ban} tone="red" />}
             </div>
           </div>
