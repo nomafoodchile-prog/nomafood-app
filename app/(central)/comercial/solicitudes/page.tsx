@@ -26,7 +26,7 @@ export default function SolicitudesAcceso() {
   const [eventos, setEventos] = useState<Evt[]>([])
   const [nota, setNota] = useState('')
   const [busy, setBusy] = useState(false)
-  const [acceso, setAcceso] = useState<{ link: string; waLink: string | null; emailSent: boolean; whatsappSent: boolean } | null>(null)
+  const [acceso, setAcceso] = useState<{ email: string; emailSent: boolean; link: string | null; waLink: string | null } | null>(null)
 
   const cargar = useCallback(async () => {
     const { data } = await supabase.from('access_requests').select('*').order('created_at', { ascending: false }).limit(300)
@@ -41,18 +41,25 @@ export default function SolicitudesAcceso() {
     return () => { supabase.removeChannel(ch) }
   }, [cargar])
 
-  const abrir = useCallback(async (s: Sol) => {
-    setSel(s); setNota(''); setAcceso(null)
-    const { data } = await supabase.from('access_request_events').select('*').eq('request_id', s.id).order('created_at', { ascending: false })
+  const recargarEventos = useCallback(async (id: string) => {
+    const { data } = await supabase.from('access_request_events').select('*').eq('request_id', id).order('created_at', { ascending: false })
     setEventos((data as Evt[]) || [])
   }, [])
+  const abrir = useCallback(async (s: Sol) => {
+    setSel(s); setNota(''); setAcceso(null)
+    await recargarEventos(s.id)
+  }, [recargarEventos])
 
-  async function enviarAcceso(mayoristaId: string, requestId: string) {
+  async function crearCuenta(mayoristaId: string, requestId: string, telefono?: string | null) {
     setBusy(true)
     try {
-      const r = await fetch('/api/mayoristas/enviar-acceso', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mayorista_id: mayoristaId, request_id: requestId }) })
+      const r = await fetch('/api/mayoristas/crear-cuenta', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mayorista_id: mayoristaId, request_id: requestId }) })
       const d = await r.json()
-      if (r.ok) { setAcceso({ link: d.link, waLink: d.waLink, emailSent: d.emailSent, whatsappSent: d.whatsappSent }); if (sel) await abrir({ ...sel }) }
+      if (r.ok) {
+        const wa = telefono && d.link ? `https://wa.me/${telefono.replace(/[^0-9]/g, '')}?text=${encodeURIComponent('¡Hola! Tu cuenta del Portal Mayorista NOMMA FOOD ya está lista. Crea tu contraseña aquí: ' + d.link)}` : null
+        setAcceso({ email: d.email, emailSent: d.emailSent, link: d.link, waLink: wa })
+      }
+      await cargar(); await recargarEventos(requestId)
     } catch { /* nada */ }
     setBusy(false)
   }
@@ -68,7 +75,7 @@ export default function SolicitudesAcceso() {
     if (!sel || !nota.trim()) return
     setBusy(true)
     await supabase.from('access_request_events').insert({ request_id: sel.id, tipo: 'nota', canal: 'sistema', mensaje: nota.trim() })
-    setNota(''); await abrir(sel); setBusy(false)
+    setNota(''); await recargarEventos(sel.id); setBusy(false)
   }
   async function crearCliente() {
     if (!sel) return
@@ -80,9 +87,9 @@ export default function SolicitudesAcceso() {
     await supabase.from('access_requests').update({ estado: 'cuenta_creada', mayorista_id: may?.id }).eq('id', sel.id)
     await supabase.from('access_request_events').insert({ request_id: sel.id, tipo: 'estado', estado: 'cuenta_creada', canal: 'sistema', mensaje: 'Cliente creado.' })
     await cargar()
-    // Enviar el acceso automáticamente (email/WhatsApp) y mostrar el link
-    if (may?.id) await enviarAcceso(may.id, sel.id)
-    else { await abrir({ ...sel, estado: 'cuenta_creada' }); setBusy(false) }
+    // Crea la cuenta del cliente (Supabase Auth) y le envía la invitación por email
+    if (may?.id) await crearCuenta(may.id, sel.id, sel.telefono)
+    else { await recargarEventos(sel.id); setBusy(false) }
   }
 
   const filtradas = rows.filter(r =>
@@ -188,18 +195,19 @@ export default function SolicitudesAcceso() {
                 </div>
               </div>
 
-              {/* Acceso al portal (tras crear cliente) */}
+              {/* Cuenta + invitación (tras crear cliente) */}
               {acceso && (
                 <div className="border border-[#c9a24e]/40 bg-[#faf7ef] rounded-xl p-3 space-y-2">
-                  <p className="text-xs font-semibold text-[#1b2a4a] flex items-center gap-1"><Link2 size={13} /> Acceso al Portal Mayorista</p>
-                  <div className="flex items-center gap-2">
-                    <input readOnly value={acceso.link} onFocus={e => e.currentTarget.select()} className="flex-1 text-xs px-2 py-1.5 border border-gray-200 rounded-lg bg-white" />
-                    <button onClick={() => navigator.clipboard?.writeText(acceso.link)} className="text-xs px-2 py-1.5 border border-gray-200 rounded-lg flex items-center gap-1"><Copy size={12} /> Copiar</button>
-                  </div>
-                  {acceso.waLink && <a href={acceso.waLink} target="_blank" rel="noreferrer" className="block text-center text-sm font-semibold bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg">Enviar por WhatsApp</a>}
-                  <p className="text-[11px] text-gray-500">
-                    {acceso.emailSent ? '✓ Email enviado' : 'Email no enviado (configura RESEND_API_KEY)'} · {acceso.whatsappSent ? '✓ WhatsApp enviado' : 'WhatsApp: usa el botón (o conecta Business API)'}
-                  </p>
+                  <p className="text-xs font-semibold text-[#1b2a4a] flex items-center gap-1"><Link2 size={13} /> Cuenta del Portal Mayorista</p>
+                  <p className="text-xs text-gray-600">Cuenta creada para <b>{acceso.email}</b>. {acceso.emailSent ? '✓ Invitación enviada por email' : 'Email no enviado — envía el enlace manualmente'}.</p>
+                  {acceso.link && (
+                    <div className="flex items-center gap-2">
+                      <input readOnly value={acceso.link} onFocus={e => e.currentTarget.select()} className="flex-1 text-xs px-2 py-1.5 border border-gray-200 rounded-lg bg-white" />
+                      <button onClick={() => navigator.clipboard?.writeText(acceso.link!)} className="text-xs px-2 py-1.5 border border-gray-200 rounded-lg flex items-center gap-1"><Copy size={12} /> Copiar</button>
+                    </div>
+                  )}
+                  {acceso.waLink && <a href={acceso.waLink} target="_blank" rel="noreferrer" className="block text-center text-sm font-semibold bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg">Enviar invitación por WhatsApp</a>}
+                  <p className="text-[11px] text-gray-400">El cliente crea su contraseña con ese enlace y luego entra en /portal/mayoristas/login</p>
                 </div>
               )}
 
@@ -215,7 +223,7 @@ export default function SolicitudesAcceso() {
               {sel.estado === 'en_revision' && <Accion onClick={() => cambiar('contactado')} busy={busy} label="Marcar contactado" />}
               {['en_revision', 'contactado'].includes(sel.estado) && <Accion onClick={() => cambiar('aprobado')} busy={busy} label="Aprobar" icon={Check} tone="green" />}
               {sel.estado === 'aprobado' && <Accion onClick={crearCliente} busy={busy} label="Crear cliente + acceso" icon={UserPlus} tone="gold" />}
-              {sel.estado === 'cuenta_creada' && sel.mayorista_id && <Accion onClick={() => enviarAcceso(sel.mayorista_id!, sel.id)} busy={busy} label="Reenviar acceso" icon={Send} tone="gold" />}
+              {sel.estado === 'cuenta_creada' && sel.mayorista_id && <Accion onClick={() => crearCuenta(sel.mayorista_id!, sel.id, sel.telefono)} busy={busy} label="Reenviar invitación" icon={Send} tone="gold" />}
               {!['rechazado', 'cuenta_creada'].includes(sel.estado) && <Accion onClick={() => cambiar('rechazado')} busy={busy} label="Rechazar" icon={Ban} tone="red" />}
             </div>
           </div>
