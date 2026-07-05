@@ -6,7 +6,8 @@ import { createServerClient } from '@/lib/supabase/server'
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN
+    const accessToken = process.env.MERCADO_PAGO_ACCESS_TOKEN || process.env.MERCADOPAGO_ACCESS_TOKEN
+    if (!accessToken) { console.error('[mayoristas/webhook] falta MERCADO_PAGO_ACCESS_TOKEN'); return NextResponse.json({ ok: true }) }
 
     // Solo procesar notificaciones de pago
     if (body.type !== 'payment' || !body.data?.id) {
