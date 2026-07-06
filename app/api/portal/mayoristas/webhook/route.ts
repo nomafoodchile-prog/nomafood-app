@@ -1,5 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server'
+import crypto from 'crypto'
 import { createServerClient } from '@/lib/supabase/server'
+
+export const runtime = 'nodejs'
+
+// Valida la firma HMAC de Mercado Pago (x-signature). Solo se EXIGE si está
+// configurado MERCADO_PAGO_WEBHOOK_SECRET; si no, no bloquea (compatibilidad).
+function firmaValida(req: NextRequest, dataId: string | null): boolean {
+  const secret = process.env.MERCADO_PAGO_WEBHOOK_SECRET
+  if (!secret) return true // sin secreto configurado → no se exige firma (aún)
+
+  const xSignature = req.headers.get('x-signature') || ''
+  const xRequestId = req.headers.get('x-request-id') || ''
+  let ts = '', v1 = ''
+  for (const part of xSignature.split(',')) {
+    const [k, val] = part.split('=').map(s => s.trim())
+    if (k === 'ts') ts = val
+    if (k === 'v1') v1 = val
+  }
+  if (!ts || !v1 || !dataId) return false
+
+  // MP: para ids alfanuméricos se usa en minúscula
+  const id = /[a-z]/i.test(dataId) ? dataId.toLowerCase() : dataId
+  const manifest = `id:${id};request-id:${xRequestId};ts:${ts};`
+  const hmac = crypto.createHmac('sha256', secret).update(manifest).digest('hex')
+  try {
+    return crypto.timingSafeEqual(Buffer.from(hmac), Buffer.from(v1))
+  } catch {
+    return false
+  }
+}
 
 // POST /api/portal/mayoristas/webhook
 // Recibe notificaciones de Mercado Pago y actualiza el estado del pedido
@@ -14,6 +44,12 @@ export async function POST(req: NextRequest) {
     const url = new URL(req.url)
     const topic = body.type || url.searchParams.get('type') || url.searchParams.get('topic')
     const paymentId = body.data?.id || url.searchParams.get('data.id') || url.searchParams.get('id')
+
+    // Seguridad A4: rechaza webhooks con firma inválida (solo si hay secreto configurado)
+    if (!firmaValida(req, paymentId ? String(paymentId) : null)) {
+      console.warn('[mayoristas/webhook] firma inválida — rechazado')
+      return NextResponse.json({ error: 'firma inválida' }, { status: 401 })
+    }
 
     // Solo procesar notificaciones de pago
     if (topic !== 'payment' || !paymentId) {

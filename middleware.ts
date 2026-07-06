@@ -1,25 +1,43 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import { createServerClient } from '@supabase/ssr'
+import { NextResponse, type NextRequest } from 'next/server'
 
-export function middleware(request: NextRequest) {
+// Rutas públicas — no requieren sesión. Los portales (mayorista/chofer) y las
+// APIs manejan su propia autenticación (token o RPC), por eso van aquí.
+const PUBLIC_PATHS = ['/login', '/recuperar', '/mayoristas', '/portal', '/chofer', '/api']
+
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+  if (PUBLIC_PATHS.some(p => pathname.startsWith(p))) {
+    return NextResponse.next()
+  }
 
-  // Public routes — no auth needed
-  const publicPaths = ['/login', '/recuperar', '/mayoristas', '/portal', '/chofer', '/api']
-  const isPublic = publicPaths.some(p => pathname.startsWith(p))
-  if (isPublic) return NextResponse.next()
+  // Para rutas protegidas (la Central), validamos la sesión REAL contra Supabase
+  // y refrescamos el token si hace falta (mantiene la sesión viva).
+  let response = NextResponse.next({ request })
 
-  // Check for Supabase v2 session cookie
-  // Cookie name format: sb-<project-ref>-auth-token
-  const hasSession = request.cookies.getAll().some(
-    c => c.name.startsWith('sb-') && c.name.endsWith('-auth-token')
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+          response = NextResponse.next({ request })
+          cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options))
+        },
+      },
+    },
   )
 
-  if (!hasSession) {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  return NextResponse.next()
+  return response
 }
 
 export const config = {
