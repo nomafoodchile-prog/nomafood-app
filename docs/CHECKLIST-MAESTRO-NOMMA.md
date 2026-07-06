@@ -12,11 +12,12 @@ _Formato pendiente: `[ ] Tarea — Prioridad · Responsable · Dependencia · Cr
 - [ ] Commitear migración fase0 logística + `notifications_outbox` (no están en el repo) — Media · Desarrollo · — · _Terminado = el esquema se reconstruye desde `supabase/`_
 - [ ] Definir destino de `schema.sql` (archivar o aplicar por partes) — Alta · Nataly+Desarrollo · Decisión O.1 · _Terminado = una sola fuente de esquema_
 
-## 2. Seguridad
-- [ ] **Endurecer RLS** `mayoristas`/`mayorista_pedidos`/`items` (hoy `USING(true)`) — **Crítica** · Desarrollo · — · _Terminado = cada cliente solo ve lo suyo; central/chofer intactos_
-- [ ] **Middleware real** (validar sesión con `getUser`, no solo cookie) — **Crítica** · Desarrollo · — · _Terminado = cookie falsa no da acceso_
-- [ ] **Gate por rol en la Central** — **Crítica** · Desarrollo · — · _Terminado = solo roles internos abren `(central)`_
-- [ ] Validación `x-signature` en webhook MP — Alta · Desarrollo · — · _Terminado = se rechazan webhooks no firmados_
+## 2. Seguridad — FASE A ✅ (aplicada/probada 2026-07-05)
+- [x] **Endurecer RLS** `mayoristas`/`mayorista_pedidos`/`items` (cierra `USING(true)`) — A2, `supabase/seguridad-fase-a-rls.sql` aplicado; admin verificado (Chequeo 1 ✅)
+- [x] **Middleware real** (valida sesión con `getUser` + refresca token) — A3, commit `cc7ff53`
+- [x] **Gate por rol en la Central** (solo roles internos) — A1, commit `83cd847` (probado: admin entra ✅)
+- [x] **Validación `x-signature` en webhook MP** (activa si hay secreto) — A4, commit `cc7ff53`
+- [ ] Configurar `MERCADO_PAGO_WEBHOOK_SECRET` en Vercel + MP para exigir firma — Media · Nataly · A4 · _Terminado = webhook firmado obligatorio_
 - [ ] Revisar info sensible visible por rol (clientes, finanzas) — Alta · Desarrollo · RLS · _Terminado = sin fugas entre roles_
 
 ## 3. Base de datos
