@@ -1,114 +1,166 @@
-# Checklist maestro — NOMMA FOOD
+# Checklist Maestro — NOMMA FOOD
 
-_Actualizado 2026-07-05. `[x]` hecho · `[ ]` pendiente. Prioridad: Crítica / Alta / Media / Baja. Responsable: Nataly / Desarrollo / Sistema._
+_Actualizado 2026-07-05 tras la Auditoría Integral (ver `docs/AUDITORIA-INTEGRAL-SISTEMA-NOMMA.md`)._
+_`[x]` hecho · `[ ]` pendiente. Prioridad: Crítica / Alta / Media / Baja. Responsable: Nataly / Desarrollo / Sistema._
+_Formato pendiente: `[ ] Tarea — Prioridad · Responsable · Dependencia · Criterio de terminado`._
 
-## 1. Base técnica, seguridad y permisos
+## 1. Base técnica
 - [x] Next.js 14 + Supabase + Vercel + deploy por rama (Desarrollo)
-- [x] Auth Supabase + trigger `handle_new_user` + roles `app_role` (incl. `Mayorista`) (Desarrollo)
-- [x] Helpers RLS `is_admin/get_my_driver_id/get_my_mayorista_id` (Desarrollo)
-- [x] Storage buckets `entregas/incidencias/comprobantes` (Sistema)
-- [x] Realtime en tablas clave (Sistema)
-- [ ] **Endurecer RLS** `mayoristas`/`mayorista_pedidos`/`items` (hoy `to authenticated using(true)`) — **Crítica** · Desarrollo · _Terminado = cada cliente solo ve lo suyo; central/chofer intactos_
-- [ ] Firma de webhook MP (x-signature) — Media · Desarrollo
-- [ ] Rotar/limpiar variables y confirmar `SUPABASE_SERVICE_ROLE_KEY` correcta — Alta · Nataly · _Terminado = registro funciona (✅ verificado)_
+- [x] Auth Supabase + roles `app_role` (incl. `Mayorista`) (Desarrollo)
+- [x] Helpers RLS `is_admin/get_my_mayorista_id/_pedido_es_mio/_compra_es_mia` (Desarrollo)
+- [x] Realtime en `access_requests/compra_items/entregas` (Sistema)
+- [ ] Commitear migración fase0 logística + `notifications_outbox` (no están en el repo) — Media · Desarrollo · — · _Terminado = el esquema se reconstruye desde `supabase/`_
+- [ ] Definir destino de `schema.sql` (archivar o aplicar por partes) — Alta · Nataly+Desarrollo · Decisión O.1 · _Terminado = una sola fuente de esquema_
 
-## 2. Central Administrativa
-- [x] Dashboard rediseñado (demo) · componentes base `components/central`
+## 2. Seguridad
+- [ ] **Endurecer RLS** `mayoristas`/`mayorista_pedidos`/`items` (hoy `USING(true)`) — **Crítica** · Desarrollo · — · _Terminado = cada cliente solo ve lo suyo; central/chofer intactos_
+- [ ] **Middleware real** (validar sesión con `getUser`, no solo cookie) — **Crítica** · Desarrollo · — · _Terminado = cookie falsa no da acceso_
+- [ ] **Gate por rol en la Central** — **Crítica** · Desarrollo · — · _Terminado = solo roles internos abren `(central)`_
+- [ ] Validación `x-signature` en webhook MP — Alta · Desarrollo · — · _Terminado = se rechazan webhooks no firmados_
+- [ ] Revisar info sensible visible por rol (clientes, finanzas) — Alta · Desarrollo · RLS · _Terminado = sin fugas entre roles_
+
+## 3. Base de datos
+- [x] Tablas mayoristas/pedidos/items, access_requests, products, landing_config
+- [ ] Verificar en DB qué tablas de `schema.sql` existen realmente — Alta · Nataly · — · _Terminado = inventario real de tablas_
+- [ ] Modelo limpio y único para pedidos/clientes/productos (evitar duplicados) — Alta · Desarrollo · O.1 · _Terminado = sin tablas espejo_
+
+## 4. Permisos
+- [x] Enum `app_role` con roles de fábrica
+- [ ] Políticas por rol para operario/picker/chofer/mayorista — Alta · Desarrollo · Seguridad · _Terminado = cada rol solo su alcance_
+
+## 5. Central Administrativa
 - [x] Monitoreo en vivo (GPS, choferes, pedidos, incidencias, entregas) — Supabase
 - [x] Incidencias (repositorio) — Supabase
-- [x] Mensajes a choferes (acuse + badge/sonido) — Supabase
-- [x] Compras en curso — Supabase
-- [x] Alerta global "¡INCIDENCIA!" + sonido
-- [ ] Migrar Pedidos a Supabase — Alta · Desarrollo · _Terminado = pedidos reales, no demo_
-- [ ] Migrar Producción/Tareas a Supabase — Alta · Desarrollo
-- [ ] Migrar Inventario a Supabase — Alta · Desarrollo
-- [ ] Migrar Finanzas (Caja/Cobranza/Costos/Balance) a Supabase — Alta · Desarrollo
-- [ ] Migrar Comercial (Productos/Clientes/Campañas) a Supabase — Media · Desarrollo
-- [ ] Personas (Usuarios/Accesos) reales por rol — Media · Desarrollo
-- [ ] Aplicar estilo Dashboard al resto de páginas — Baja · Desarrollo
+- [x] Mensajes a choferes (acuse + badge) — Supabase
+- [x] Compras en curso (checklist chofer) — Supabase
+- [ ] **Migrar Pedidos a Supabase** (mostrar/gestionar `mayorista_pedidos`) — **Alta** · Desarrollo · — · _Terminado = pedidos reales visibles y gestionables_
+- [ ] Dashboard con métricas reales — Media · Desarrollo · Pedidos+Finanzas · _Terminado = KPIs desde DB_
+- [ ] Despachos: unificar con logística real (quitar demo) — Media · Desarrollo · — · _Terminado = una sola vista de despacho_
 
-## 3. Portal Mayorista y landing pública
-- [x] Landing `/mayoristas` mobile-first + SEO/OG + productos reales
-- [x] Formulario de solicitud + dedup + estados + historial + origen UTM
-- [x] Panel Comercial de solicitudes (KPIs, filtros, acciones)
-- [x] Crear cuenta cliente (Auth) + vínculo `mayoristas.profile_id` + rol Mayorista
-- [x] Invitación + recuperación de contraseña por correo (SMTP Resend)
-- [x] Plantillas de correo con marca (Invite/Reset)
-- [x] **Verificar dominio `nomafood.cl` en Resend** (DNS en Vercel) + Sender SMTP `portal@nomafood.cl` — ✅ 2026-07-05 (correo real recibido por cliente) · Nataly
-- [ ] Fase 2 cuenta: catálogo+especificaciones+pago+promos dentro del login — Alta · Desarrollo
-- [ ] Marcar 3–6 productos `destacado` + fotos/desc pública — Media · Nataly
-- [ ] `landing_config`: video, zonas de cobertura reales — Baja · Nataly
+## 6. Comercial
+- [x] Solicitudes de acceso (KPIs, filtros, acciones)
+- [ ] Clientes reales (usar `mayoristas`, no demo) — Media · Desarrollo · — · _Terminado = clientes reales editables_
+- [ ] Productos reales (usar tabla `products`) — Media · Desarrollo · — · _Terminado = catálogo real gestionable_
+- [ ] Campañas reales — Baja · Desarrollo
 
-## 4. Portal Cliente (mayorista con cuenta)
-- [x] Login email+contraseña · crear contraseña · recuperar
+## 7. Portal Mayorista y Landing
+- [x] Landing `/mayoristas` + SEO/OG + productos reales
+- [x] Solicitud + dedup + estados + historial
+- [x] Crear cuenta (Auth) + vínculo `profile_id` + rol Mayorista
+- [x] Invitación + recuperación por correo (SMTP Resend)
+- [x] **Dominio `nomafood.cl` verificado en Resend** + Sender `portal@nomafood.cl` — ✅ 2026-07-05 (correo real recibido)
+- [ ] Listas de precios por cliente (hoy solo `descuento_pct`) — Alta · Desarrollo · O.4 · _Terminado = precio correcto por cliente_
+- [ ] Limpiar fichas duplicadas de un mismo mayorista — Alta · Nataly+Desarrollo · — · _Terminado = una ficha por cliente_
+
+## 8. Portal Cliente
+- [x] Login + crear/recuperar contraseña
 - [x] Cuenta: descuento, pedidos en curso, historial (Realtime)
-- [ ] Catálogo + pago + promociones DENTRO de la cuenta (hoy reusa portal token) — Alta · Desarrollo
+- [x] Confirmación de pago (verifica con MP y marca `pagado`) — ✅ 2026-07-05
+- [ ] Catálogo + pago + promociones DENTRO de la cuenta — Alta · Desarrollo · — · _Terminado = sin reusar token_
 
-## 5. Portal Picker
-- [ ] Revisar portal `/portal/picker/[token]` existente — Alta · Desarrollo · _Terminado = picking real conectado a la Central_
-- [ ] Checklist de armado por pedido, faltantes, evidencia — Alta · Desarrollo
+## 9. Pedidos
+- [x] Creación de pedido mayorista + preferencia MP
+- [ ] Pedidos reales en la Central + estados operativos — Alta · Desarrollo · #5 · _Terminado = ciclo de pedido gestionable_
+- [ ] Enlazar pedido → producción/inventario — Alta · Desarrollo · #11,#12 · _Terminado = el pedido dispara requerimientos_
 
-## 6. Portal Operario
-- [ ] Revisar portal `/portal/operario/[token]` existente — Alta · Desarrollo
-- [ ] Tareas/ADT, reporte con validación de supervisor, evidencia — Alta · Desarrollo
+## 10. Producción
+- [ ] Órdenes de producción reales — Alta · Desarrollo · #12 recetas · _Terminado = producción calculada desde pedidos_
+- [ ] Portal Operario nuevo conectado — Alta · Desarrollo · — · _Terminado = operario opera con datos reales_
+- [ ] Producto terminado disponible para picking — Alta · Desarrollo · — · _Terminado = stock PT real_
 
-## 7. Portal Chofer
+## 11. Inventario
+- [ ] Inventario real (movimientos, stock, alertas) — Alta · Desarrollo · — · _Terminado = stock confiable con trazabilidad_
+- [ ] Reserva/descuento de stock al pagar pedido — Alta · Desarrollo · #9 · _Terminado = no se vende sin stock_
+
+## 12. Recetas
+- [ ] Recetas por producto (ingredientes + pasos) — Media · Desarrollo · #11 · _Terminado = receta usable en producción_
+
+## 13. Preelaboraciones
+- [ ] Preelaboraciones y su consumo/rendimiento — Media · Desarrollo · #12 · _Terminado = preelaboración descuenta insumos_
+
+## 14. Portal Operario
+- [ ] Reemplazar portal viejo `/portal/operario/[token]` (tablas no aplicadas) — Alta · Desarrollo · — · _Terminado = turno, tareas, receta paso a paso, producido, merma, calidad_
+- [ ] Rendimiento diario + cumplimiento — Media · Desarrollo · #29 · _Terminado = métricas reales_
+
+## 15. Portal Picker
+- [ ] Reemplazar portal viejo `/portal/picker/[token]` (tablas no aplicadas) — Alta · Desarrollo · — · _Terminado = lista exacta, check por producto, validación cantidades/fechado/etiquetado, foto, cierre validado_
+- [ ] Alertas de error + cierre solo con validaciones completas — Alta · Desarrollo · — · _Terminado = no cierra con errores_
+
+## 16. Calidad
+- [ ] Fechado/etiquetado/temperaturas/checklists/no conformidades — Alta · Desarrollo · #14,#15 · _Terminado = evidencia y responsable por lote_
+
+## 17. Merma
+- [ ] Registro de merma con motivo/responsable/acción correctiva — Alta · Desarrollo · #16 · _Terminado = merma trazable e impacta costos_
+
+## 18. Portal Chofer
 - [x] Login + dashboard operativo
-- [x] Entregas con stepper + foto factura + firma cliente
-- [x] "Llegué al cliente" bloqueado por cercanía GPS
-- [x] Navegación Waze
-- [x] Compras (precio/foto/checklist/finalizar)
+- [x] Entregas con foto factura + firma cliente
+- [x] "Llegué al cliente" bloqueado por GPS + navegación Waze
+- [x] Compras (precio/foto/checklist)
 - [x] Mensajes (badge + sonido + Recibido + Llamar central)
 - [x] Reporte GPS en vivo
-- [ ] Badges numéricos en el menú + Perfil con vehículo real — Baja · Desarrollo
+- [ ] Deprecage portal chofer viejo `/portal/chofer/[token]` — Media · Desarrollo · — · _Terminado = una sola versión_
 
-## 8. Inventario, recetas, preelaboraciones y merma
-- [ ] Inventario real (movimientos, stock, alertas) en Supabase — Alta · Desarrollo
-- [ ] Recetas por tanda + preelaboraciones + costos reales — Media · Desarrollo
-- [ ] Registro de merma/vencidos/ajustes — Media · Desarrollo
-
-## 9. Producción, picking y calidad
-- [ ] Órdenes de producción reales — Alta · Desarrollo
-- [ ] ADT por área/operario — Media · Desarrollo
-- [ ] Control de calidad + validación supervisor — Media · Desarrollo
-
-## 10. Compras y proveedores
-- [x] Compras del chofer (checklist en vivo)
-- [ ] Proveedores reales + lista de precios (hoy demo) — Media · Desarrollo
-- [ ] Comprobante/boleta de compra + estados — Media · Desarrollo
-
-## 11. Despachos, GPS y comprobantes
+## 19. Despacho
 - [x] Asignación chofer, rutas, dos pistas de estado
+- [x] Comprobante de entrega (foto+firma) en Central
+- [ ] Liberar despacho desde picking cerrado — Alta · Desarrollo · #15 · _Terminado = despacho nace de picking real_
+
+## 20. GPS
 - [x] GPS en vivo (mapa que sigue al camión)
-- [x] Comprobante de entrega (foto + firma) visible en Central
-- [ ] GPS avanzado (velocidad/ETA/km/historial) sobre `location_pings` — Media · Desarrollo
-- [ ] Geocodificación fina / pin manual para direcciones difíciles — Media · Desarrollo
+- [ ] GPS avanzado (velocidad/ETA/km/historial de recorrido) — Media · Desarrollo · — · _Terminado = historial por ruta_
 
-## 12. Finanzas y Mercado Pago
-- [x] Checkout Mercado Pago (preferencia + init_point)
-- [x] Credenciales de PRODUCCIÓN en Vercel (Nataly)
-- [x] Webhook MP corregido y registrado (modo productivo, "Pagos")
-- [ ] **Probar pago real** (otra cuenta/tarjeta o usuarios de prueba) — **Alta** · Nataly · _Terminado = pedido pasa a "Pagado"_
-- [ ] **Ingreso automático en Caja** al aprobarse pago — **Alta** · Desarrollo · _Terminado = ingreso real en Caja_
-- [ ] Caja real en base (no demo) + Cobranza/crédito — Alta · Desarrollo
+## 21. Compras
+- [x] Compras del chofer (checklist en vivo)
+- [ ] Compras impactan inventario y costos — Alta · Desarrollo · #11 · _Terminado = stock/costos actualizados_
+- [ ] Solicitudes de compra + boletas/facturas + estados — Media · Desarrollo
 
-## 13. WhatsApp, notificaciones y automatizaciones
-- [x] `notifications_outbox` + botón `wa.me` de un toque
+## 22. Proveedores
+- [ ] Proveedores reales + lista de precios + comparación — Media · Desarrollo · — · _Terminado = decisión de compra con datos reales_
+
+## 23. Finanzas
+- [x] Checkout Mercado Pago (preferencia + pago real confirmado)
+- [ ] **Ingreso automático en Caja** al aprobarse pago — **Alta** · Desarrollo · #9 · _Terminado = ingreso real en Caja_
+- [ ] Caja/Cobranza/Costos/Balance reales — Alta · Desarrollo · — · _Terminado = finanzas desde DB_
+
+## 24. Mercado Pago
+- [x] Credenciales de producción + webhook + verificación al volver
+- [x] **Primer pago real exitoso** (op. #167380926558) — ✅ 2026-07-05
+- [ ] `NEXT_PUBLIC_SITE_URL` = dominio real + webhook firmado — Alta · Nataly+Desarrollo · O.6 · _Terminado = webhook llega y validado_
+- [ ] Probar más pagos reales de clientes — Alta · Nataly
+
+## 25. WhatsApp
+- [x] `notifications_outbox` + botón `wa.me`
+- [ ] WhatsApp Business API + worker de envío — Media · Nataly+Desarrollo · — · _Terminado = mensajes automáticos_
+
+## 26. Notificaciones
 - [x] Sonido/badge/alertas en Central y Chofer
-- [ ] WhatsApp Business API real (worker + plantillas) — Media · Nataly+Desarrollo
-- [x] Correo transaccional a cualquier cliente (dominio Resend verificado) — ✅ 2026-07-05 · Nataly
+- [ ] Procesador del outbox (correo/WhatsApp automático por evento) — Media · Desarrollo · — · _Terminado = eventos disparan avisos solos_
 
-## 14. Limpieza y mantención
-- [ ] Calendario de limpieza real (hoy demo) — Baja · Desarrollo
-- [ ] Calendario de mantención de máquinas real (hoy demo) — Baja · Desarrollo
+## 27. Limpieza
+- [ ] Calendario de limpieza real — Baja · Desarrollo
 
-## 15. QA, datos demo y producción
-- [ ] Limpiar solicitudes/cuentas/pedidos/compras/mensajes de prueba — Alta · Nataly+Desarrollo
-- [ ] Reemplazar toda la data demo de `lib/` por datos reales — Alta · Desarrollo
-- [ ] Merge PR #1 y PR #2; llevar `feature/portal-chofer` a `main` — Alta · Nataly+Desarrollo
-- [ ] `NEXT_PUBLIC_SITE_URL` en Vercel — Media · Nataly
-- [ ] Pruebas end-to-end por rol — Alta · Desarrollo
+## 28. Mantención
+- [ ] Calendario de mantención de máquinas real — Baja · Desarrollo
 
-## 16. PWA / futura app móvil
-- [ ] Convertir portales (chofer/picker/operario) en PWA instalable — Baja · Desarrollo
+## 29. Indicadores
+- [ ] Indicadores de cumplimiento (tiempo, calidad, merma) reales — Media · Desarrollo · #16,#17,#20 · _Terminado = KPIs por rol desde DB_
+
+## 30. Bonos
+- [ ] Bonos por **calidad + cantidades correctas + sin reclamos + fechado/etiquetado + merma controlada + tiempo** (no solo rapidez) — Media · Desarrollo · #29 · _Terminado = bono calculado con criterios de calidad_
+
+## 31. QA
+- [ ] Pruebas end-to-end por rol — Alta · Desarrollo · — · _Terminado = flujos validados_
+- [ ] Merge de ramas y llevar a `main` — Alta · Nataly+Desarrollo
+
+## 32. Datos demo
+- [ ] Limpiar clientes/choferes/pedidos ficticios de producción (Verde Vivo, Raíces Veganas, Carlos Chofer, seeds) — Alta · Nataly+Desarrollo · O.5 · _Terminado = solo datos reales_
+- [ ] Reemplazar data demo de `lib/` por datos reales — Alta · Desarrollo
+
+## 33. Producción real
+- [ ] Dominio productivo + variables + protección de despliegue correcta — Alta · Nataly · O.6
+- [ ] Checklist de go-live por área — Alta · Nataly+Desarrollo
+
+## 34. PWA y futura app móvil
+- [ ] Portales (chofer/picker/operario) como PWA instalable — Baja · Desarrollo
 - [ ] Notificaciones push nativas — Baja · Desarrollo
