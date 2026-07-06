@@ -34,7 +34,7 @@ _Actualizado 2026-07-05. `[x]` hecho · `[ ]` pendiente. Prioridad: Crítica / A
 - [x] Crear cuenta cliente (Auth) + vínculo `mayoristas.profile_id` + rol Mayorista
 - [x] Invitación + recuperación de contraseña por correo (SMTP Resend)
 - [x] Plantillas de correo con marca (Invite/Reset)
-- [ ] **Verificar dominio `nomafood.cl` en Resend** (DNS NIC Chile) — **Crítica** · Nataly · _Terminado = correos llegan a cualquier cliente_
+- [x] **Verificar dominio `nomafood.cl` en Resend** (DNS en Vercel) + Sender SMTP `portal@nomafood.cl` — ✅ 2026-07-05 (correo real recibido por cliente) · Nataly
 - [ ] Fase 2 cuenta: catálogo+especificaciones+pago+promos dentro del login — Alta · Desarrollo
 - [ ] Marcar 3–6 productos `destacado` + fotos/desc pública — Media · Nataly
 - [ ] `landing_config`: video, zonas de cobertura reales — Baja · Nataly
@@ -96,7 +96,7 @@ _Actualizado 2026-07-05. `[x]` hecho · `[ ]` pendiente. Prioridad: Crítica / A
 - [x] `notifications_outbox` + botón `wa.me` de un toque
 - [x] Sonido/badge/alertas en Central y Chofer
 - [ ] WhatsApp Business API real (worker + plantillas) — Media · Nataly+Desarrollo
-- [ ] Correo transaccional a cualquier cliente (depende de dominio Resend) — Crítica · Nataly
+- [x] Correo transaccional a cualquier cliente (dominio Resend verificado) — ✅ 2026-07-05 · Nataly
 
 ## 14. Limpieza y mantención
 - [ ] Calendario de limpieza real (hoy demo) — Baja · Desarrollo
