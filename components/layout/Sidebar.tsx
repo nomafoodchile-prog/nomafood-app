@@ -59,6 +59,7 @@ const navItems: NavItem[] = [
       { label: 'Incidencias', href: '/operaciones/incidencias', icon: AlertTriangle },
       { label: 'Mensajes a choferes', href: '/operaciones/mensajes', icon: MessageCircle },
       { label: 'Producción', href: '/operaciones/produccion', icon: ChefHat },
+      { label: 'Recetas y formulaciones', href: '/operaciones/produccion/recetas', icon: ClipboardList },
       { label: 'Tareas', href: '/operaciones/tareas', icon: CheckSquare },
       { label: 'Inventario', href: '/operaciones/inventario', icon: Package },
       { label: 'Despachos', href: '/operaciones/despachos', icon: Truck },
