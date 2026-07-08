@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase/client'
 
 type Row = Record<string, unknown>
 const S = (v: unknown) => v === null || v === undefined ? '' : String(v)
+const N = (v: unknown) => { const n = Number(v); return Number.isNaN(n) ? 0 : n }
 const clp = (n: unknown) => { const x = Number(n); return Number.isNaN(x) || !n ? '—' : new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(x) }
 
 const ESTADOS = ['activo', 'pausado', 'bloqueado', 'archivado']
@@ -23,6 +24,8 @@ export default function ProveedoresPage() {
   const [provs, setProvs] = useState<Row[]>([])
   const [vinculos, setVinculos] = useState<Row[]>([])
   const [productos, setProductos] = useState<Row[]>([])
+  const [recepciones, setRecepciones] = useState<Row[]>([])
+  const [recItems, setRecItems] = useState<Row[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [sel, setSel] = useState<Row | null>(null)
@@ -39,6 +42,10 @@ export default function ProveedoresPage() {
     setVinculos((v as Row[]) || [])
     const { data: pr } = await supabase.from('products').select('id, nombre, tipo_producto').in('tipo_producto', ['materia_prima', 'envase_insumo', 'reventa']).order('nombre')
     setProductos((pr as Row[]) || [])
+    const { data: rc } = await supabase.from('recepciones').select('id, numero, proveedor_id, created_at, solicitud_id').order('created_at', { ascending: false }).limit(200)
+    setRecepciones((rc as Row[]) || [])
+    const { data: ri } = await supabase.from('recepcion_items').select('recepcion_id, cantidad_recibida, precio_unitario, producto:products(nombre)')
+    setRecItems((ri as Row[]) || [])
     setLoading(false)
   }, [])
 
@@ -224,12 +231,32 @@ export default function ProveedoresPage() {
                 <p className="text-xs text-gray-400">Hoy manual. Con Recepción (P-C) se calcula solo: puntualidad, diferencias e incidencias.</p>
               </div>
             )}
-            {tab === 'hist' && (
-              <div className="py-10 text-center text-gray-400 text-sm">
-                <p>El historial de compras y la variación de precios se activan con <strong>Recepción de mercadería (P-C)</strong>.</p>
-                <p className="text-xs mt-1">Aquí verás compras, montos, estado y pendientes de recepción.</p>
-              </div>
-            )}
+            {tab === 'hist' && (() => {
+              const misRec = recepciones.filter(r => S(r.proveedor_id) === S(sel.id))
+              const montoDe = (recId: unknown) => recItems.filter(i => S(i.recepcion_id) === S(recId)).reduce((a, i) => a + N(i.cantidad_recibida) * N(i.precio_unitario), 0)
+              const itemsDe = (recId: unknown) => recItems.filter(i => S(i.recepcion_id) === S(recId))
+              return misRec.length === 0 ? (
+                <div className="py-10 text-center text-gray-400 text-sm">Aún no hay recepciones de este proveedor. Se registran en <strong>Compras → Recepción de mercadería</strong>.</div>
+              ) : (
+                <div className="overflow-x-auto"><table className="w-full text-sm">
+                  <thead className="bg-gray-50/50 text-gray-400 text-xs text-left"><tr><th className="py-2 px-3 font-medium">Recepción</th><th className="py-2 px-3 font-medium">Fecha</th><th className="py-2 px-3 font-medium">Productos</th><th className="py-2 px-3 font-medium text-right">Monto</th></tr></thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {misRec.map(r => {
+                      const its = itemsDe(r.id)
+                      const nombres = its.map(i => S((i.producto as Row)?.nombre)).filter(Boolean).slice(0, 3).join(', ')
+                      return (
+                        <tr key={S(r.id)}>
+                          <td className="py-2 px-3 font-mono font-medium text-[#1b2a4a]">{S(r.numero)}</td>
+                          <td className="py-2 px-3 text-gray-500">{new Date(S(r.created_at)).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: '2-digit' })}</td>
+                          <td className="py-2 px-3 text-gray-600">{nombres || `${its.length} ítem(s)`}</td>
+                          <td className="py-2 px-3 text-right">{montoDe(r.id) > 0 ? clp(montoDe(r.id)) : '—'}</td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table></div>
+              )
+            })()}
           </div>
         </div>
       </div>
