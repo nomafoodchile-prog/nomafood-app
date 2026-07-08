@@ -52,6 +52,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true })
   }
 
+  if (action === 'actualizar_proveedor') {
+    const id = String(body.id || '')
+    if (!id) return NextResponse.json({ error: 'Falta el proveedor' }, { status: 400 })
+    const patch: Record<string, unknown> = {}
+    for (const k of ['nombre', 'rut', 'contacto', 'telefono', 'email', 'direccion', 'observaciones']) {
+      if (k in body) patch[k] = body[k] ? String(body[k]) : null
+    }
+    if ('activo' in body) patch.activo = Boolean(body.activo)
+    if (Object.keys(patch).length === 0) return NextResponse.json({ error: 'Nada que actualizar' }, { status: 400 })
+    const { error } = await db.from('proveedores').update(patch).eq('id', id)
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ ok: true })
+  }
+
   if (action === 'eliminar_vinculo') {
     const id = String(body.id || '')
     if (!id) return NextResponse.json({ error: 'Falta el vínculo' }, { status: 400 })
