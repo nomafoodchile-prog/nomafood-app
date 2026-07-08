@@ -82,6 +82,7 @@ const navItems: NavItem[] = [
     icon: ShoppingCart,
     children: [
       { label: 'En curso', href: '/compras/en-curso', icon: ShoppingCart },
+      { label: 'Solicitudes de compra', href: '/compras/solicitudes', icon: ClipboardList },
       { label: 'Proveedores', href: '/compras/proveedores', icon: Building2 },
     ],
   },
