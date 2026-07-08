@@ -1,8 +1,9 @@
 'use client'
 
-import { Bell, ChevronRight } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { useTranslation } from '@/lib/hooks/useTranslation'
+import { Campanita } from '@/components/central/Campanita'
 
 const routeLabels: Record<string, string> = {
   dashboard: 'Dashboard',
@@ -83,11 +84,8 @@ export function Header() {
         ))}
       </div>
 
-      {/* Notification bell */}
-      <button className="relative w-9 h-9 rounded-lg bg-gray-50 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors">
-        <Bell size={16} />
-        <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white" />
-      </button>
+      {/* Notification bell (campanita real) */}
+      <Campanita />
 
       {/* User avatar */}
       <div className="w-9 h-9 rounded-full bg-[#c9a24e]/20 border-2 border-[#c9a24e]/40 flex items-center justify-center text-[#c9a24e] text-xs font-black cursor-pointer hover:border-[#c9a24e] transition-colors">

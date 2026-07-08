@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { operationsDemo } from '@/lib/operations'
 import { initialFinancialSnapshots, initialReceivables, receivableComputedStatus } from '@/lib/finance'
 import { Panel } from '@/components/central/Panel'
+import { AlertasDashboard } from '@/components/central/AlertasDashboard'
 import { KpiCard } from '@/components/central/KpiCard'
 import { SalesChart, type SalesPoint } from '@/components/central/SalesChart'
 
@@ -69,6 +70,8 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-[#1b2a4a]">Dashboard Central</h1>
+
+      <AlertasDashboard />
 
       {/* Saludo */}
       <div className="bg-white rounded-2xl shadow-card p-5 flex flex-wrap items-center justify-between gap-4">
