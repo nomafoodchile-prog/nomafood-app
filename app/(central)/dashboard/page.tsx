@@ -71,8 +71,6 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-[#1b2a4a]">Dashboard Central</h1>
 
-      <AlertasDashboard />
-
       {/* Saludo */}
       <div className="bg-white rounded-2xl shadow-card p-5 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -117,24 +115,9 @@ export default function DashboardPage() {
         </Panel>
 
         <Panel title="Alertas y pendientes" icon={AlertTriangle}>
-          <div className="space-y-3">
-            {alertas.length === 0 ? (
-              <p className="text-sm text-gray-400 text-center py-4">Sin alertas activas</p>
-            ) : (
-              alertas.map((a, i) => {
-                const color = a.tone === 'red' ? 'text-[#c0392b]' : a.tone === 'gold' ? 'text-[#c9a24e]' : 'text-[#1b2a4a]'
-                return (
-                  <Link key={i} href={a.href} className="flex items-center gap-3 group">
-                    <a.icon size={17} className={`${color} flex-shrink-0`} />
-                    <span className="text-sm text-gray-700 flex-1 group-hover:text-[#1b2a4a]">{a.text}</span>
-                    <ChevronRight size={15} className="text-gray-300" />
-                  </Link>
-                )
-              })
-            )}
-          </div>
-          <Link href="/gerencia/marcha-blanca" className="mt-4 block text-center bg-[#c9a24e] hover:bg-[#b8923f] text-[#1b2a4a] text-sm font-semibold py-2.5 rounded-xl transition-colors">
-            Ver todas
+          <AlertasDashboard />
+          <Link href="/operaciones/inventario" className="mt-4 block text-center bg-[#c9a24e] hover:bg-[#b8923f] text-[#1b2a4a] text-sm font-semibold py-2.5 rounded-xl transition-colors">
+            Ver inventario
           </Link>
         </Panel>
       </div>
