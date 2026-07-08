@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Search, Loader2, RefreshCw, Plus, Check, ArrowLeft, ChevronDown, ChevronRight, FileText } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
+import { ProveedoresProducto } from '@/components/central/ProveedoresProducto'
 
 type Val = string | number | boolean | null
 type Row = Record<string, Val | undefined>
@@ -84,6 +85,7 @@ const TABS: TabDef[] = [
     { k: 'costo_total', label: 'Costo total', t: 'number' },
     { k: 'margen_bruto', label: 'Margen bruto', t: 'number' },
   ] },
+  { id: 'prov', label: 'Proveedores', tipos: ['materia_prima', 'envase_insumo', 'reventa'], fields: [] },
 ]
 const EDIT_KEYS: string[] = TABS.flatMap(t => t.fields.map(f => f.k))
 
@@ -299,6 +301,7 @@ export default function ProductosPage() {
             </div>
           )}
           {tabActual?.id === 'inv' && <div className="mt-4 text-xs text-gray-500 bg-[#f5f0e8] rounded-lg px-3 py-2">El estado de calidad real (disponible / retenido / bloqueado) vendrá de los lotes del módulo Inventario. Aquí se definen las políticas.</div>}
+          {tabActual?.id === 'prov' && sel && <ProveedoresProducto productId={sel} />}
         </div>
         <div className="border-t border-gray-100">
           <button onClick={() => setShowHist(s => !s)} className="w-full flex items-center gap-2 px-5 py-3 text-sm text-gray-600 hover:bg-gray-50">{showHist ? <ChevronDown size={15} /> : <ChevronRight size={15} />} Historial de cambios ({hist.length})</button>
