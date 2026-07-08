@@ -24,8 +24,17 @@ export function Campanita() {
   const [notifs, setNotifs] = useState<Notif[]>([])
   const [sonido, setSonido] = useState(true)
   const lastUrg = useRef(0)
+  const urgentRef = useRef(0)
 
   useEffect(() => { setSonido(localStorage.getItem('noma-alert-sound') !== 'off') }, [])
+
+  // Desbloqueo de audio: los navegadores bloquean el sonido hasta el primer
+  // clic. Al primer clic, si hay alertas urgentes pendientes, suena.
+  useEffect(() => {
+    const unlock = () => { if (localStorage.getItem('noma-alert-sound') !== 'off' && urgentRef.current > 0) beep() }
+    document.addEventListener('pointerdown', unlock, { once: true })
+    return () => document.removeEventListener('pointerdown', unlock)
+  }, [])
 
   const cargar = useCallback(async () => {
     const { data } = await supabase.from('notificaciones').select('id, tipo, prioridad, area, titulo, mensaje, accion_sugerida, estado, created_at').neq('estado', 'resuelta').order('created_at', { ascending: false }).limit(30)
@@ -33,6 +42,7 @@ export function Campanita() {
     const urg = list.filter(n => n.estado === 'nueva' && (n.prioridad === 'critica' || n.prioridad === 'alta')).length
     if (urg > lastUrg.current && localStorage.getItem('noma-alert-sound') !== 'off') beep()
     lastUrg.current = urg
+    urgentRef.current = urg
     setNotifs(list)
   }, [])
 
