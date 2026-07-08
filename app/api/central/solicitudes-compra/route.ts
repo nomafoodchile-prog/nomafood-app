@@ -59,13 +59,13 @@ export async function POST(req: NextRequest) {
 
     // Proveedor principal por producto
     const { data: pps } = await db.from('proveedor_productos')
-      .select('product_id, proveedor_id, unidad_compra, equivalencia_inventario, proveedor:proveedores(id, nombre, estado)')
+      .select('product_id, proveedor_id, unidad_compra, equivalencia_inventario, ultimo_precio, precio_referencial, proveedor:proveedores(id, nombre, estado)')
       .eq('es_principal', true)
     const principalByProd = new Map<string, Row>()
     for (const pp of (pps as Row[] | null) || []) principalByProd.set(String(pp.product_id), pp)
 
     // Detecta productos bajo punto de reposición y agrupa por proveedor
-    interface Item { product_id: string; nombre: string; stock_actual: number; stock_min: number; punto_reposicion: number; cantidad_sugerida: number; unidad_compra: string | null }
+    interface Item { product_id: string; nombre: string; stock_actual: number; stock_min: number; punto_reposicion: number; cantidad_sugerida: number; unidad_compra: string | null; precio_unitario: number | null }
     const grupos = new Map<string, { proveedor: Row; items: Item[]; hayQuiebre: boolean }>()
     const sinProveedor: string[] = []
 
@@ -85,10 +85,11 @@ export async function POST(req: NextRequest) {
       const faltaInv = Math.max(0, target - disponible)
       const equiv = N(pp.equivalencia_inventario)
       const sugerida = equiv > 0 ? Math.ceil(faltaInv / equiv) : Math.ceil(faltaInv)
+      const precio = pp.ultimo_precio != null ? N(pp.ultimo_precio) : (pp.precio_referencial != null ? N(pp.precio_referencial) : null)
 
       if (!grupos.has(provId)) grupos.set(provId, { proveedor: prov, items: [], hayQuiebre: false })
       const g = grupos.get(provId)!
-      g.items.push({ product_id: pid, nombre: String(p.nombre), stock_actual: disponible, stock_min: min, punto_reposicion: target, cantidad_sugerida: sugerida, unidad_compra: (pp.unidad_compra as string) || null })
+      g.items.push({ product_id: pid, nombre: String(p.nombre), stock_actual: disponible, stock_min: min, punto_reposicion: target, cantidad_sugerida: sugerida, unidad_compra: (pp.unidad_compra as string) || null, precio_unitario: precio })
       if (disponible <= 0) g.hayQuiebre = true
     }
 
@@ -119,7 +120,7 @@ export async function POST(req: NextRequest) {
       await db.from('solicitud_compra_items').insert(g.items.map(it => ({
         solicitud_id: sol.id, product_id: it.product_id,
         stock_actual: it.stock_actual, stock_min: it.stock_min, punto_reposicion: it.punto_reposicion,
-        cantidad_sugerida: it.cantidad_sugerida, unidad_compra: it.unidad_compra,
+        cantidad_sugerida: it.cantidad_sugerida, unidad_compra: it.unidad_compra, precio_unitario: it.precio_unitario,
       })))
       creadas++
     }

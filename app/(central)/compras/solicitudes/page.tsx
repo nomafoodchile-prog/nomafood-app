@@ -19,6 +19,7 @@ const ESTADO_LBL: Record<string, string> = {
   comprada: 'Comprada', recibida: 'Recibida', cancelada: 'Cancelada',
 }
 const PRIOR_CLR: Record<string, string> = { alta: 'text-red-600', media: 'text-amber-600', baja: 'text-gray-500' }
+const IVA = 0.19 // IVA Chile
 
 export default function SolicitudesPage() {
   const [sols, setSols] = useState<Row[]>([])
@@ -75,25 +76,44 @@ export default function SolicitudesPage() {
 
   const itemsDe = (solId: unknown) => items.filter(i => S(i.solicitud_id) === S(solId))
   const nombreItem = (i: Row) => S((i.producto as Row)?.nombre)
+  const subtotal = (i: Row) => N(i.cantidad_sugerida) * N(i.precio_unitario)
+  const netoDe = (solId: unknown) => itemsDe(solId).reduce((a, i) => a + subtotal(i), 0)
+  const ivaDe = (solId: unknown) => Math.round(netoDe(solId) * IVA)
+  const totalDe = (solId: unknown) => netoDe(solId) + ivaDe(solId)
+  const clp = (n: number) => n > 0 ? new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(n) : '—'
 
   // ── Exportar / copiar / WhatsApp ──
   function lineasTexto(sol: Row): string[] {
-    return itemsDe(sol.id).map(i => `- ${N(i.cantidad_sugerida)} ${S(i.unidad_compra) || S((i.producto as Row)?.unidad_inventario) || 'un'} ${nombreItem(i)}`)
+    return itemsDe(sol.id).map(i => {
+      const und = S(i.unidad_compra) || S((i.producto as Row)?.unidad_inventario) || 'un'
+      const sub = subtotal(i)
+      return `- ${N(i.cantidad_sugerida)} ${und} ${nombreItem(i)}${sub > 0 ? ` — ${clp(sub)}` : ''}`
+    })
   }
   function exportarExcel(sol: Row) {
     const its = itemsDe(sol.id)
-    const head = ['Producto', 'Stock actual', 'Stock mínimo', 'Punto reposición', 'Cantidad sugerida', 'Unidad compra']
-    const rows = its.map(i => [nombreItem(i), N(i.stock_actual), N(i.stock_min), N(i.punto_reposicion), N(i.cantidad_sugerida), S(i.unidad_compra)])
-    const csv = [head, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(';')).join('\r\n')
+    const head = ['Producto', 'Stock actual', 'Stock mínimo', 'Punto reposición', 'Cantidad sugerida', 'Unidad compra', 'Precio unitario', 'Subtotal']
+    const rows = its.map(i => [nombreItem(i), N(i.stock_actual), N(i.stock_min), N(i.punto_reposicion), N(i.cantidad_sugerida), S(i.unidad_compra), N(i.precio_unitario), subtotal(i)])
+    const tot = [
+      ['', '', '', '', '', '', 'Neto', netoDe(sol.id)],
+      ['', '', '', '', '', '', 'IVA 19%', ivaDe(sol.id)],
+      ['', '', '', '', '', '', 'TOTAL', totalDe(sol.id)],
+    ]
+    const csv = [head, ...rows, ...tot].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(';')).join('\r\n')
     const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url; a.download = `${S(sol.numero) || 'solicitud'}.csv`; a.click()
     URL.revokeObjectURL(url)
   }
+  function mensajePedido(sol: Row): string {
+    const neto = netoDe(sol.id)
+    const totalTxt = neto > 0 ? `\n\nNeto: ${clp(neto)}\nIVA 19%: ${clp(ivaDe(sol.id))}\nTotal: ${clp(totalDe(sol.id))}` : ''
+    return `Hola hola, queremos dejar un nuevo pedido:\n${lineasTexto(sol).join('\n')}${totalTxt}`
+  }
   async function copiar(sol: Row) {
     const prov = (sol.proveedor as Row) || {}
-    const texto = `Solicitud de compra ${S(sol.numero)} · ${S(prov.nombre)}\n\nHola hola, queremos dejar un nuevo pedido:\n${lineasTexto(sol).join('\n')}`
+    const texto = `Solicitud de compra ${S(sol.numero)} · ${S(prov.nombre)}\n\n${mensajePedido(sol)}`
     try { await navigator.clipboard.writeText(texto); setCopiado(true); setTimeout(() => setCopiado(false), 1800) } catch { setError('No se pudo copiar') }
   }
   function whatsapp(sol: Row) {
@@ -101,8 +121,7 @@ export default function SolicitudesPage() {
     let num = (S(prov.whatsapp) || S(prov.telefono)).replace(/\D/g, '')
     if (!num) { setError('Este proveedor no tiene WhatsApp/teléfono cargado en su ficha'); return }
     if (!num.startsWith('56') && num.length <= 9) num = '56' + num // Chile por defecto
-    const texto = `Hola hola, queremos dejar un nuevo pedido:\n${lineasTexto(sol).join('\n')}`
-    window.open(`https://wa.me/${num}?text=${encodeURIComponent(texto)}`, '_blank')
+    window.open(`https://wa.me/${num}?text=${encodeURIComponent(mensajePedido(sol))}`, '_blank')
   }
 
   // ── Detalle ──
@@ -130,20 +149,27 @@ export default function SolicitudesPage() {
 
           <div className="p-4">
             <div className="overflow-x-auto"><table className="w-full text-sm">
-              <thead className="bg-gray-50/50 text-gray-400 text-xs text-left"><tr><th className="py-2 px-3 font-medium">Producto</th><th className="py-2 px-3 font-medium text-right">Actual</th><th className="py-2 px-3 font-medium text-right">Mínimo</th><th className="py-2 px-3 font-medium text-right">P. reposición</th><th className="py-2 px-3 font-medium text-right">Sugerido</th><th className="py-2 px-3 font-medium">U. compra</th></tr></thead>
+              <thead className="bg-gray-50/50 text-gray-400 text-xs text-left"><tr><th className="py-2 px-3 font-medium">Producto</th><th className="py-2 px-3 font-medium text-right">Actual</th><th className="py-2 px-3 font-medium text-right">Mínimo</th><th className="py-2 px-3 font-medium text-right">Sugerido</th><th className="py-2 px-3 font-medium">U. compra</th><th className="py-2 px-3 font-medium text-right">Precio unit.</th><th className="py-2 px-3 font-medium text-right">Subtotal</th></tr></thead>
               <tbody className="divide-y divide-gray-50">
                 {its.map(i => (
                   <tr key={S(i.id)}>
                     <td className="py-2 px-3 font-medium text-[#1a1a1a]">{nombreItem(i)}</td>
                     <td className={`py-2 px-3 text-right ${N(i.stock_actual) <= 0 ? 'text-red-600 font-semibold' : N(i.stock_actual) < N(i.stock_min) ? 'text-amber-600' : ''}`}>{N(i.stock_actual)}</td>
                     <td className="py-2 px-3 text-right text-gray-500">{N(i.stock_min)}</td>
-                    <td className="py-2 px-3 text-right text-gray-500">{N(i.punto_reposicion)}</td>
                     <td className="py-2 px-3 text-right font-semibold text-[#1b2a4a]">{N(i.cantidad_sugerida)}</td>
                     <td className="py-2 px-3 text-gray-500">{S(i.unidad_compra) || '—'}</td>
+                    <td className="py-2 px-3 text-right text-gray-600">{clp(N(i.precio_unitario))}</td>
+                    <td className="py-2 px-3 text-right font-medium">{clp(subtotal(i))}</td>
                   </tr>
                 ))}
               </tbody>
+              <tfoot className="border-t border-gray-200">
+                <tr><td colSpan={6} className="py-1.5 px-3 text-right text-sm text-gray-500">Neto</td><td className="py-1.5 px-3 text-right text-sm text-gray-600">{clp(netoDe(sel.id))}</td></tr>
+                <tr><td colSpan={6} className="py-1.5 px-3 text-right text-sm text-gray-500">IVA 19%</td><td className="py-1.5 px-3 text-right text-sm text-gray-600">{clp(ivaDe(sel.id))}</td></tr>
+                <tr><td colSpan={6} className="py-2 px-3 text-right text-sm font-semibold text-[#1b2a4a]">Total a preparar</td><td className="py-2 px-3 text-right text-base font-bold text-[#1b2a4a]">{clp(totalDe(sel.id))}</td></tr>
+              </tfoot>
             </table></div>
+            {totalDe(sel.id) <= 0 && <p className="text-xs text-amber-600 mt-2">Sin precios cargados. Agrega precio referencial o último precio en la ficha del proveedor (Productos que provee) para ver el total.</p>}
 
             <div className="mt-4 p-3 bg-gray-50/60 rounded-lg text-xs text-gray-500"><span className="font-medium">Motivo:</span> {S(sel.motivo) || '—'}</div>
 
@@ -179,17 +205,19 @@ export default function SolicitudesPage() {
           <th className="text-left py-3 px-4 text-xs font-semibold text-gray-400 uppercase">Solicitud</th>
           <th className="text-left py-3 px-4 text-xs font-semibold text-gray-400 uppercase">Proveedor</th>
           <th className="text-right py-3 px-4 text-xs font-semibold text-gray-400 uppercase">Ítems</th>
+          <th className="text-right py-3 px-4 text-xs font-semibold text-gray-400 uppercase">Total</th>
           <th className="text-left py-3 px-4 text-xs font-semibold text-gray-400 uppercase hidden md:table-cell">Fecha</th>
           <th className="text-center py-3 px-4 text-xs font-semibold text-gray-400 uppercase">Estado</th>
         </tr></thead>
         <tbody className="divide-y divide-gray-50">
-          {loading ? <tr><td colSpan={5} className="py-12 text-center"><Loader2 className="w-5 h-5 text-[#1b2a4a] animate-spin mx-auto" /></td></tr>
-          : sols.length === 0 ? <tr><td colSpan={5} className="py-12 text-center text-gray-400 text-sm">Sin solicitudes. Usa <strong>Generar sugeridas</strong> para crearlas desde el stock bajo mínimo.</td></tr>
+          {loading ? <tr><td colSpan={6} className="py-12 text-center"><Loader2 className="w-5 h-5 text-[#1b2a4a] animate-spin mx-auto" /></td></tr>
+          : sols.length === 0 ? <tr><td colSpan={6} className="py-12 text-center text-gray-400 text-sm">Sin solicitudes. Usa <strong>Generar sugeridas</strong> para crearlas desde el stock bajo mínimo.</td></tr>
           : sols.map(s => { const est = S(s.estado); const prov = (s.proveedor as Row) || {}; return (
             <tr key={S(s.id)} onClick={() => setSel(s)} className="hover:bg-gray-50 cursor-pointer">
               <td className="py-3 px-4 font-mono font-medium text-[#1b2a4a]">{S(s.numero)}<span className={`ml-2 text-[10px] ${PRIOR_CLR[S(s.prioridad)] || ''}`}>●</span></td>
               <td className="py-3 px-4 text-[#1a1a1a]">{S(prov.nombre)}</td>
               <td className="py-3 px-4 text-right text-gray-600">{itemsDe(s.id).length}</td>
+              <td className="py-3 px-4 text-right text-gray-700 font-medium">{clp(totalDe(s.id))}</td>
               <td className="py-3 px-4 text-gray-500 text-xs hidden md:table-cell">{fecha(s.created_at)}</td>
               <td className="py-3 px-4 text-center"><span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${ESTADO_CLR[est]}`}>{ESTADO_LBL[est] || est}</span></td>
             </tr>
