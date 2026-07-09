@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 
 // Rutas públicas — no requieren sesión. Los portales (mayorista/chofer) y las
 // APIs manejan su propia autenticación (token o RPC), por eso van aquí.
-const PUBLIC_PATHS = ['/login', '/recuperar', '/mayoristas', '/portal', '/chofer', '/api']
+const PUBLIC_PATHS = ['/login', '/recuperar', '/mayoristas', '/portal', '/chofer', '/operario', '/api']
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
