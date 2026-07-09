@@ -19,13 +19,18 @@ function transcurrido(desde: string | null, hasta: string | null): string {
   return `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}`
 }
 
-const BARRAS = [
-  { k: 'Tareas', ayuda: 'tareas completadas' },
-  { k: 'Tiempo', ayuda: 'estimado vs real' },
-  { k: 'Calidad', ayuda: 'checklist y mermas' },
-  { k: 'Asistencia', ayuda: 'atrasos y faltas' },
-  { k: 'Producción', ayuda: 'producido vs asignado' },
-]
+function colorPct(p: number | null): string {
+  if (p === null) return 'bg-gray-200'
+  if (p >= 80) return 'bg-[#639922]'
+  if (p >= 50) return 'bg-[#EF9F27]'
+  return 'bg-[#E24B4A]'
+}
+function txtPct(p: number | null): string {
+  if (p === null) return 'text-gray-400'
+  if (p >= 80) return 'text-green-600'
+  if (p >= 50) return 'text-amber-600'
+  return 'text-red-600'
+}
 
 export default function OperarioInicioPage() {
   const [loading, setLoading] = useState(true)
@@ -36,6 +41,7 @@ export default function OperarioInicioPage() {
   const [saludo, setSaludo] = useState('')
   const [busy, setBusy] = useState(false)
   const [tick, setTick] = useState(0)
+  const [metricas, setMetricas] = useState<{ k: string; ayuda: string; pct: number | null }[]>([])
 
   const cargar = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -52,6 +58,34 @@ export default function OperarioInicioPage() {
     setJornada((j as Row) || null)
     const lista = (msgs as { texto: string }[]) || []
     if (lista.length) setSaludo(lista[Math.floor(Math.random() * lista.length)].texto)
+
+    // Métricas del día (barras reales)
+    const { data: tareas } = await supabase.from('op_tareas')
+      .select('id, tipo, estado, cantidad_asignada, tiempo_estimado_min').eq('operario_id', user.id).eq('fecha', hoy())
+    const { data: cierres } = await supabase.from('op_tarea_cierre')
+      .select('tarea_id, tiempo_estimado_min, tiempo_real_min, cantidad_producida, calidad_resultado')
+    const ts = (tareas as Row[]) || []
+    const cKeys = new Set(((cierres as Row[]) || []).map(c => S(c.tarea_id)))
+    const cx = ((cierres as Row[]) || []).filter(c => ts.some(t => S(t.id) === S(c.tarea_id)))
+    const pct = (n: number, d: number): number | null => d > 0 ? Math.min(100, Math.round((n / d) * 100)) : null
+
+    const asignadas = ts.length
+    const finalizadas = ts.filter(t => cKeys.has(S(t.id))).length
+    const estTot = cx.reduce((a, c) => a + Number(c.tiempo_estimado_min || 0), 0)
+    const realTot = cx.reduce((a, c) => a + Number(c.tiempo_real_min || 0), 0)
+    const prodTs = ts.filter(t => ['produccion', 'preelaboracion'].includes(S(t.tipo)))
+    const asignProd = prodTs.reduce((a, t) => a + Number(t.cantidad_asignada || 0), 0)
+    const prodCx = cx.filter(c => prodTs.some(t => S(t.id) === S(c.tarea_id)))
+    const producido = prodCx.reduce((a, c) => a + Number(c.cantidad_producida || 0), 0)
+    const aprobadas = prodCx.filter(c => S(c.calidad_resultado) === 'aprobado').length
+
+    setMetricas([
+      { k: 'Tareas', ayuda: `${finalizadas}/${asignadas}`, pct: pct(finalizadas, asignadas) },
+      { k: 'Tiempo', ayuda: 'estimado vs real', pct: realTot > 0 ? Math.min(100, Math.round((estTot / realTot) * 100)) : null },
+      { k: 'Calidad', ayuda: 'producción aprobada', pct: prodCx.length ? pct(aprobadas, prodCx.length) : null },
+      { k: 'Producción', ayuda: 'producido vs asignado', pct: pct(producido, asignProd) },
+      { k: 'Asistencia', ayuda: 'GeoVictoria (O-D)', pct: null },
+    ])
     setLoading(false)
   }, [])
 
@@ -135,14 +169,17 @@ export default function OperarioInicioPage() {
         <div className="bg-white rounded-2xl border border-gray-100 p-4">
           <div className="text-xs text-gray-500 mb-3">Cumplimiento de hoy</div>
           <div className="space-y-2.5">
-            {BARRAS.map(b => (
+            {metricas.map(b => (
               <div key={b.k}>
-                <div className="flex justify-between text-xs text-gray-600"><span>{b.k}</span><span className="text-gray-400">— {b.ayuda}</span></div>
-                <div className="h-2 bg-gray-100 rounded-full overflow-hidden mt-1"><div className="h-full bg-gray-200" style={{ width: '0%' }} /></div>
+                <div className="flex justify-between text-xs text-gray-600">
+                  <span>{b.k}</span>
+                  <span className={txtPct(b.pct)}>{b.pct === null ? `— ${b.ayuda}` : `${b.pct}%`}</span>
+                </div>
+                <div className="h-2 bg-gray-100 rounded-full overflow-hidden mt-1"><div className={`h-full ${colorPct(b.pct)}`} style={{ width: `${b.pct ?? 0}%` }} /></div>
               </div>
             ))}
           </div>
-          <p className="text-[11px] text-gray-400 mt-3">Las barras se activan cuando tengas tareas asignadas.</p>
+          <p className="text-[11px] text-gray-400 mt-3">Se actualizan a medida que completas tus tareas.</p>
         </div>
 
         {!jornada && (
