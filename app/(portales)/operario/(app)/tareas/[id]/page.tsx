@@ -171,7 +171,7 @@ export default function OperarioTareaDetalle() {
       <div className="px-5 -mt-3 space-y-4">
         {error && <div className="bg-red-50 border border-red-200 rounded-xl px-3 py-2 text-sm text-red-700">{error}</div>}
 
-        {tarea.instrucciones && <div className="bg-white rounded-2xl border border-gray-100 p-4 text-sm text-gray-700">{S(tarea.instrucciones)}</div>}
+        {tarea.instrucciones ? <div className="bg-white rounded-2xl border border-gray-100 p-4 text-sm text-gray-700">{S(tarea.instrucciones)}</div> : null}
 
         {!finalizada && (
           <div className="bg-white rounded-2xl border border-gray-100 p-4 text-center">
