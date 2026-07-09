@@ -11,6 +11,7 @@ const N = (v: unknown) => { const n = Number(v); return Number.isNaN(n) ? 0 : n 
 const TIPO_LBL: Record<string, string> = { produccion: 'Producción', preelaboracion: 'Preelaboración', limpieza: 'Limpieza', apoyo: 'Apoyo', orden: 'Orden', revision: 'Revisión', especial: 'Especial' }
 const CALIDADES = [['aprobado', 'Aprobado'], ['con_observacion', 'Con observación'], ['retenido', 'Retenido'], ['rechazado', 'Rechazado']] as const
 const esProd = (tipo: string) => tipo === 'produccion' || tipo === 'preelaboracion'
+const inC = 'w-full px-2.5 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#1b2a4a]'
 const tplTipo = (tipo: string) => (tipo === 'produccion' || tipo === 'preelaboracion' || tipo === 'limpieza') ? tipo : 'general'
 
 function minutosReales(eventos: Row[], incluirAhora: boolean): number {
@@ -200,15 +201,15 @@ export default function OperarioTareaDetalle() {
             {prod && (
               <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-2">
-                  <Campo label="Producida *"><input type="number" className="in" value={S(f.cantidad_producida)} onChange={e => setF({ ...f, cantidad_producida: e.target.value })} /></Campo>
-                  <Campo label="Rechazada"><input type="number" className="in" value={S(f.cantidad_rechazada)} onChange={e => setF({ ...f, cantidad_rechazada: e.target.value })} /></Campo>
-                  <Campo label="Merma *"><input type="number" className="in" value={S(f.merma)} onChange={e => setF({ ...f, merma: e.target.value })} /></Campo>
-                  <Campo label="Motivo merma"><input className="in" value={S(f.merma_motivo)} onChange={e => setF({ ...f, merma_motivo: e.target.value })} placeholder={N(f.merma) > 0 ? 'Obligatorio' : '—'} /></Campo>
-                  <Campo label="Elaboración *"><input type="date" className="in" value={S(f.fecha_elaboracion)} onChange={e => setF({ ...f, fecha_elaboracion: e.target.value })} /></Campo>
-                  <Campo label="Vencimiento *"><input type="date" className="in" value={S(f.fecha_vencimiento)} onChange={e => setF({ ...f, fecha_vencimiento: e.target.value })} /></Campo>
+                  <Campo label="Producida *"><input type="number" className={inC} value={S(f.cantidad_producida)} onChange={e => setF({ ...f, cantidad_producida: e.target.value })} /></Campo>
+                  <Campo label="Rechazada"><input type="number" className={inC} value={S(f.cantidad_rechazada)} onChange={e => setF({ ...f, cantidad_rechazada: e.target.value })} /></Campo>
+                  <Campo label="Merma *"><input type="number" className={inC} value={S(f.merma)} onChange={e => setF({ ...f, merma: e.target.value })} /></Campo>
+                  <Campo label="Motivo merma"><input className={inC} value={S(f.merma_motivo)} onChange={e => setF({ ...f, merma_motivo: e.target.value })} placeholder={N(f.merma) > 0 ? 'Obligatorio' : '—'} /></Campo>
+                  <Campo label="Elaboración *"><input type="date" className={inC} value={S(f.fecha_elaboracion)} onChange={e => setF({ ...f, fecha_elaboracion: e.target.value })} /></Campo>
+                  <Campo label="Vencimiento *"><input type="date" className={inC} value={S(f.fecha_vencimiento)} onChange={e => setF({ ...f, fecha_vencimiento: e.target.value })} /></Campo>
                 </div>
                 <Campo label="Ubicación final *">
-                  <select className="in" value={S(f.ubicacion_bodega_id)} onChange={e => setF({ ...f, ubicacion_bodega_id: e.target.value })}>
+                  <select className={inC} value={S(f.ubicacion_bodega_id)} onChange={e => setF({ ...f, ubicacion_bodega_id: e.target.value })}>
                     <option value="">— Selecciona cámara/bodega —</option>
                     {bodegas.map(b => <option key={S(b.id)} value={S(b.id)}>{S(b.nombre)}</option>)}
                   </select>
@@ -222,8 +223,8 @@ export default function OperarioTareaDetalle() {
                   </div>
                   {calidad !== 'aprobado' && (
                     <div className="mt-2 space-y-2 bg-amber-50 border border-amber-200 rounded-xl p-2.5">
-                      <input className="in" placeholder="Motivo *" value={S(f.calidad_motivo)} onChange={e => setF({ ...f, calidad_motivo: e.target.value })} />
-                      <textarea className="in" rows={2} placeholder="Comentario obligatorio *" value={S(f.calidad_comentario)} onChange={e => setF({ ...f, calidad_comentario: e.target.value })} />
+                      <input className={inC} placeholder="Motivo *" value={S(f.calidad_motivo)} onChange={e => setF({ ...f, calidad_motivo: e.target.value })} />
+                      <textarea className={inC} rows={2} placeholder="Comentario obligatorio *" value={S(f.calidad_comentario)} onChange={e => setF({ ...f, calidad_comentario: e.target.value })} />
                       <div className="text-[11px] text-amber-700">Se envía alerta inmediata a la Central. Retenido no libera el lote; Rechazado no ingresa como disponible.</div>
                     </div>
                   )}
@@ -255,7 +256,7 @@ export default function OperarioTareaDetalle() {
               </div>
             </div>
 
-            <Campo label="Observaciones"><textarea className="in" rows={2} value={S(f.observaciones)} onChange={e => setF({ ...f, observaciones: e.target.value })} /></Campo>
+            <Campo label="Observaciones"><textarea className={inC} rows={2} value={S(f.observaciones)} onChange={e => setF({ ...f, observaciones: e.target.value })} /></Campo>
 
             {!puedeCerrar && (
               <div className="bg-red-50 border border-red-200 rounded-xl px-3 py-2 text-xs text-red-700 flex gap-2"><Lock size={14} className="flex-shrink-0 mt-0.5" /> No puedes finalizar: falta {faltan.join(', ')}.</div>
@@ -273,8 +274,6 @@ export default function OperarioTareaDetalle() {
           </div>
         )}
       </div>
-
-      <style jsx global>{`.in{width:100%;padding:9px 11px;border:1px solid #e5e7eb;border-radius:10px;font-size:14px;outline:none}.in:focus{border-color:#1b2a4a}`}</style>
     </div>
   )
 }
