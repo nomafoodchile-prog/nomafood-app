@@ -40,7 +40,7 @@ from public.profiles p,
 ) as t(tipo, prioridad, area, titulo, cant, unidad, mins, hora, instr, rv)
 where p.email = 'pruebaoperario@nommafood.cl';
 
-select t.titulo, t.tipo, (t.receta_version_id is not null) as tiene_receta, t.fecha
+select titulo, tipo, (receta_version_id is not null) as tiene_receta, fecha
 from public.op_tareas where es_demo order by hora_programada;
 
 -- ── LIMPIEZA (cuando termines de probar): ───────────────────────────
