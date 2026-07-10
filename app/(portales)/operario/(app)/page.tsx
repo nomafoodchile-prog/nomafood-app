@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase/client'
 type Row = Record<string, unknown>
 const S = (v: unknown) => v === null || v === undefined ? '' : String(v)
 const hhmm = (v: unknown) => v ? new Date(String(v)).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) : '—'
-const hoy = () => new Date().toLocaleDateString('en-CA') // YYYY-MM-DD local
+const hoy = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Santiago' }).format(new Date()) // fecha de la planta (Chile)
 
 const ESTADO_LBL: Record<string, string> = { no_iniciado: 'No iniciado', en_turno: 'En turno', pausado: 'Pausado', finalizado: 'Finalizado' }
 const ESTADO_CLR: Record<string, string> = { no_iniciado: 'bg-gray-400', en_turno: 'bg-green-500', pausado: 'bg-amber-500', finalizado: 'bg-[#1b2a4a]' }

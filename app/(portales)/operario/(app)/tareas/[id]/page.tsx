@@ -39,9 +39,17 @@ export default function OperarioTareaDetalle() {
   const [tick, setTick] = useState(0)
   const [error, setError] = useState<string | null>(null)
 
+  // Receta / pasos (O-C)
+  const [rvers, setRvers] = useState<Row | null>(null)
+  const [pasos, setPasos] = useState<Row[]>([])
+  const [hechos, setHechos] = useState<Record<number, boolean>>({})
+  const [regPaso, setRegPaso] = useState<Record<number, string>>({})
+
   // Estado del formulario de cierre
   const [chk, setChk] = useState<Record<string, boolean>>({})
   const [foto, setFoto] = useState<{ nombre: string; url: string } | null>(null)
+  const [fotoRemota, setFotoRemota] = useState<string | null>(null)
+  const [subiendo, setSubiendo] = useState(false)
   const [f, setF] = useState<Row>({ calidad_resultado: 'aprobado' })
 
   const cargar = useCallback(async () => {
@@ -58,6 +66,20 @@ export default function OperarioTareaDetalle() {
     if (esProd(S((t as Row)?.tipo))) {
       const { data: b } = await supabase.from('bodegas').select('id, nombre, tipo').order('nombre')
       setBodegas((b as Row[]) || [])
+    }
+    // Receta aprobada + pasos (O-C)
+    const rvId = S((t as Row)?.receta_version_id)
+    if (rvId) {
+      const [{ data: rv }, { data: ps }, { data: hp }] = await Promise.all([
+        supabase.from('receta_versiones').select('rendimiento_cantidad, rendimiento_unidad, vida_util_dias, condicion_almacenamiento').eq('id', rvId).maybeSingle(),
+        supabase.from('receta_pasos').select('*').eq('version_id', rvId).order('numero', { ascending: true }),
+        supabase.from('op_produccion_pasos').select('numero').eq('tarea_id', id),
+      ])
+      setRvers((rv as Row) || null)
+      setPasos((ps as Row[]) || [])
+      const done: Record<number, boolean> = {}
+      for (const r of (hp as Row[] | null) || []) done[Number(r.numero)] = true
+      setHechos(done)
     }
     setLoading(false)
   }, [id])
@@ -89,19 +111,50 @@ export default function OperarioTareaDetalle() {
   }
   async function reanudar() { setBusy(true); await evento('reanudacion'); await setEstado('en_proceso'); setBusy(false) }
 
-  function onFoto(ev: React.ChangeEvent<HTMLInputElement>) {
+  async function onFoto(ev: React.ChangeEvent<HTMLInputElement>) {
     const file = ev.target.files?.[0]
-    if (!file) return
+    if (!file || !uid) return
     setFoto({ nombre: file.name, url: URL.createObjectURL(file) })
+    setSubiendo(true); setFotoRemota(null)
+    const path = `${uid}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`
+    const { error: eUp } = await supabase.storage.from('evidencias').upload(path, file, { upsert: true })
+    if (!eUp) {
+      const { data } = supabase.storage.from('evidencias').getPublicUrl(path)
+      setFotoRemota(data.publicUrl)
+    }
+    setSubiendo(false)
   }
+
+  async function marcarPaso(numero: number, instruccion: string, tiempo: number, control: string) {
+    if (!uid) return
+    await supabase.from('op_produccion_pasos').insert({
+      tarea_id: id, operario_id: uid, numero, instruccion, tiempo_min: tiempo || null,
+      control_calidad: control || null, registro: regPaso[numero] ? { valor: regPaso[numero] } : null,
+    })
+    setHechos(h => ({ ...h, [numero]: true }))
+  }
+
+  // Vencimiento sugerido según vida útil de la receta
+  useEffect(() => {
+    const vd = Number(rvers?.vida_util_dias)
+    if (!f.fecha_elaboracion || !vd) return
+    const d = new Date(String(f.fecha_elaboracion) + 'T00:00:00')
+    d.setDate(d.getDate() + vd)
+    const iso = d.toISOString().slice(0, 10)
+    setF(prev => prev.fecha_vencimiento ? prev : { ...prev, fecha_vencimiento: iso })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [f.fecha_elaboracion, rvers])
 
   // Validación de cierre
   const tipo = S(tarea?.tipo)
   const prod = esProd(tipo)
+  const pasosPendientes = prod ? pasos.filter(p => !hechos[Number(p.numero)]).length : 0
   const faltan: string[] = []
+  if (pasosPendientes > 0) faltan.push(`${pasosPendientes} paso(s) de la receta`)
   const checklistCompleto = checklist.every(i => chk[i.clave])
   if (!checklistCompleto) faltan.push('checklist')
   if (!foto) faltan.push('foto final')
+  if (subiendo) faltan.push('subida de la foto')
   if (prod) {
     if (!f.cantidad_producida && f.cantidad_producida !== 0) faltan.push('cantidad producida')
     if (f.merma === undefined || f.merma === '') faltan.push('merma')
@@ -123,7 +176,7 @@ export default function OperarioTareaDetalle() {
     const { error: eIns } = await supabase.from('op_tarea_cierre').insert({
       tarea_id: id, operario_id: uid,
       tiempo_estimado_min: N(tarea.tiempo_estimado_min), tiempo_real_min: real,
-      checklist_respuestas: chk, evidencia_cargada: true, evidencia_nombre: foto?.nombre || null,
+      checklist_respuestas: chk, evidencia_cargada: true, evidencia_nombre: foto?.nombre || null, evidencia_url: fotoRemota,
       cantidad_producida: prod ? N(f.cantidad_producida) : null,
       cantidad_rechazada: prod ? N(f.cantidad_rechazada) : null,
       merma: prod ? N(f.merma) : null, merma_motivo: prod ? (S(f.merma_motivo) || null) : null,
@@ -181,10 +234,42 @@ export default function OperarioTareaDetalle() {
               {estado === 'pendiente' && <button onClick={iniciar} disabled={busy} className="flex-1 bg-[#c9a24e] text-[#1b2a4a] font-semibold rounded-xl py-3 flex items-center justify-center gap-2"><Play size={18} /> Iniciar</button>}
               {estado === 'en_proceso' && <>
                 <button onClick={pausar} disabled={busy} className="flex-1 bg-white border border-gray-200 rounded-xl py-3 flex items-center justify-center gap-2 text-gray-700"><Pause size={18} /> Pausar</button>
-                <button onClick={() => setCerrando(true)} className="flex-1 bg-[#c9a24e] text-[#1b2a4a] font-semibold rounded-xl py-3 flex items-center justify-center gap-2"><Flag size={18} /> Finalizar</button>
+                <button onClick={() => setCerrando(true)} disabled={pasosPendientes > 0} className={`flex-1 rounded-xl py-3 flex items-center justify-center gap-2 font-semibold ${pasosPendientes > 0 ? 'bg-gray-100 text-gray-400' : 'bg-[#c9a24e] text-[#1b2a4a]'}`}>{pasosPendientes > 0 ? <Lock size={18} /> : <Flag size={18} />} Finalizar</button>
               </>}
               {estado === 'pausada' && <button onClick={reanudar} disabled={busy} className="flex-1 bg-[#c9a24e] text-[#1b2a4a] font-semibold rounded-xl py-3 flex items-center justify-center gap-2"><Play size={18} /> Reanudar</button>}
             </div>
+          </div>
+        )}
+
+        {!finalizada && !cerrando && prod && pasos.length > 0 && estado === 'en_proceso' && (
+          <div className="bg-white rounded-2xl border border-gray-100 p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="font-semibold text-[#1b2a4a]">Paso a paso · receta aprobada</div>
+              <span className="text-xs text-gray-500">{pasos.length - pasosPendientes}/{pasos.length}</span>
+            </div>
+            {rvers ? <div className="text-xs text-gray-500">Rinde {S(rvers.rendimiento_cantidad)}{S(rvers.rendimiento_unidad)} · vida útil {S(rvers.vida_util_dias)} días</div> : null}
+            {pasos.map(p => {
+              const num = Number(p.numero); const hecho = hechos[num]
+              return (
+                <div key={S(p.id)} className={`rounded-xl border p-3 ${hecho ? 'border-green-200 bg-green-50/50' : 'border-gray-200'}`}>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-[#1b2a4a]">Paso {num}</span>
+                    <span className="text-[11px] text-gray-400">{S(p.tiempo_min)} min</span>
+                  </div>
+                  <p className="text-sm text-gray-700 mt-1">{S(p.instruccion)}</p>
+                  {p.control_calidad ? <div className="mt-2 text-xs bg-amber-50 text-amber-700 rounded-lg px-2.5 py-1.5"><span className="font-medium">Control:</span> {S(p.control_calidad)}</div> : null}
+                  {hecho ? (
+                    <div className="mt-1.5 text-xs text-green-700 flex items-center gap-1"><Check size={12} /> Completado{regPaso[num] ? ` · ${regPaso[num]}` : ''}</div>
+                  ) : (
+                    <div className="mt-2 flex gap-2">
+                      {p.registro_operario ? <input className={inC} placeholder={S(p.registro_operario)} value={regPaso[num] || ''} onChange={e => setRegPaso(r => ({ ...r, [num]: e.target.value }))} /> : null}
+                      <button onClick={() => marcarPaso(num, S(p.instruccion), Number(p.tiempo_min), S(p.control_calidad))} className="bg-[#c9a24e] text-[#1b2a4a] text-sm font-medium rounded-xl px-4 whitespace-nowrap">Listo</button>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+            {pasosPendientes === 0 && <div className="text-xs text-green-700 text-center">Pasos completos. Ya puedes finalizar.</div>}
           </div>
         )}
 
@@ -208,6 +293,7 @@ export default function OperarioTareaDetalle() {
                   <Campo label="Elaboración *"><input type="date" className={inC} value={S(f.fecha_elaboracion)} onChange={e => setF({ ...f, fecha_elaboracion: e.target.value })} /></Campo>
                   <Campo label="Vencimiento *"><input type="date" className={inC} value={S(f.fecha_vencimiento)} onChange={e => setF({ ...f, fecha_vencimiento: e.target.value })} /></Campo>
                 </div>
+                {rvers?.vida_util_dias ? <div className="text-[11px] text-blue-700 bg-blue-50 rounded-lg px-2.5 py-1.5">Vida útil {S(rvers.vida_util_dias)} días → vencimiento sugerido calculado desde la elaboración. Ajusta solo si corresponde.</div> : null}
                 <Campo label="Ubicación final *">
                   <select className={inC} value={S(f.ubicacion_bodega_id)} onChange={e => setF({ ...f, ubicacion_bodega_id: e.target.value })}>
                     <option value="">— Selecciona cámara/bodega —</option>
@@ -249,10 +335,15 @@ export default function OperarioTareaDetalle() {
               <div className="flex items-center gap-3">
                 {foto ? <img src={foto.url} alt="evidencia" className="w-16 h-16 rounded-lg object-cover border border-gray-200" /> :
                   <div className="w-16 h-16 rounded-lg border border-dashed border-gray-300 flex items-center justify-center text-gray-300"><Camera size={20} /></div>}
-                <label className="flex-1 bg-white border border-gray-200 rounded-xl py-3 text-center text-sm text-gray-700 cursor-pointer">
-                  <Camera size={16} className="inline mr-1" /> {foto ? 'Reemplazar foto' : 'Tomar / subir foto'}
-                  <input type="file" accept="image/*" capture="environment" className="hidden" onChange={onFoto} />
-                </label>
+                <div className="flex-1">
+                  <label className="block bg-white border border-gray-200 rounded-xl py-3 text-center text-sm text-gray-700 cursor-pointer">
+                    <Camera size={16} className="inline mr-1" /> {foto ? 'Reemplazar foto' : 'Tomar / subir foto'}
+                    <input type="file" accept="image/*" capture="environment" className="hidden" onChange={onFoto} />
+                  </label>
+                  {subiendo ? <div className="text-[11px] text-gray-500 mt-1 flex items-center gap-1"><Loader2 size={11} className="animate-spin" /> Subiendo…</div>
+                    : fotoRemota ? <div className="text-[11px] text-green-600 mt-1">Foto guardada</div>
+                    : foto ? <div className="text-[11px] text-amber-600 mt-1">Foto local (se guardará al finalizar)</div> : null}
+                </div>
               </div>
             </div>
 

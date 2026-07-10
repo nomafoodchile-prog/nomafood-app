@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase/client'
 
 type Row = Record<string, unknown>
 const S = (v: unknown) => v === null || v === undefined ? '' : String(v)
-const hoy = () => new Date().toLocaleDateString('en-CA')
+const hoy = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Santiago' }).format(new Date())
 
 const TIPO_LBL: Record<string, string> = { produccion: 'Producción', preelaboracion: 'Preelaboración', limpieza: 'Limpieza', apoyo: 'Apoyo', orden: 'Orden', revision: 'Revisión', especial: 'Especial' }
 const PRIOR_CLR: Record<string, string> = { alta: 'bg-red-500', media: 'bg-amber-500', baja: 'bg-green-500' }

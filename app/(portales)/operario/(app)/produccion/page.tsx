@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase/client'
 
 type Row = Record<string, unknown>
 const S = (v: unknown) => v === null || v === undefined ? '' : String(v)
-const hoy = () => new Date().toLocaleDateString('en-CA')
+const hoy = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Santiago' }).format(new Date())
 
 const EST: Record<string, { l: string; c: string }> = {
   pendiente: { l: 'Pendiente', c: 'bg-gray-100 text-gray-500' },
@@ -61,7 +61,7 @@ export default function OperarioProduccionPage() {
             </Link>
           )
         })}
-        <p className="text-[11px] text-gray-400 text-center pt-2">El paso a paso de la receta con lotes FEFO llega en la fase O-C.</p>
+        <p className="text-[11px] text-gray-400 text-center pt-2">Toca una producción, iníciala y sigue la receta aprobada paso a paso.</p>
       </div>
     </div>
   )
