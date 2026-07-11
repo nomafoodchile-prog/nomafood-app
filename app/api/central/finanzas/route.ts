@@ -163,5 +163,55 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, creados: nuevos.length })
   }
 
+  // ── Cartola: crear (parseada) + conciliación automática ──────────
+  if (action === 'cartola_crear') {
+    if (!puedeEditar) return NextResponse.json({ error: 'Sin permiso' }, { status: 403 })
+    const items = Array.isArray(body.movimientos) ? (body.movimientos as Row[]) : []
+    if (items.length === 0) return NextResponse.json({ error: 'La cartola no tiene movimientos' }, { status: 400 })
+    const { data: cart, error: eC } = await db.from('fin_cartolas').insert({
+      banco: str(body.banco), archivo_url: str(body.archivo_url), periodo: str(body.periodo),
+      total_lineas: items.length, created_by: auth.id, created_email: auth.email,
+    }).select('id').single()
+    if (eC || !cart) return NextResponse.json({ error: eC?.message || 'No se pudo crear la cartola' }, { status: 500 })
+
+    // Candidatos de la Caja (no anulados) para cruzar por monto y fecha (±3 días)
+    const { data: movs } = await db.from('fin_movimientos').select('id, fecha, monto, tipo').eq('anulado', false)
+    const cand = ((movs as Row[] | null) || []).map(m => ({ id: S(m.id), fecha: S(m.fecha), monto: N(m.monto), tipo: S(m.tipo), usado: false }))
+    const dias = (a: string, b: string) => Math.abs((new Date(a + 'T00:00:00').getTime() - new Date(b + 'T00:00:00').getTime()) / 86400000)
+
+    let conciliados = 0
+    const rows = items.map(it => {
+      const monto = Math.abs(N(it.monto))
+      const tipo = String(it.tipo || (N(it.monto) < 0 ? 'cargo' : 'abono'))
+      const fecha = str(it.fecha)
+      const tipoCaja = tipo === 'abono' ? 'ingreso' : 'egreso'
+      let movId: string | null = null
+      if (fecha) {
+        const m = cand.find(c => !c.usado && Math.abs(c.monto - monto) < 1 && c.tipo === tipoCaja && dias(c.fecha, fecha) <= 3)
+        if (m) { m.usado = true; movId = m.id; conciliados++ }
+      }
+      return { cartola_id: cart.id, fecha: fecha, descripcion: str(it.descripcion), monto, tipo, conciliado: !!movId, movimiento_id: movId }
+    })
+    const { error: eR } = await db.from('fin_cartola_movimientos').insert(rows)
+    if (eR) return NextResponse.json({ error: eR.message }, { status: 500 })
+    // Los movimientos de caja cruzados quedan conciliados
+    const ids = rows.filter(r => r.movimiento_id).map(r => r.movimiento_id as string)
+    if (ids.length) await db.from('fin_movimientos').update({ estado: 'conciliado' }).in('id', ids)
+    return NextResponse.json({ ok: true, cartola_id: cart.id, total: rows.length, conciliados })
+  }
+
+  // ── Cartola: conciliación manual (con motivo) ────────────────────
+  if (action === 'cartola_conciliar') {
+    if (!puedeEditar) return NextResponse.json({ error: 'Sin permiso' }, { status: 403 })
+    const id = str(body.id); const movimientoId = str(body.movimiento_id); const motivo = str(body.motivo)
+    if (!id || !movimientoId || !motivo) return NextResponse.json({ error: 'Falta línea, movimiento o motivo' }, { status: 400 })
+    const { error } = await db.from('fin_cartola_movimientos').update({
+      conciliado: true, movimiento_id: movimientoId, motivo_conciliacion: motivo,
+    }).eq('id', id)
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    await db.from('fin_movimientos').update({ estado: 'conciliado' }).eq('id', movimientoId)
+    return NextResponse.json({ ok: true })
+  }
+
   return NextResponse.json({ error: 'Acción inválida' }, { status: 400 })
 }

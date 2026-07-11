@@ -82,6 +82,7 @@ const navItems: NavItem[] = [
     children: [
       { label: 'Caja', href: '/finanzas/caja', icon: CreditCard },
       { label: 'Estado de resultados', href: '/finanzas/estado-resultados', icon: DollarSign },
+      { label: 'Cartolas del banco', href: '/finanzas/cartolas', icon: ClipboardList },
     ],
   },
   {
