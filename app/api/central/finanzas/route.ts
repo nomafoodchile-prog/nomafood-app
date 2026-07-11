@@ -213,5 +213,59 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true })
   }
 
+  // ── Remuneraciones: consolidado mensual por trabajador ───────────
+  if (action === 'remuneraciones') {
+    const VER = [...EDITAR, 'Contador']
+    if (!VER.includes(auth.role)) return NextResponse.json({ error: 'Sin permiso' }, { status: 403 })
+    const mes = str(body.mes) || hoyCl().slice(0, 7)
+    const desde = mes + '-01'
+    const [y, mm] = mes.split('-').map(Number)
+    const hasta = new Date(y, mm, 0).toLocaleDateString('en-CA')
+    const { data: ops } = await db.from('operarios').select('profile_id, area')
+    const lista = (ops as Row[] | null) || []
+    const ids = lista.map(o => S(o.profile_id)).filter(Boolean)
+    const { data: profs } = ids.length ? await db.from('profiles').select('id, full_name, email').in('id', ids) : { data: [] }
+    const { data: asis } = await db.from('op_asistencia').select('operario_id, estado, atraso_min, entrada_real, salida_real, horas_trabajadas').gte('fecha', desde).lte('fecha', hasta)
+    const nombre = (id: string) => { const p = ((profs as Row[] | null) || []).find(x => S(x.id) === id); return S(p?.full_name) || S(p?.email) || 'Operario' }
+    const horasDe = (a: Row): number => {
+      if (a.horas_trabajadas != null) return N(a.horas_trabajadas)
+      if (a.entrada_real && a.salida_real) return Math.max(0, (new Date(S(a.salida_real)).getTime() - new Date(S(a.entrada_real)).getTime()) / 3600000)
+      return ['asistio', 'atraso'].includes(S(a.estado)) ? 8 : 0
+    }
+    const rows = lista.map(o => {
+      const id = S(o.profile_id)
+      const mis = ((asis as Row[] | null) || []).filter(a => S(a.operario_id) === id)
+      const dias = mis.filter(a => ['asistio', 'atraso'].includes(S(a.estado))).length
+      const horas = Math.round(mis.reduce((s, a) => s + horasDe(a), 0))
+      const atrasos = mis.filter(a => S(a.estado) === 'atraso').length
+      const atrasoMin = mis.reduce((s, a) => s + N(a.atraso_min), 0)
+      const fJust = mis.filter(a => S(a.estado) === 'justificada').length
+      const fInjust = mis.filter(a => S(a.estado) === 'injustificada').length
+      return { nombre: nombre(id), area: S(o.area), dias, horas, atrasos, atraso_min: atrasoMin, faltas_justificadas: fJust, faltas_injustificadas: fInjust }
+    })
+    return NextResponse.json({ ok: true, mes, filas: rows })
+  }
+
+  // ── Enviar al contador (por Resend, con confirmación desde la UI) ─
+  if (action === 'enviar_contador') {
+    const VER = [...EDITAR, 'Contador']
+    if (!VER.includes(auth.role)) return NextResponse.json({ error: 'Sin permiso' }, { status: 403 })
+    const email = str(body.email); const csv = str(body.csv); const mes = str(body.mes) || ''
+    if (!email) return NextResponse.json({ error: 'Falta el correo del contador' }, { status: 400 })
+    const key = process.env.RESEND_API_KEY
+    if (!key) return NextResponse.json({ error: 'Falta configurar RESEND_API_KEY en el servidor. Por ahora descarga el Excel y envíalo manualmente.' }, { status: 400 })
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST', headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: 'NOMMA FOOD <noreply@nomafood.cl>', to: [email],
+        subject: `Remuneraciones ${mes} · NOMMA FOOD`,
+        text: `Adjunto el consolidado mensual de asistencia por trabajador para preparar las liquidaciones de sueldo. Período: ${mes}. Enviado desde el sistema NOMMA FOOD.`,
+        attachments: csv ? [{ filename: `remuneraciones-${mes}.csv`, content: Buffer.from(csv, 'utf-8').toString('base64') }] : undefined,
+      }),
+    })
+    if (!res.ok) { const t = await res.text(); return NextResponse.json({ error: `No se pudo enviar: ${t.slice(0, 200)}` }, { status: 500 }) }
+    return NextResponse.json({ ok: true })
+  }
+
   return NextResponse.json({ error: 'Acción inválida' }, { status: 400 })
 }
