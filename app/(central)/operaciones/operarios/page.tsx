@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Loader2, RefreshCw, ArrowLeft, Image as ImageIcon, CheckSquare, AlertTriangle } from 'lucide-react'
+import { Loader2, RefreshCw, ArrowLeft, Image as ImageIcon, CheckSquare, AlertTriangle, MessageSquare } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 
 type Row = Record<string, unknown>
@@ -159,7 +159,10 @@ export default function CentralOperariosPage() {
           <h1 className="text-2xl font-bold text-[#1a1a1a]">Operarios</h1>
           <p className="text-sm text-gray-500 mt-0.5">{enTurno} en turno · {ops.length} operarios · en tiempo real</p>
         </div>
-        <button onClick={() => { setLoading(true); cargar() }} className="flex items-center gap-2 text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-2 hover:border-[#c9a24e]"><RefreshCw size={15} /> Actualizar</button>
+        <div className="flex gap-2">
+          <a href="/operaciones/operarios/mensajes" className="flex items-center gap-2 text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-2 hover:border-[#c9a24e]"><MessageSquare size={15} /> Mensajes</a>
+          <button onClick={() => { setLoading(true); cargar() }} className="flex items-center gap-2 text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-2 hover:border-[#c9a24e]"><RefreshCw size={15} /> Actualizar</button>
+        </div>
       </div>
 
       {ops.length === 0 ? (
