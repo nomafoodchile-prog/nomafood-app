@@ -79,12 +79,20 @@ export default function OperarioInicioPage() {
     const producido = prodCx.reduce((a, c) => a + Number(c.cantidad_producida || 0), 0)
     const aprobadas = prodCx.filter(c => S(c.calidad_resultado) === 'aprobado').length
 
+    // Asistencia del mes (cumplimiento)
+    const mesIni = hoy().slice(0, 8) + '01'
+    const { data: asisMes } = await supabase.from('op_asistencia').select('estado').eq('operario_id', user.id).gte('fecha', mesIni)
+    const am = (asisMes as Row[]) || []
+    const asisOk = am.filter(a => ['asistio', 'atraso'].includes(S(a.estado))).length
+    const asisFalta = am.filter(a => ['ausente', 'injustificada'].includes(S(a.estado))).length
+    const asisPct = asisOk + asisFalta > 0 ? Math.round((asisOk / (asisOk + asisFalta)) * 100) : null
+
     setMetricas([
       { k: 'Tareas', ayuda: `${finalizadas}/${asignadas}`, pct: pct(finalizadas, asignadas) },
       { k: 'Tiempo', ayuda: 'estimado vs real', pct: realTot > 0 ? Math.min(100, Math.round((estTot / realTot) * 100)) : null },
       { k: 'Calidad', ayuda: 'producción aprobada', pct: prodCx.length ? pct(aprobadas, prodCx.length) : null },
       { k: 'Producción', ayuda: 'producido vs asignado', pct: pct(producido, asignProd) },
-      { k: 'Asistencia', ayuda: 'GeoVictoria (O-D)', pct: null },
+      { k: 'Asistencia', ayuda: 'del mes', pct: asisPct },
     ])
     setLoading(false)
   }, [])
