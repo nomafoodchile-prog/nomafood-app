@@ -14,6 +14,8 @@ import {
   Users,
   ShoppingCart,
   Building2,
+  DollarSign,
+  CreditCard,
   UserCircle,
   Shield,
   ChevronDown,
@@ -72,6 +74,13 @@ const navItems: NavItem[] = [
       { label: 'Solicitudes de compra', href: '/compras/solicitudes', icon: ClipboardList },
       { label: 'Recepción de mercadería', href: '/compras/recepcion', icon: Package },
       { label: 'Proveedores', href: '/compras/proveedores', icon: Building2 },
+    ],
+  },
+  {
+    label: 'Finanzas',
+    icon: DollarSign,
+    children: [
+      { label: 'Caja', href: '/finanzas/caja', icon: CreditCard },
     ],
   },
   {
