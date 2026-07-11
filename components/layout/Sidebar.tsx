@@ -61,6 +61,7 @@ const navItems: NavItem[] = [
       { label: 'Producción', href: '/operaciones/produccion', icon: ChefHat },
       { label: 'Recetas y formulaciones', href: '/operaciones/produccion/recetas', icon: ClipboardList },
       { label: 'Tareas', href: '/operaciones/tareas', icon: CheckSquare },
+      { label: 'Operarios', href: '/operaciones/operarios', icon: Users },
       { label: 'Inventario', href: '/operaciones/inventario', icon: Package },
       { label: 'Despachos', href: '/operaciones/despachos', icon: Truck },
       { label: 'Limpieza', href: '/operaciones/limpieza', icon: SprayCan },
