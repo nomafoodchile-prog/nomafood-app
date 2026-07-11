@@ -81,6 +81,7 @@ const navItems: NavItem[] = [
     icon: DollarSign,
     children: [
       { label: 'Caja', href: '/finanzas/caja', icon: CreditCard },
+      { label: 'Estado de resultados', href: '/finanzas/estado-resultados', icon: DollarSign },
     ],
   },
   {
