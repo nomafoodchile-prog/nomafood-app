@@ -1,360 +1,245 @@
 'use client'
 
-import { useState } from 'react'
-import { Plus, X, Mail, Send, FileText, Users, BarChart2, MessageSquare } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
+import { Loader2, Plus, Send, CalendarCheck, Ban, Pause, ShieldAlert, Mail, Image as ImageIcon, Tag, Users, ArrowLeft, Check } from 'lucide-react'
+import { supabase } from '@/lib/supabase/client'
 
-type Canal = 'Email' | 'WhatsApp'
-type EstadoCampana = 'Borrador' | 'Programada' | 'Enviada'
-
-interface Campana {
-  id: string
-  nombre: string
-  asunto?: string
-  canal: Canal
-  estado: EstadoCampana
-  destinatarios: number
-  tasaApertura?: number
-  fechaEnvio?: string
-  descripcion?: string
-  segmento?: string
-}
-
-const initialCampanas: Campana[] = [
-  {
-    id: 'c-001',
-    nombre: 'Newsletter Junio 2026',
-    asunto: 'Novedades del mes: nuevos quesos y temporada de invierno',
-    canal: 'Email',
-    estado: 'Enviada',
-    destinatarios: 342,
-    tasaApertura: 38.4,
-    fechaEnvio: '2026-06-10',
-    descripcion: 'Newsletter mensual con novedades de productos y tips de cocina vegana',
-    segmento: 'Todos los contactos',
-  },
-  {
-    id: 'c-002',
-    nombre: 'Oferta Temporada Invierno',
-    asunto: '¡Calientate con nuestros productos! 15% de descuento esta semana',
-    canal: 'Email',
-    estado: 'Enviada',
-    destinatarios: 215,
-    tasaApertura: 44.2,
-    fechaEnvio: '2026-06-17',
-    descripcion: 'Promoción especial de invierno con descuento para mayoristas activos',
-    segmento: 'Mayoristas activos',
-  },
-  {
-    id: 'c-003',
-    nombre: 'Bienvenida Nuevos Mayoristas',
-    asunto: 'Bienvenido a la familia Noma Food — Tu guía de inicio',
-    canal: 'Email',
-    estado: 'Enviada',
-    destinatarios: 28,
-    tasaApertura: 71.4,
-    fechaEnvio: '2026-06-22',
-    descripcion: 'Email de bienvenida automático para nuevos clientes mayoristas',
-    segmento: 'Nuevos mayoristas',
-  },
-  {
-    id: 'c-004',
-    nombre: 'WhatsApp — Lanzamiento Queso Maduro',
-    canal: 'WhatsApp',
-    estado: 'Enviada',
-    destinatarios: 87,
-    tasaApertura: 91.2,
-    fechaEnvio: '2026-06-25',
-    descripcion: 'Anuncio del nuevo queso maduro de anacardo por WhatsApp Business',
-    segmento: 'Restaurantes y tiendas',
-  },
-  {
-    id: 'c-005',
-    nombre: 'Newsletter Julio 2026',
-    asunto: 'Julio llega con sabores nuevos — Te contamos todo',
-    canal: 'Email',
-    estado: 'Programada',
-    destinatarios: 358,
-    fechaEnvio: '2026-07-08',
-    descripcion: 'Newsletter mensual de julio con nuevos productos y recetas',
-    segmento: 'Todos los contactos',
-  },
-  {
-    id: 'c-006',
-    nombre: 'Reactivación clientes inactivos',
-    asunto: '¿Sigues por aquí? Tenemos algo especial para ti',
-    canal: 'Email',
-    estado: 'Borrador',
-    destinatarios: 0,
-    descripcion: 'Campaña para reactivar clientes sin pedidos en los últimos 60 días',
-    segmento: 'Clientes inactivos',
-  },
-  {
-    id: 'c-007',
-    nombre: 'Feria Vegana Santiago — Invitación',
-    canal: 'WhatsApp',
-    estado: 'Borrador',
-    destinatarios: 0,
-    descripcion: 'Invitación a clientes clave para visitar el stand de Noma Food en la feria',
-    segmento: 'Clientes VIP',
-  },
-]
-
-function estadoBadge(estado: EstadoCampana) {
-  if (estado === 'Enviada') return <span className="noma-badge-green">Enviada</span>
-  if (estado === 'Programada') return <span className="noma-badge-blue">Programada</span>
-  return <span className="noma-badge-gray">Borrador</span>
-}
-
-function canalIcon(canal: Canal) {
-  if (canal === 'WhatsApp') return <MessageSquare size={14} className="text-green-600" />
-  return <Mail size={14} className="text-blue-500" />
+type Row = Record<string, unknown>
+const S = (v: unknown) => v === null || v === undefined ? '' : String(v)
+const N = (v: unknown) => { const n = Number(v); return Number.isNaN(n) ? 0 : n }
+const clp = (n: number) => new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(n)
+const VER = ['SuperAdmin', 'Administracion', 'Gerencia', 'Comercial']
+const ENVIAR = ['SuperAdmin', 'Administracion', 'Gerencia']
+const TIPOGRAFIAS = ['Poppins', 'Inter', 'Playfair', 'Montserrat']
+const TIPOS = ['restaurante', 'universidad', 'minimarket', 'retail', 'oficina']
+const CATEGORIAS = ['pasteleria', 'salados', 'vegano', 'asiatica']
+const SEGMENTOS: [string, string][] = [['todos', 'Todos los mayoristas'], ['activos', 'Mayoristas activos'], ['inactivos', 'Mayoristas inactivos'], ['nuevos', 'Nuevos (30 días)'], ['tipo', 'Por tipo de cliente'], ['categoria', 'Por categoría de compra']]
+const ESTADO: Record<string, { l: string; c: string }> = {
+  borrador: { l: 'Borrador', c: 'bg-gray-100 text-gray-500' }, programada: { l: 'Programada', c: 'bg-blue-100 text-blue-700' },
+  enviada: { l: 'Enviada', c: 'bg-green-100 text-green-700' }, pausada: { l: 'Pausada', c: 'bg-amber-100 text-amber-700' },
+  anulada: { l: 'Anulada', c: 'bg-red-100 text-red-600' }, error: { l: 'Error', c: 'bg-red-100 text-red-700' },
 }
 
 export default function CampanasPage() {
-  const [campanas, setCampanas] = useState<Campana[]>(initialCampanas)
-  const [showForm, setShowForm] = useState(false)
-  const [filtroEstado, setFiltroEstado] = useState<'Todos' | EstadoCampana>('Todos')
-  const [form, setForm] = useState({
-    nombre: '',
-    asunto: '',
-    canal: 'Email' as Canal,
-    estado: 'Borrador' as EstadoCampana,
-    destinatarios: '',
-    fechaEnvio: '',
-    descripcion: '',
-    segmento: '',
-  })
+  const [loading, setLoading] = useState(true)
+  const [role, setRole] = useState('')
+  const [camps, setCamps] = useState<Row[]>([])
+  const [cupones, setCupones] = useState<Row[]>([])
+  const [plantillas, setPlantillas] = useState<Row[]>([])
+  const [productos, setProductos] = useState<Row[]>([])
+  const [ed, setEd] = useState<Row | null>(null)
+  const [cuenta, setCuenta] = useState<number | null>(null)
+  const [prueba, setPrueba] = useState('')
+  const [conf, setConf] = useState<'enviar' | 'programar' | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [msg, setMsg] = useState<string | null>(null)
 
-  const enviadas = campanas.filter(c => c.estado === 'Enviada').length
-  const programadas = campanas.filter(c => c.estado === 'Programada').length
-  const borradores = campanas.filter(c => c.estado === 'Borrador').length
-  const tasasEnviadas = campanas.filter(c => c.tasaApertura !== undefined)
-  const promApertura = tasasEnviadas.length > 0
-    ? (tasasEnviadas.reduce((s, c) => s + (c.tasaApertura ?? 0), 0) / tasasEnviadas.length).toFixed(1)
-    : '0'
+  const puedeEnviar = ENVIAR.includes(role)
 
-  const filtradas = campanas.filter(c => filtroEstado === 'Todos' || c.estado === filtroEstado)
+  const cargar = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { setLoading(false); return }
+    const { data: p } = await supabase.from('profiles').select('role, email').eq('id', user.id).maybeSingle()
+    const r = S((p as Row)?.role); setRole(r); setPrueba(S((p as Row)?.email))
+    if (!VER.includes(r)) { setLoading(false); return }
+    const [{ data: c }, { data: cu }, { data: pl }, { data: pr }] = await Promise.all([
+      supabase.from('mkt_campanas').select('*').order('created_at', { ascending: false }),
+      supabase.from('mkt_cupones').select('*').eq('activo', true).order('created_at', { ascending: false }),
+      supabase.from('mkt_plantillas').select('*').order('nombre'),
+      supabase.from('products').select('id, nombre, foto_oficial_url, precio_venta').eq('visible_catalogo', true).order('nombre').limit(200),
+    ])
+    setCamps((c as Row[]) || []); setCupones((cu as Row[]) || []); setPlantillas((pl as Row[]) || []); setProductos((pr as Row[]) || [])
+    setLoading(false)
+  }, [])
+  useEffect(() => { cargar() }, [cargar])
 
-  const handleSubmit = (ev: React.FormEvent) => {
-    ev.preventDefault()
-    const nueva: Campana = {
-      id: `c-${Date.now()}`,
-      ...form,
-      destinatarios: Number(form.destinatarios) || 0,
-    }
-    setCampanas(prev => [nueva, ...prev])
-    setShowForm(false)
-    setForm({ nombre: '', asunto: '', canal: 'Email', estado: 'Borrador', destinatarios: '', fechaEnvio: '', descripcion: '', segmento: '' })
+  async function api(payload: Row): Promise<Row | null> {
+    setError(null)
+    const r = await fetch('/api/central/marketing', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+    const d = await r.json() as Row
+    if (!r.ok) { setError(S(d.error) || 'Error'); return null }
+    return d
+  }
+
+  const aud = (ed?.audiencia as Row) || {}
+  const contarAudiencia = useCallback(async (a: Row) => {
+    if (!a.segmento) { setCuenta(null); return }
+    const r = await fetch('/api/central/marketing', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'audiencia', audiencia: a }) })
+    const d = await r.json() as Row
+    if (r.ok) setCuenta(N(d.total))
+  }, [])
+  useEffect(() => { if (ed) contarAudiencia((ed.audiencia as Row) || {}) }, [ed, contarAudiencia])
+
+  function set(k: string, v: unknown) { setEd(e => e ? { ...e, [k]: v } : e) }
+  function setAud(k: string, v: unknown) { setEd(e => e ? { ...e, audiencia: { ...(e.audiencia as Row), [k]: v } } : e) }
+
+  async function guardar(): Promise<string | null> {
+    if (!ed) return null
+    const d = await api({ action: 'guardar', campana: ed })
+    if (d) { const id = S(d.id); setEd(e => e ? { ...e, id } : e); return id }
+    return null
+  }
+  async function guardarYVolver() { setBusy(true); const id = await guardar(); setBusy(false); if (id) { setEd(null); cargar() } }
+
+  async function enviarPrueba() {
+    setBusy(true)
+    const id = await guardar()
+    if (id) { const d = await api({ action: 'enviar_prueba', id, email: prueba }); if (d) { setEd(e => e ? { ...e, prueba_enviada: true } : e); setMsg(`Prueba enviada a ${prueba}.`) } }
+    setBusy(false)
+  }
+  async function ejecutar() {
+    if (!ed?.id) return
+    setBusy(true)
+    const d = conf === 'programar'
+      ? await api({ action: 'programar', id: ed.id, programada_para: ed.programada_para })
+      : await api({ action: 'enviar_ahora', id: ed.id })
+    setBusy(false)
+    if (d) { setConf(null); setEd(null); setMsg(conf === 'programar' ? 'Campaña programada.' : `Enviada: ${N(d.enviados)} correos (${N(d.errores)} errores).`); cargar() }
+  }
+  async function cambiarEstado(id: unknown, estado: string) {
+    const ok = await api({ action: 'estado', id, estado }); if (ok) cargar()
+  }
+  async function onImagen(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0]; if (!f) return
+    setBusy(true)
+    const path = `mkt/${Date.now()}-${f.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`
+    const { error: eUp } = await supabase.storage.from('evidencias').upload(path, f, { upsert: true })
+    if (!eUp) set('imagen_url', supabase.storage.from('evidencias').getPublicUrl(path).data.publicUrl)
+    setBusy(false)
+  }
+  function agregarProducto(pid: string) {
+    const p = productos.find(x => S(x.id) === pid); if (!p) return
+    const arr = Array.isArray(ed?.productos) ? (ed?.productos as Row[]) : []
+    set('productos', [...arr, { nombre: S(p.nombre), foto: S(p.foto_oficial_url), precio: N(p.precio_venta) }])
+  }
+  function cargarPlantilla(pid: string) {
+    const t = plantillas.find(x => S(x.id) === pid); if (!t) return
+    setEd(e => e ? { ...e, asunto: S(t.asunto), contenido_html: S(t.contenido_html) || S(e.contenido_html), nombre: S(e.nombre) || S(t.nombre) } : e)
+  }
+
+  if (loading) return <div className="min-h-[60vh] flex items-center justify-center"><Loader2 className="w-6 h-6 text-[#1b2a4a] animate-spin" /></div>
+  if (!VER.includes(role)) return (
+    <div className="p-6"><div className="noma-card text-center py-12 max-w-md mx-auto">
+      <ShieldAlert className="w-9 h-9 mx-auto text-gray-300 mb-3" />
+      <p className="font-semibold text-[#1b2a4a]">Acceso restringido</p>
+      <p className="text-sm text-gray-500 mt-1">Solo Administración, Gerencia y Comercial pueden ver Campañas.</p>
+    </div></div>
+  )
+
+  if (ed) {
+    const prods = Array.isArray(ed.productos) ? (ed.productos as Row[]) : []
+    const segLbl = SEGMENTOS.find(s => s[0] === S(aud.segmento))?.[1] || 'Sin audiencia'
+    return (
+      <div className="space-y-4 max-w-3xl">
+        <button onClick={() => { setEd(null); cargar() }} className="flex items-center gap-1 text-sm text-gray-500 hover:text-[#1b2a4a]"><ArrowLeft size={15} /> Volver a campañas</button>
+        {error ? <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-sm text-red-700">{error}</div> : null}
+        {msg ? <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2 text-sm text-green-800">{msg}</div> : null}
+
+        <div className="noma-card space-y-4">
+          <div className="flex gap-2">
+            <div className="flex-1"><label className="text-xs text-gray-500">Nombre de la campaña</label><input className="noma-input mt-1" value={S(ed.nombre)} onChange={e => set('nombre', e.target.value)} /></div>
+            <div><label className="text-xs text-gray-500">Plantilla</label><select className="noma-input mt-1" onChange={e => cargarPlantilla(e.target.value)} defaultValue=""><option value="">—</option>{plantillas.map(t => <option key={S(t.id)} value={S(t.id)}>{S(t.nombre)}</option>)}</select></div>
+          </div>
+          <div className="flex gap-2">
+            <span className="flex-1 text-center text-sm py-2 rounded-lg bg-[#1b2a4a] text-white"><Mail size={14} className="inline mr-1" /> Email</span>
+            <span className="flex-1 text-center text-sm py-2 rounded-lg bg-gray-100 text-gray-400">WhatsApp (próximamente)</span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div><label className="text-xs text-gray-500">Audiencia</label><select className="noma-input mt-1" value={S(aud.segmento)} onChange={e => setAud('segmento', e.target.value)}><option value="">Elegir…</option>{SEGMENTOS.map(s => <option key={s[0]} value={s[0]}>{s[1]}</option>)}</select></div>
+            {S(aud.segmento) === 'tipo' ? <div><label className="text-xs text-gray-500">Tipo</label><select className="noma-input mt-1" value={S(aud.tipo)} onChange={e => setAud('tipo', e.target.value)}><option value="">—</option>{TIPOS.map(t => <option key={t} value={t}>{t}</option>)}</select></div> : null}
+            {S(aud.segmento) === 'categoria' ? <div><label className="text-xs text-gray-500">Categoría</label><select className="noma-input mt-1" value={S(aud.categoria)} onChange={e => setAud('categoria', e.target.value)}><option value="">—</option>{CATEGORIAS.map(t => <option key={t} value={t}>{t}</option>)}</select></div> : null}
+            <div className="flex items-end"><div className="text-sm text-gray-600 flex items-center gap-1.5"><Users size={15} className="text-[#c9a24e]" /> {cuenta === null ? '—' : `${cuenta} destinatarios`}</div></div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="sm:col-span-2"><label className="text-xs text-gray-500">Asunto</label><input className="noma-input mt-1" value={S(ed.asunto)} onChange={e => set('asunto', e.target.value)} /></div>
+            <div className="sm:col-span-2"><label className="text-xs text-gray-500">Preheader (texto de vista previa)</label><input className="noma-input mt-1" value={S(ed.preheader)} onChange={e => set('preheader', e.target.value)} /></div>
+            <div><label className="text-xs text-gray-500">Tipografía</label><select className="noma-input mt-1" value={S(ed.tipografia) || 'Poppins'} onChange={e => set('tipografia', e.target.value)}>{TIPOGRAFIAS.map(t => <option key={t} value={t}>{t}</option>)}</select></div>
+            <div><label className="text-xs text-gray-500">Imagen de cabecera</label><input type="file" accept="image/*" className="noma-input mt-1" onChange={onImagen} />{ed.imagen_url ? <span className="text-[11px] text-green-600">Imagen cargada</span> : null}</div>
+            <div className="sm:col-span-2"><label className="text-xs text-gray-500">Contenido</label><textarea className="noma-input mt-1" rows={4} value={S(ed.contenido_html)} onChange={e => set('contenido_html', e.target.value)} /></div>
+          </div>
+
+          <div>
+            <label className="text-xs text-gray-500">Productos del catálogo</label>
+            <select className="noma-input mt-1" onChange={e => { if (e.target.value) agregarProducto(e.target.value); e.currentTarget.value = '' }} defaultValue=""><option value="">+ Agregar producto…</option>{productos.map(p => <option key={S(p.id)} value={S(p.id)}>{S(p.nombre)}</option>)}</select>
+            {prods.length ? <div className="flex flex-wrap gap-2 mt-2">{prods.map((p, i) => <span key={i} className="text-xs bg-gray-100 rounded-full px-2.5 py-1 flex items-center gap-1.5">{S(p.nombre)} {p.precio ? clp(N(p.precio)) : ''}<button onClick={() => set('productos', prods.filter((_, x) => x !== i))} className="text-gray-400">×</button></span>)}</div> : null}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div><label className="text-xs text-gray-500">Texto del botón</label><input className="noma-input mt-1" value={S(ed.boton_texto)} onChange={e => set('boton_texto', e.target.value)} placeholder="Comprar ahora" /></div>
+            <div className="sm:col-span-2"><label className="text-xs text-gray-500">Link del botón *</label><input className="noma-input mt-1" value={S(ed.boton_url)} onChange={e => set('boton_url', e.target.value)} placeholder="https://nomafood.cl/tienda" /></div>
+            <div className="sm:col-span-3"><label className="text-xs text-gray-500">Cupón (opcional)</label><select className="noma-input mt-1" value={S(ed.cupon_id)} onChange={e => set('cupon_id', e.target.value)}><option value="">Sin cupón</option>{cupones.map(c => <option key={S(c.id)} value={S(c.id)}>{S(c.codigo)} · {S(c.tipo) === 'porcentaje' ? N(c.valor) + '%' : clp(N(c.valor))}</option>)}</select></div>
+          </div>
+
+          <div className="border-t border-gray-100 pt-3 flex flex-wrap items-end gap-3">
+            <div><label className="text-xs text-gray-500 flex items-center gap-1"><Tag size={12} /> Programar (opcional)</label><input type="datetime-local" className="noma-input mt-1" value={S(ed.programada_para).slice(0, 16)} onChange={e => set('programada_para', e.target.value)} /></div>
+            <button onClick={guardarYVolver} disabled={busy} className="text-sm border border-gray-200 rounded-lg px-3 py-2 text-gray-600">Guardar borrador</button>
+          </div>
+
+          <div className="bg-gray-50 rounded-xl p-3 space-y-2">
+            <div className="text-xs font-semibold text-[#1b2a4a]">Seguridad de envío</div>
+            <div className="flex flex-wrap gap-2 items-end">
+              <div className="flex-1 min-w-[180px]"><label className="text-[11px] text-gray-500">Correo de prueba</label><input className="noma-input mt-1" value={prueba} onChange={e => setPrueba(e.target.value)} /></div>
+              <button onClick={enviarPrueba} disabled={busy} className="text-sm border border-gray-200 rounded-lg px-3 py-2 flex items-center gap-1.5">{ed.prueba_enviada ? <Check size={14} className="text-green-600" /> : <Send size={14} />} Enviar prueba</button>
+            </div>
+            <div className="text-[11px] text-gray-500">Obligatoria antes de enviar/programar. {ed.prueba_enviada ? 'Prueba enviada.' : 'Aún sin prueba.'}</div>
+          </div>
+
+          {puedeEnviar ? (
+            <div className="flex gap-2">
+              <button onClick={() => setConf('programar')} disabled={!ed.prueba_enviada || !ed.programada_para} className={`flex-1 text-sm rounded-lg py-2.5 flex items-center justify-center gap-2 ${ed.prueba_enviada && ed.programada_para ? 'bg-white border border-[#1b2a4a] text-[#1b2a4a]' : 'bg-gray-100 text-gray-400'}`}><CalendarCheck size={15} /> Programar</button>
+              <button onClick={() => setConf('enviar')} disabled={!ed.prueba_enviada} className={`flex-1 text-sm rounded-lg py-2.5 flex items-center justify-center gap-2 font-semibold ${ed.prueba_enviada ? 'bg-[#c9a24e] text-[#1b2a4a]' : 'bg-gray-100 text-gray-400'}`}><Send size={15} /> Enviar ahora</button>
+            </div>
+          ) : <div className="text-xs text-gray-400">Como Comercial puedes crear y guardar borradores. El envío lo hace Administración o Gerencia.</div>}
+        </div>
+
+        {conf ? (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50" onClick={() => setConf(null)}>
+            <div className="bg-white rounded-2xl p-5 w-full max-w-sm text-center" onClick={e => e.stopPropagation()}>
+              <h3 className="font-bold text-[#1b2a4a]">{conf === 'programar' ? 'Confirmar programación' : 'Confirmar envío'}</h3>
+              <p className="text-sm text-gray-600 mt-2">Se {conf === 'programar' ? 'programará' : 'enviará'} a <strong>{cuenta ?? 0} destinatarios</strong> ({segLbl}).{conf === 'programar' ? ` Para el ${S(ed.programada_para).replace('T', ' ')}.` : ''}</p>
+              <div className="flex gap-2 mt-4">
+                <button onClick={() => setConf(null)} className="flex-1 text-sm border border-gray-200 rounded-lg py-2.5">Cancelar</button>
+                <button onClick={ejecutar} disabled={busy} className="flex-1 noma-btn-primary text-sm flex items-center justify-center gap-2">{busy ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />} Confirmar</button>
+              </div>
+            </div>
+          </div>
+        ) : null}
+      </div>
+    )
   }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-[#1a1a1a]">Campañas</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Email marketing y comunicaciones — Alma Libre Grupo SpA</p>
-        </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="noma-btn-primary text-sm flex items-center gap-2"
-        >
-          <Plus size={16} />
-          Nueva campaña
-        </button>
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div><h1 className="text-2xl font-bold text-[#1a1a1a]">Campañas de marketing</h1><p className="text-sm text-gray-500 mt-0.5">Email por Resend · WhatsApp preparado</p></div>
+        <button onClick={() => { setEd({ nombre: '', canal: 'email', tipografia: 'Poppins', audiencia: {} }); setCuenta(null); setError(null); setMsg(null) }} className="noma-btn-primary flex items-center gap-2 text-sm"><Plus size={16} /> Nueva campaña</button>
       </div>
+      {msg ? <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2 text-sm text-green-800">{msg}</div> : null}
 
-      {/* KPI cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="noma-card bg-gradient-to-br from-[#1b2a4a] to-gray-800 text-white">
-          <div className="w-9 h-9 bg-[#c9a24e]/20 rounded-xl flex items-center justify-center mb-3">
-            <Send size={16} className="text-[#c9a24e]" />
-          </div>
-          <p className="text-xs text-gray-400">Total campañas</p>
-          <p className="text-2xl font-bold text-[#c9a24e]">{campanas.length}</p>
-        </div>
-        <div className="noma-card border-l-4 border-green-400">
-          <div className="w-9 h-9 bg-green-50 rounded-xl flex items-center justify-center mb-3">
-            <Send size={16} className="text-green-600" />
-          </div>
-          <p className="text-xs text-gray-500">Enviadas</p>
-          <p className="text-2xl font-bold text-green-600">{enviadas}</p>
-        </div>
-        <div className="noma-card border-l-4 border-blue-400">
-          <div className="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center mb-3">
-            <FileText size={16} className="text-blue-500" />
-          </div>
-          <p className="text-xs text-gray-500">Programadas</p>
-          <p className="text-2xl font-bold text-blue-600">{programadas}</p>
-        </div>
-        <div className="noma-card border-l-4 border-[#c9a24e]">
-          <div className="w-9 h-9 bg-amber-50 rounded-xl flex items-center justify-center mb-3">
-            <BarChart2 size={16} className="text-[#c9a24e]" />
-          </div>
-          <p className="text-xs text-gray-500">Prom. apertura</p>
-          <p className="text-2xl font-bold text-[#c9a24e]">{promApertura}%</p>
-        </div>
-      </div>
+      <div className="noma-card !p-0 overflow-hidden"><div className="overflow-x-auto"><table className="w-full text-sm">
+        <thead className="bg-gray-50/50 text-gray-400 text-xs text-left"><tr>
+          <th className="py-2.5 px-3 font-medium">Campaña</th><th className="py-2.5 px-3 font-medium">Estado</th><th className="py-2.5 px-3 font-medium">Métricas</th><th className="py-2.5 px-3"></th>
+        </tr></thead>
+        <tbody className="divide-y divide-gray-50">
+          {camps.length === 0 ? <tr><td colSpan={4} className="py-10 text-center text-gray-400 text-sm">Sin campañas. Crea la primera.</td></tr>
+          : camps.map(c => { const e = ESTADO[S(c.estado)] || ESTADO.borrador; const st = (c.stats as Row) || {}; return (
+            <tr key={S(c.id)}>
+              <td className="py-2.5 px-3"><button onClick={() => { setEd({ ...c }); setError(null); setMsg(null) }} className="font-medium text-[#1a1a1a] hover:text-[#c9a24e] text-left">{S(c.nombre)}</button><div className="text-[11px] text-gray-400">{S(c.asunto)}</div></td>
+              <td className="py-2.5 px-3"><span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${e.c}`}>{e.l}</span></td>
+              <td className="py-2.5 px-3 text-xs text-gray-500">{S(c.estado) === 'enviada' ? `${N(st.enviados)} enviados · ${N(st.errores)} errores · ${N(st.abiertos)} abiertos · ${N(st.clics)} clics` : '—'}</td>
+              <td className="py-2.5 px-3 text-right whitespace-nowrap">
+                {puedeEnviar && ['programada', 'enviada'].includes(S(c.estado)) ? <button onClick={() => cambiarEstado(c.id, 'pausada')} className="text-gray-300 hover:text-amber-600 mr-2" title="Pausar"><Pause size={14} /></button> : null}
+                {puedeEnviar && !['anulada', 'enviada'].includes(S(c.estado)) ? <button onClick={() => cambiarEstado(c.id, 'anulada')} className="text-gray-300 hover:text-red-500" title="Anular"><Ban size={14} /></button> : null}
+              </td>
+            </tr>
+          )})}
+        </tbody>
+      </table></div></div>
 
-      {/* Filtros */}
-      <div className="flex items-center gap-1 bg-gray-50 rounded-lg p-1 self-start w-fit">
-        {(['Todos', 'Enviada', 'Programada', 'Borrador'] as const).map(e => (
-          <button
-            key={e}
-            onClick={() => setFiltroEstado(e)}
-            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
-              filtroEstado === e
-                ? 'bg-[#c9a24e] text-[#1b2a4a]'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            {e}
-          </button>
-        ))}
-      </div>
-
-      {/* Cards grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filtradas.map(c => (
-          <div key={c.id} className="noma-card hover:shadow-md transition-shadow">
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${c.canal === 'WhatsApp' ? 'bg-green-50' : 'bg-blue-50'}`}>
-                  {canalIcon(c.canal)}
-                </div>
-                <span className="text-xs font-medium text-gray-500">{c.canal}</span>
-              </div>
-              {estadoBadge(c.estado)}
-            </div>
-
-            <h3 className="font-bold text-[#1a1a1a] mb-1">{c.nombre}</h3>
-            {c.asunto && <p className="text-xs text-gray-500 mb-2 line-clamp-1 italic">{c.asunto}</p>}
-            {c.descripcion && <p className="text-xs text-gray-500 mb-3 line-clamp-2">{c.descripcion}</p>}
-
-            {c.segmento && (
-              <div className="flex items-center gap-1.5 mb-3">
-                <Users size={12} className="text-gray-400" />
-                <span className="text-xs text-gray-500">{c.segmento}</span>
-              </div>
-            )}
-
-            <div className="border-t border-gray-100 pt-3 mt-auto">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  {c.destinatarios > 0 && (
-                    <div className="text-center">
-                      <p className="text-xs text-gray-400">Destinatarios</p>
-                      <p className="font-bold text-[#1a1a1a] text-sm">{c.destinatarios.toLocaleString('es-CL')}</p>
-                    </div>
-                  )}
-                  {c.tasaApertura !== undefined && (
-                    <div className="text-center">
-                      <p className="text-xs text-gray-400">Apertura</p>
-                      <p className="font-bold text-green-600 text-sm">{c.tasaApertura}%</p>
-                    </div>
-                  )}
-                </div>
-                {c.fechaEnvio && (
-                  <p className="text-xs text-gray-400">
-                    {c.estado === 'Programada' ? 'Programado:' : 'Enviado:'}{' '}
-                    {new Date(c.fechaEnvio).toLocaleDateString('es-CL')}
-                  </p>
-                )}
-              </div>
-              {c.tasaApertura !== undefined && (
-                <div className="mt-2">
-                  <div className="w-full bg-gray-100 rounded-full h-1.5">
-                    <div
-                      className="h-1.5 rounded-full bg-green-400"
-                      style={{ width: `${Math.min(c.tasaApertura, 100)}%` }}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {filtradas.length === 0 && (
-        <div className="noma-card text-center py-12">
-          <Send size={32} className="mx-auto text-gray-300 mb-3" />
-          <p className="text-gray-500 font-medium">No hay campañas en este estado</p>
-          <p className="text-sm text-gray-400 mt-1">Crea una nueva campaña para comenzar</p>
-        </div>
-      )}
-
-      {/* Modal */}
-      {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowForm(false)} />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="font-bold text-[#1a1a1a]">Nueva campaña</h3>
-              <button onClick={() => setShowForm(false)} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100">
-                <X size={16} />
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Nombre de la campaña</label>
-                <input type="text" value={form.nombre} onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))} className="noma-input" placeholder="ej: Newsletter Julio 2026" required />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">Canal</label>
-                  <select value={form.canal} onChange={e => setForm(f => ({ ...f, canal: e.target.value as Canal }))} className="noma-input">
-                    <option value="Email">Email</option>
-                    <option value="WhatsApp">WhatsApp</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">Estado</label>
-                  <select value={form.estado} onChange={e => setForm(f => ({ ...f, estado: e.target.value as EstadoCampana }))} className="noma-input">
-                    <option value="Borrador">Borrador</option>
-                    <option value="Programada">Programada</option>
-                    <option value="Enviada">Enviada</option>
-                  </select>
-                </div>
-              </div>
-
-              {form.canal === 'Email' && (
-                <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">Asunto del email</label>
-                  <input type="text" value={form.asunto} onChange={e => setForm(f => ({ ...f, asunto: e.target.value }))} className="noma-input" placeholder="Línea de asunto del email" />
-                </div>
-              )}
-
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Descripción</label>
-                <textarea value={form.descripcion} onChange={e => setForm(f => ({ ...f, descripcion: e.target.value }))} className="noma-input resize-none" rows={2} placeholder="Descripción interna de la campaña" />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">Segmento</label>
-                  <input type="text" value={form.segmento} onChange={e => setForm(f => ({ ...f, segmento: e.target.value }))} className="noma-input" placeholder="ej: Mayoristas activos" />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">Fecha de envío</label>
-                  <input type="date" value={form.fechaEnvio} onChange={e => setForm(f => ({ ...f, fechaEnvio: e.target.value }))} className="noma-input" />
-                </div>
-              </div>
-
-              <div className="flex gap-2 pt-2">
-                <button type="button" onClick={() => setShowForm(false)} className="flex-1 py-2 rounded-lg border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors">
-                  Cancelar
-                </button>
-                <button type="submit" className="flex-1 noma-btn-primary">
-                  Crear campaña
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <p className="text-xs text-gray-400"><ImageIcon size={12} className="inline" /> Aperturas, clics y compras se llenan al conectar los webhooks de Resend y el flujo de cupones (preparado).</p>
     </div>
   )
 }

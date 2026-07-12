@@ -16,6 +16,7 @@ import {
   Building2,
   DollarSign,
   CreditCard,
+  Megaphone,
   UserCircle,
   Shield,
   ChevronDown,
@@ -64,6 +65,7 @@ const navItems: NavItem[] = [
       { label: 'Solicitudes de acceso', href: '/comercial/solicitudes', icon: UserCircle },
       { label: 'Productos', href: '/comercial/productos', icon: Tag },
       { label: 'Clientes', href: '/comercial/clientes', icon: Users },
+      { label: 'Campañas', href: '/comercial/campanas', icon: Megaphone },
     ],
   },
   {
