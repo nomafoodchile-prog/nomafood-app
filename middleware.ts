@@ -7,7 +7,8 @@ const PUBLIC_PATHS = ['/login', '/recuperar', '/mayoristas', '/portal', '/chofer
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
-  if (PUBLIC_PATHS.some(p => pathname.startsWith(p))) {
+  // La landing pública ('/') y las rutas públicas no requieren sesión.
+  if (pathname === '/' || PUBLIC_PATHS.some(p => pathname.startsWith(p))) {
     return NextResponse.next()
   }
 
