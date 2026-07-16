@@ -5,7 +5,7 @@ import {
   Sprout, Leaf, Snowflake, Truck, ArrowRight, Factory, Sparkles,
   GraduationCap, Coffee, Building2, Store, ShoppingBag, Award, Handshake,
   MapPin, Mail, Check, ChevronDown, MessageCircle, Gift,
-  TrendingUp, PackageCheck, Star, CalendarClock,
+  TrendingUp, PackageCheck, Star, CalendarClock, Cookie, CreditCard, Menu, X,
 } from 'lucide-react'
 
 type Row = Record<string, unknown>
@@ -31,9 +31,18 @@ const WHATSAPP_URL = 'https://wa.me/56900000000'
 
 const serif = "Georgia, 'Times New Roman', serif"
 
+// Navegación principal — orden y anchors oficiales de la landing.
+const NAV = [
+  { t: 'Nosotros', h: '#nosotros', icon: Factory },
+  { t: 'Productos', h: '#productos', icon: Cookie },
+  { t: 'NOMMA POINTS', h: '#nomma-points', icon: CreditCard },
+  { t: 'Trabajemos juntos', h: '#solicitud-mayorista', icon: Handshake },
+]
+
 export default function LandingPage() {
   const [prods, setProds] = useState<Row[]>([])
   const [loading, setLoading] = useState(true)
+  const [menuOpen, setMenuOpen] = useState(false)
 
   useEffect(() => {
     fetch('/api/landing/productos')
@@ -54,7 +63,10 @@ export default function LandingPage() {
         .nf-points { display: grid; grid-template-columns: 1fr 1fr; gap: 44px; align-items: center; }
         .nf-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         .nf-foot { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 32px; }
-        .nf-navlinks { display: flex; gap: 26px; align-items: center; }
+        .nf-navlinks { display: flex; gap: 24px; align-items: center; }
+        .nf-navbtns { display: flex; }
+        .nf-burger { display: none; }
+        .nf-navlink:hover { opacity: 1 !important; }
         .nf-btn { transition: transform .15s ease, box-shadow .15s ease, background .15s ease; }
         .nf-btn:hover { transform: translateY(-2px); }
         .nf-card { transition: transform .18s ease, box-shadow .18s ease; }
@@ -63,9 +75,10 @@ export default function LandingPage() {
         .nf-faq .nf-a { max-height: 0; overflow: hidden; transition: max-height .3s ease; }
         .nf-faq input:checked ~ .nf-a { max-height: 320px; }
         .nf-faq input:checked ~ label .nf-chev { transform: rotate(180deg); }
-        @media (max-width: 860px) {
+        @media (max-width: 900px) {
           .nf-hero, .nf-points, .nf-foot, .nf-form-grid { grid-template-columns: 1fr; }
-          .nf-navlinks { display: none; }
+          .nf-navlinks, .nf-navbtns { display: none; }
+          .nf-burger { display: inline-flex; align-items: center; }
           .nf-h1 { font-size: 38px !important; }
         }
       ` }} />
@@ -73,18 +86,49 @@ export default function LandingPage() {
       {/* ══ 1. HEADER ══ */}
       <header style={{ position: 'sticky', top: 0, zIndex: 50, background: 'rgba(22,35,63,.96)', backdropFilter: 'blur(8px)', color: '#fff', borderBottom: `1px solid rgba(201,162,78,.25)` }}>
         <div className="nf-wrap" style={{ display: 'flex', alignItems: 'center', gap: 14, height: 64 }}>
-          <div style={{ width: 40, height: 40, borderRadius: 11, background: GOLD, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(201,162,78,.35)' }}><Sprout size={22} color={NAVY} /></div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 800, letterSpacing: 2, fontSize: 16 }}>NOMMA FOOD</div>
-            <div style={{ fontSize: 10.5, opacity: .65, letterSpacing: .5 }}>Alma Libre Grupo SpA</div>
-          </div>
+          <a href="#top" style={{ display: 'flex', alignItems: 'center', gap: 11, textDecoration: 'none', color: '#fff' }}>
+            <div style={{ width: 40, height: 40, borderRadius: 11, background: GOLD, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(201,162,78,.35)' }}><Sprout size={22} color={NAVY} /></div>
+            <div>
+              <div style={{ fontWeight: 800, letterSpacing: 2, fontSize: 16 }}>NOMMA FOOD</div>
+              <div style={{ fontSize: 10.5, opacity: .65, letterSpacing: .5 }}>Alma Libre Grupo SpA</div>
+            </div>
+          </a>
+          <div style={{ flex: 1 }} />
+
+          {/* Navegación desktop */}
           <nav className="nf-navlinks">
-            {[['Productos', '#productos'], ['Nosotros', '#beneficios'], ['NOMMA Points', '#points'], ['Cómo funciona', '#como']].map(([t, h]) => (
-              <a key={h} href={h} style={{ color: '#fff', textDecoration: 'none', fontSize: 14, opacity: .82 }}>{t}</a>
+            {NAV.map(({ t, h, icon: Ic }) => (
+              <a key={h} href={h} className="nf-navlink" style={{ color: '#fff', textDecoration: 'none', fontSize: 14, opacity: .85, display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+                <Ic size={16} color={GOLD_SOFT} strokeWidth={1.75} /> {t}
+              </a>
             ))}
           </nav>
-          <a href="/login" className="nf-btn" style={{ color: '#fff', textDecoration: 'none', fontSize: 13.5, fontWeight: 600, padding: '9px 15px', borderRadius: 9, border: '1px solid rgba(255,255,255,.28)', marginLeft: 8 }}>Ingresar</a>
-          <a href="#solicitud" className="nf-btn" style={{ background: GOLD, color: NAVY, textDecoration: 'none', fontSize: 13.5, fontWeight: 700, padding: '10px 16px', borderRadius: 9 }}>Solicitar cuenta</a>
+
+          {/* Botones desktop */}
+          <div className="nf-navbtns" style={{ alignItems: 'center', gap: 10, marginLeft: 8 }}>
+            <a href="/login" className="nf-btn" style={{ color: '#fff', textDecoration: 'none', fontSize: 13.5, fontWeight: 600, padding: '9px 15px', borderRadius: 9, border: '1px solid rgba(255,255,255,.28)' }}>Ingresar</a>
+            <a href="#solicitud-mayorista" className="nf-btn" style={{ background: GOLD, color: NAVY, textDecoration: 'none', fontSize: 13.5, fontWeight: 700, padding: '10px 16px', borderRadius: 9 }}>Solicitar cuenta</a>
+          </div>
+
+          {/* Botón hamburguesa (solo móvil) */}
+          <button className="nf-burger" onClick={() => setMenuOpen(o => !o)} aria-label="Abrir menú" aria-expanded={menuOpen} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,.28)', borderRadius: 9, color: '#fff', padding: 8, cursor: 'pointer' }}>
+            {menuOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
+        </div>
+
+        {/* Menú desplegable móvil */}
+        <div className="nf-mobile-menu" style={{ display: menuOpen ? 'block' : 'none', borderTop: '1px solid rgba(255,255,255,.12)', background: NAVY_DEEP }}>
+          <div className="nf-wrap" style={{ padding: '10px 22px 18px' }}>
+            {NAV.map(({ t, h, icon: Ic }) => (
+              <a key={h} href={h} onClick={() => setMenuOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: 12, color: '#fff', textDecoration: 'none', fontSize: 15.5, fontWeight: 600, padding: '13px 6px', borderBottom: '1px solid rgba(255,255,255,.08)' }}>
+                <Ic size={19} color={GOLD_SOFT} strokeWidth={1.75} /> {t}
+              </a>
+            ))}
+            <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
+              <a href="/login" onClick={() => setMenuOpen(false)} style={{ flex: 1, textAlign: 'center', color: '#fff', textDecoration: 'none', fontSize: 14, fontWeight: 600, padding: '12px', borderRadius: 10, border: '1px solid rgba(255,255,255,.28)' }}>Ingresar</a>
+              <a href="#solicitud-mayorista" onClick={() => setMenuOpen(false)} style={{ flex: 1, textAlign: 'center', background: GOLD, color: NAVY, textDecoration: 'none', fontSize: 14, fontWeight: 700, padding: '12px', borderRadius: 10 }}>Solicitar cuenta</a>
+            </div>
+          </div>
         </div>
       </header>
 
@@ -103,7 +147,7 @@ export default function LandingPage() {
               Abastecimiento mayorista para negocios que buscan calidad, presentación y una propuesta distinta. Elaboración propia, cadena de frío y atención cercana.
             </p>
             <div style={{ display: 'flex', gap: 13, flexWrap: 'wrap', marginBottom: 30 }}>
-              <a href="#solicitud" className="nf-btn" style={{ background: GOLD, color: NAVY, textDecoration: 'none', fontWeight: 700, padding: '15px 28px', borderRadius: 11, display: 'inline-flex', alignItems: 'center', gap: 9, fontSize: 15.5, boxShadow: '0 10px 26px rgba(201,162,78,.35)' }}>
+              <a href="#solicitud-mayorista" className="nf-btn" style={{ background: GOLD, color: NAVY, textDecoration: 'none', fontWeight: 700, padding: '15px 28px', borderRadius: 11, display: 'inline-flex', alignItems: 'center', gap: 9, fontSize: 15.5, boxShadow: '0 10px 26px rgba(201,162,78,.35)' }}>
                 Solicitar cuenta mayorista <ArrowRight size={18} />
               </a>
               <a href="#productos" className="nf-btn" style={{ background: 'rgba(255,255,255,.08)', color: '#fff', textDecoration: 'none', fontWeight: 600, padding: '15px 26px', borderRadius: 11, border: '1px solid rgba(255,255,255,.22)', display: 'inline-flex', alignItems: 'center', gap: 9, fontSize: 15.5 }}>
@@ -146,7 +190,7 @@ export default function LandingPage() {
       </section>
 
       {/* ══ 3. BENEFICIOS PRINCIPALES ══ */}
-      <section id="beneficios" className="nf-sec" style={{ background: WARM }}>
+      <section id="nosotros" className="nf-sec" style={{ background: WARM }}>
         <div className="nf-wrap" style={{ padding: '68px 22px' }}>
           <Eyebrow>Por qué NOMMA FOOD</Eyebrow>
           <H2>Una propuesta pensada para tu vitrina</H2>
@@ -288,7 +332,7 @@ export default function LandingPage() {
       </section>
 
       {/* ══ 8. NOMMA POINTS ══ */}
-      <section id="points" className="nf-sec" style={{ background: `linear-gradient(160deg, ${NAVY} 0%, ${NAVY_DEEP} 100%)`, color: '#fff' }}>
+      <section id="nomma-points" className="nf-sec" style={{ background: `linear-gradient(160deg, ${NAVY} 0%, ${NAVY_DEEP} 100%)`, color: '#fff' }}>
         <div className="nf-wrap nf-points" style={{ padding: '74px 22px' }}>
           <div>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: GOLD_SOFT, fontSize: 13, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 16 }}>
@@ -417,7 +461,7 @@ export default function LandingPage() {
             Descubre la propuesta de NOMMA FOOD para tu canal de venta.
           </p>
           <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <a href="#solicitud" className="nf-btn" style={{ background: GOLD, color: NAVY, textDecoration: 'none', fontWeight: 700, padding: '15px 30px', borderRadius: 11, display: 'inline-flex', alignItems: 'center', gap: 9, fontSize: 15.5, boxShadow: '0 10px 26px rgba(201,162,78,.35)' }}>
+            <a href="#solicitud-mayorista" className="nf-btn" style={{ background: GOLD, color: NAVY, textDecoration: 'none', fontWeight: 700, padding: '15px 30px', borderRadius: 11, display: 'inline-flex', alignItems: 'center', gap: 9, fontSize: 15.5, boxShadow: '0 10px 26px rgba(201,162,78,.35)' }}>
               Solicitar cuenta mayorista <ArrowRight size={18} />
             </a>
             <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="nf-btn" style={{ background: 'rgba(255,255,255,.08)', color: '#fff', textDecoration: 'none', fontWeight: 600, padding: '15px 28px', borderRadius: 11, border: '1px solid rgba(255,255,255,.24)', display: 'inline-flex', alignItems: 'center', gap: 9, fontSize: 15.5 }}>
@@ -454,8 +498,8 @@ export default function LandingPage() {
             <div style={{ fontWeight: 700, marginBottom: 14, fontSize: 14, letterSpacing: .5 }}>Enlaces</div>
             <div style={{ display: 'grid', gap: 10, fontSize: 14, color: 'rgba(255,255,255,.72)' }}>
               <a href="#productos" style={{ color: 'inherit', textDecoration: 'none' }}>Productos</a>
-              <a href="#points" style={{ color: 'inherit', textDecoration: 'none' }}>NOMMA Points</a>
-              <a href="#solicitud" style={{ color: 'inherit', textDecoration: 'none' }}>Solicitar cuenta mayorista</a>
+              <a href="#nomma-points" style={{ color: 'inherit', textDecoration: 'none' }}>NOMMA Points</a>
+              <a href="#solicitud-mayorista" style={{ color: 'inherit', textDecoration: 'none' }}>Solicitar cuenta mayorista</a>
               <a href="/login" style={{ color: 'inherit', textDecoration: 'none' }}>Ingresar al portal</a>
             </div>
           </div>
@@ -555,7 +599,7 @@ function FormularioMayorista() {
 
   if (estado === 'ok') {
     return (
-      <section id="solicitud" className="nf-sec" style={{ background: CREAM }}>
+      <section id="solicitud-mayorista" className="nf-sec" style={{ background: CREAM }}>
         <div className="nf-wrap" style={{ padding: '70px 22px', maxWidth: 720 }}>
           <div style={{ background: '#fff', borderRadius: 20, border: `1px solid ${LINE}`, padding: 44, textAlign: 'center', boxShadow: '0 20px 50px rgba(22,35,63,.08)' }}>
             <div style={{ width: 66, height: 66, borderRadius: '50%', background: '#e8efd8', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}><Check size={34} color={OLIVE} /></div>
@@ -571,7 +615,7 @@ function FormularioMayorista() {
   }
 
   return (
-    <section id="solicitud" className="nf-sec" style={{ background: CREAM }}>
+    <section id="solicitud-mayorista" className="nf-sec" style={{ background: CREAM }}>
       <div className="nf-wrap" style={{ padding: '70px 22px', maxWidth: 860 }}>
         <Eyebrow>Únete al canal mayorista</Eyebrow>
         <H2>Solicita tu cuenta mayorista</H2>
