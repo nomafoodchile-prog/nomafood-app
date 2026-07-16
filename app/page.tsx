@@ -230,21 +230,24 @@ export default function LandingPage() {
           </p>
           <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 40 }}>
             {[
-              { name: 'UBO', file: 'ubo.png' },
-              { name: 'DUOC', file: 'duoc.svg' },
-              { name: 'Universidad de Chile', file: 'uchile.svg' },
+              { name: 'UBO', file: 'ubo.png', label: '' },
+              { name: 'DUOC', file: 'duoc.svg', label: '' },
+              { name: 'Universidad de Chile', file: 'uchile.svg', label: 'Universidad de Chile' },
             ].map(u => (
-              <div key={u.name} style={{ background: '#fff', border: '1px solid rgba(255,255,255,.16)', borderRadius: 14, padding: '16px 26px', minHeight: 74, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {/* Logo real; si aún no está el archivo, cae al texto + ícono automáticamente */}
-                <img
-                  src={`/logos/${u.file}`}
-                  alt={u.name}
-                  style={{ height: 40, maxWidth: 170, objectFit: 'contain', display: 'block' }}
-                  onError={e => { const t = e.currentTarget; t.style.display = 'none'; const fb = t.nextElementSibling as HTMLElement | null; if (fb) fb.style.display = 'inline-flex' }}
-                />
-                <span style={{ display: 'none', alignItems: 'center', gap: 10, fontWeight: 700, fontSize: 16, color: NAVY }}>
-                  <GraduationCap size={20} color={GOLD} /> {u.name}
-                </span>
+              <div key={u.name} style={{ background: '#fff', border: '1px solid rgba(255,255,255,.16)', borderRadius: 14, padding: '16px 26px', minHeight: 74, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {/* Logo real; si aún no está el archivo, cae al texto + ícono automáticamente */}
+                  <img
+                    src={`/logos/${u.file}`}
+                    alt={u.name}
+                    style={{ height: 40, maxWidth: 170, objectFit: 'contain', display: 'block' }}
+                    onError={e => { const t = e.currentTarget; t.style.display = 'none'; const fb = t.nextElementSibling as HTMLElement | null; if (fb) fb.style.display = 'inline-flex' }}
+                  />
+                  <span style={{ display: 'none', alignItems: 'center', gap: 10, fontWeight: 700, fontSize: 16, color: NAVY }}>
+                    <GraduationCap size={20} color={GOLD} /> {u.name}
+                  </span>
+                </div>
+                {u.label ? <span style={{ fontSize: 12.5, fontWeight: 700, color: NAVY, letterSpacing: .3 }}>{u.label}</span> : null}
               </div>
             ))}
           </div>
