@@ -106,7 +106,7 @@ export default function LandingPage() {
 
           {/* Botones desktop */}
           <div className="nf-navbtns" style={{ alignItems: 'center', gap: 10, marginLeft: 8 }}>
-            <a href="/login" className="nf-btn" style={{ color: '#fff', textDecoration: 'none', fontSize: 13.5, fontWeight: 600, padding: '9px 15px', borderRadius: 9, border: '1px solid rgba(255,255,255,.28)' }}>Ingresar</a>
+            <a href="/portal/mayoristas/login" className="nf-btn" style={{ color: '#fff', textDecoration: 'none', fontSize: 13.5, fontWeight: 600, padding: '9px 15px', borderRadius: 9, border: '1px solid rgba(255,255,255,.28)' }}>Ingresar</a>
             <a href="#solicitud-mayorista" className="nf-btn" style={{ background: GOLD, color: NAVY, textDecoration: 'none', fontSize: 13.5, fontWeight: 700, padding: '10px 16px', borderRadius: 9 }}>Solicitar cuenta</a>
           </div>
 
@@ -125,7 +125,7 @@ export default function LandingPage() {
               </a>
             ))}
             <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
-              <a href="/login" onClick={() => setMenuOpen(false)} style={{ flex: 1, textAlign: 'center', color: '#fff', textDecoration: 'none', fontSize: 14, fontWeight: 600, padding: '12px', borderRadius: 10, border: '1px solid rgba(255,255,255,.28)' }}>Ingresar</a>
+              <a href="/portal/mayoristas/login" onClick={() => setMenuOpen(false)} style={{ flex: 1, textAlign: 'center', color: '#fff', textDecoration: 'none', fontSize: 14, fontWeight: 600, padding: '12px', borderRadius: 10, border: '1px solid rgba(255,255,255,.28)' }}>Ingresar</a>
               <a href="#solicitud-mayorista" onClick={() => setMenuOpen(false)} style={{ flex: 1, textAlign: 'center', background: GOLD, color: NAVY, textDecoration: 'none', fontSize: 14, fontWeight: 700, padding: '12px', borderRadius: 10 }}>Solicitar cuenta</a>
             </div>
           </div>
@@ -500,7 +500,7 @@ export default function LandingPage() {
               <a href="#productos" style={{ color: 'inherit', textDecoration: 'none' }}>Productos</a>
               <a href="#nomma-points" style={{ color: 'inherit', textDecoration: 'none' }}>NOMMA Points</a>
               <a href="#solicitud-mayorista" style={{ color: 'inherit', textDecoration: 'none' }}>Solicitar cuenta mayorista</a>
-              <a href="/login" style={{ color: 'inherit', textDecoration: 'none' }}>Ingresar al portal</a>
+              <a href="/portal/mayoristas/login" style={{ color: 'inherit', textDecoration: 'none' }}>Ingresar al portal</a>
             </div>
           </div>
         </div>
