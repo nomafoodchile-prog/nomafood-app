@@ -303,17 +303,42 @@ export default function LandingPage() {
         <div className="nf-wrap" style={{ padding: '60px 22px' }}>
           <Eyebrow>En el punto de venta</Eyebrow>
           <H2>Así se ve nuestra propuesta en vitrina</H2>
-          <p style={{ textAlign: 'center', color: MUTED, maxWidth: 600, margin: '0 auto 36px', fontSize: 16.5, lineHeight: 1.6 }}>
-            Productos listos para una vitrina atractiva, con presentación que invita a la compra.
+          <p style={{ textAlign: 'center', color: MUTED, maxWidth: 600, margin: '0 auto 40px', fontSize: 16.5, lineHeight: 1.6 }}>
+            Mendocinos, empanadas, galletas, ensaladas, gohan y mucho más: productos listos para una vitrina atractiva que invita a la compra.
           </p>
-          <div style={{ position: 'relative', borderRadius: 22, overflow: 'hidden', border: `1px solid ${LINE}`, background: `linear-gradient(135deg, #eee9dc, #f6f3ec)`, minHeight: 340, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
-            <div style={{ padding: 40 }}>
-              <div style={{ width: 74, height: 74, borderRadius: 18, background: '#fff', border: `1px solid ${LINE}`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 18px', boxShadow: '0 10px 30px rgba(22,35,63,.08)' }}>
-                <Store size={34} color={GOLD} />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(188px, 1fr))', gap: 18 }}>
+            {[
+              { name: 'Mendocino', file: 'mendocino.jpg', estrella: true },
+              { name: 'Empanadas', file: 'empanadas.jpg' },
+              { name: 'Galletas', file: 'galletas.jpg' },
+              { name: 'Ensaladas', file: 'ensaladas.jpg' },
+              { name: 'Gohan', file: 'gohan.jpg' },
+            ].map(p => (
+              <div key={p.name} className="nf-card" style={{ background: '#fff', borderRadius: 18, overflow: 'hidden', border: `1px solid ${LINE}` }}>
+                <div style={{ position: 'relative', aspectRatio: '4 / 3', background: `linear-gradient(135deg, #eee9dc, #f6f3ec)`, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                  {p.estrella ? (
+                    <span style={{ position: 'absolute', top: 10, left: 10, zIndex: 2, display: 'inline-flex', alignItems: 'center', gap: 5, background: GOLD, color: NAVY, fontWeight: 800, fontSize: 11.5, letterSpacing: .3, padding: '5px 10px', borderRadius: 20, boxShadow: '0 4px 12px rgba(201,162,78,.45)' }}>
+                      <Star size={13} fill={NAVY} /> Producto estrella
+                    </span>
+                  ) : null}
+                  <span style={{ color: MUTED, fontSize: 12.5, fontWeight: 600 }}>Foto próximamente</span>
+                  {/* Al subir /public/productos/{file}, la foto reemplaza el fondo automáticamente */}
+                  <img
+                    src={`/productos/${p.file}`}
+                    alt={p.name}
+                    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                    onError={e => { e.currentTarget.style.display = 'none' }}
+                  />
+                </div>
+                <div style={{ padding: '13px 16px', fontWeight: 700, fontSize: 15.5, textAlign: 'center' }}>{p.name}</div>
               </div>
-              <div style={{ fontWeight: 700, fontSize: 17, marginBottom: 6 }}>Espacio reservado para foto real de vitrina</div>
-              <div style={{ color: MUTED, fontSize: 14.5, maxWidth: 420, margin: '0 auto' }}>Aquí irá una imagen de nuestros productos exhibidos en un punto de venta real.</div>
-            </div>
+            ))}
+            {/* Invitación al catálogo completo */}
+            <a href="#productos" className="nf-card" style={{ textDecoration: 'none', background: NAVY, borderRadius: 18, overflow: 'hidden', border: `1px solid ${NAVY}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', color: '#fff', minHeight: 160, padding: 18 }}>
+              <Store size={28} color={GOLD} />
+              <div style={{ fontWeight: 700, fontSize: 15.5, marginTop: 10 }}>Y mucho más</div>
+              <div style={{ fontSize: 13, color: 'rgba(255,255,255,.7)', marginTop: 4 }}>Ver todo el catálogo →</div>
+            </a>
           </div>
         </div>
       </section>
