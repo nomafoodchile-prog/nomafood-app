@@ -229,9 +229,22 @@ export default function LandingPage() {
             Productos NOMMA FOOD presentes en casinos y puntos de venta de universidades como:
           </p>
           <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 40 }}>
-            {['UBO', 'DUOC', 'Universidad de Chile'].map(u => (
-              <div key={u} style={{ background: 'rgba(255,255,255,.07)', border: '1px solid rgba(255,255,255,.16)', borderRadius: 14, padding: '18px 28px', display: 'flex', alignItems: 'center', gap: 11, fontWeight: 700, fontSize: 16 }}>
-                <GraduationCap size={20} color={GOLD} /> {u}
+            {[
+              { name: 'UBO', file: 'ubo.png' },
+              { name: 'DUOC', file: 'duoc.png' },
+              { name: 'Universidad de Chile', file: 'uchile.png' },
+            ].map(u => (
+              <div key={u.name} style={{ background: '#fff', border: '1px solid rgba(255,255,255,.16)', borderRadius: 14, padding: '16px 26px', minHeight: 74, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {/* Logo real; si aún no está el archivo, cae al texto + ícono automáticamente */}
+                <img
+                  src={`/logos/${u.file}`}
+                  alt={u.name}
+                  style={{ height: 40, maxWidth: 170, objectFit: 'contain', display: 'block' }}
+                  onError={e => { const t = e.currentTarget; t.style.display = 'none'; const fb = t.nextElementSibling as HTMLElement | null; if (fb) fb.style.display = 'inline-flex' }}
+                />
+                <span style={{ display: 'none', alignItems: 'center', gap: 10, fontWeight: 700, fontSize: 16, color: NAVY }}>
+                  <GraduationCap size={20} color={GOLD} /> {u.name}
+                </span>
               </div>
             ))}
           </div>
