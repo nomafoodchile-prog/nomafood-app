@@ -231,8 +231,8 @@ export default function LandingPage() {
           <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 40 }}>
             {[
               { name: 'UBO', file: 'ubo.png' },
-              { name: 'DUOC', file: 'duoc.png' },
-              { name: 'Universidad de Chile', file: 'uchile.png' },
+              { name: 'DUOC', file: 'duoc.svg' },
+              { name: 'Universidad de Chile', file: 'uchile.svg' },
             ].map(u => (
               <div key={u.name} style={{ background: '#fff', border: '1px solid rgba(255,255,255,.16)', borderRadius: 14, padding: '16px 26px', minHeight: 74, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 {/* Logo real; si aún no está el archivo, cae al texto + ícono automáticamente */}
