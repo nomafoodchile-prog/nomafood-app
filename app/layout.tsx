@@ -1,7 +1,7 @@
 ﻿import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
-const SITE_URL = "https://nomafood.cl";
+const SITE_URL = "https://nommafood.cl";
 const TITLE = "NOMMA FOOD | Productos vegetarianos y veganos para canal mayorista";
 const DESCRIPTION =
   "Abastecimiento mayorista de productos vegetarianos y veganos, directo de fábrica. Empanadas, mendocinos, pastelería, ensaladas y más para cafeterías, minimarkets, universidades y oficinas. Solicita tu cuenta mayorista.";

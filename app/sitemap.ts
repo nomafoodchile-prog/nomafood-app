@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next'
 
-const SITE_URL = 'https://nomafood.cl'
+const SITE_URL = 'https://nommafood.cl'
 
 // El "índice" de páginas públicas que le entregamos a Google.
 export default function sitemap(): MetadataRoute.Sitemap {

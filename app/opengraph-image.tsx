@@ -36,7 +36,7 @@ export default function OpengraphImage() {
           Abastecimiento mayorista - directo de fabrica
         </div>
         <div style={{ display: 'flex', fontSize: '22px', color: '#9aa6bd', marginTop: '48px' }}>
-          nomafood.cl - Alma Libre Grupo SpA
+          nommafood.cl - Alma Libre Grupo SpA
         </div>
       </div>
     ),

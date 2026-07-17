@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next'
 
-const SITE_URL = 'https://nomafood.cl'
+const SITE_URL = 'https://nommafood.cl'
 
 // Le dice a Google qué puede indexar. Público: la landing (/) y "Solicitar acceso"
 // (/mayoristas). Privado (NO indexar): portal de clientes, central, apis y logins.
