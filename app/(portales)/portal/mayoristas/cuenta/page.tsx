@@ -14,7 +14,7 @@ function estadoCliente(p: Pedido): { t: string; c: string } {
   if (p.estado_entrega === 'entregado' || p.estado === 'entregado') return { t: 'Entregado', c: 'bg-green-100 text-green-700' }
   if (['cargado', 'en_ruta', 'llego_cliente'].includes(p.estado_entrega)) return { t: 'En camino', c: 'bg-blue-100 text-blue-700' }
   const m: Record<string, string> = { confirmado: 'Confirmado', pagado: 'Pagado', en_preparacion: 'En preparación', listo_para_despacho: 'Listo para despacho', asignado: 'En despacho', borrador: 'Borrador', cancelado: 'Cancelado' }
-  return { t: m[p.estado] || p.estado, c: 'bg-[#eef1f6] text-[#1b2a4a]' }
+  return { t: m[p.estado] || p.estado, c: 'bg-[#eef1f6] text-[#16233f]' }
 }
 
 export default function CuentaMayorista() {
@@ -48,10 +48,10 @@ export default function CuentaMayorista() {
 
   async function salir() { await supabase.auth.signOut(); router.replace('/portal/mayoristas/login') }
 
-  if (loading) return <div className="min-h-screen bg-[#f5f0e8] flex items-center justify-center"><Loader2 className="w-6 h-6 text-[#1b2a4a] animate-spin" /></div>
+  if (loading) return <div className="min-h-screen bg-[#f6f3ec] flex items-center justify-center"><Loader2 className="w-6 h-6 text-[#16233f] animate-spin" /></div>
   if (noCuenta) return (
-    <div className="min-h-screen bg-[#f5f0e8] flex flex-col items-center justify-center p-6 text-center">
-      <p className="font-semibold text-[#1b2a4a]">Tu cuenta aún no está vinculada a un cliente mayorista.</p>
+    <div className="min-h-screen bg-[#f6f3ec] flex flex-col items-center justify-center p-6 text-center">
+      <p className="font-semibold text-[#16233f]">Tu cuenta aún no está vinculada a un cliente mayorista.</p>
       <button onClick={salir} className="mt-4 text-sm text-[#c9a24e] underline">Cerrar sesión</button>
     </div>
   )
@@ -59,8 +59,8 @@ export default function CuentaMayorista() {
   const activos = pedidos.filter(p => !['entregado', 'cancelado'].includes(p.estado) && p.estado_entrega !== 'entregado')
 
   return (
-    <div className="min-h-screen bg-[#f5f0e8]">
-      <header className="bg-[#1b2a4a] text-white px-5 py-4 flex items-center justify-between">
+    <div className="min-h-screen bg-[#f6f3ec]">
+      <header className="bg-[#16233f] text-white px-5 py-4 flex items-center justify-between">
         <span className="flex items-center gap-2"><Sprout className="w-6 h-6 text-[#c9a24e]" /><span className="font-bold tracking-wide text-sm">NOMMA FOOD</span></span>
         <button onClick={salir} className="text-white/70 hover:text-white flex items-center gap-1 text-sm"><LogOut size={16} /> Salir</button>
       </header>
@@ -68,11 +68,11 @@ export default function CuentaMayorista() {
       <main className="max-w-md mx-auto px-5 py-5 space-y-4">
         <div>
           <p className="text-sm text-gray-500">Hola,</p>
-          <h1 className="text-xl font-bold text-[#1b2a4a]">{may?.empresa || may?.nombre}</h1>
+          <h1 className="text-xl font-bold text-[#16233f]">{may?.empresa || may?.nombre}</h1>
           {may?.descuento_pct ? <span className="inline-flex items-center gap-1 mt-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-[#c9a24e]/15 text-[#c9a24e]"><Tag size={12} /> {may.descuento_pct}% de descuento mayorista</span> : null}
         </div>
 
-        <a href={`/portal/mayoristas/${may?.token}`} className="block bg-[#1b2a4a] text-white rounded-2xl p-5 hover:bg-[#142033] transition-colors">
+        <a href={`/portal/mayoristas/${may?.token}`} className="block bg-[#16233f] text-white rounded-2xl p-5 hover:bg-[#142033] transition-colors">
           <div className="flex items-center justify-between">
             <div><p className="font-bold flex items-center gap-2"><ShoppingBag size={18} className="text-[#c9a24e]" /> Ver catálogo y pedir</p><p className="text-white/60 text-sm mt-0.5">Productos, precios y pago en línea</p></div>
             <ArrowRight className="text-[#c9a24e]" />
@@ -87,7 +87,7 @@ export default function CuentaMayorista() {
                 const e = estadoCliente(p)
                 return (
                   <div key={p.id} className="bg-white rounded-2xl border border-gray-100 p-4 flex items-center justify-between">
-                    <div><p className="font-semibold text-[#1b2a4a] text-sm">{p.numero_pedido}</p><p className="text-xs text-gray-400 flex items-center gap-1"><Clock size={11} /> Entrega {fecha(p.fecha_entrega_req)} · {clp(p.total)}</p></div>
+                    <div><p className="font-semibold text-[#16233f] text-sm">{p.numero_pedido}</p><p className="text-xs text-gray-400 flex items-center gap-1"><Clock size={11} /> Entrega {fecha(p.fecha_entrega_req)} · {clp(p.total)}</p></div>
                     <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${e.c}`}>{e.t}</span>
                   </div>
                 )
@@ -106,7 +106,7 @@ export default function CuentaMayorista() {
                 const e = estadoCliente(p)
                 return (
                   <div key={p.id} className="flex items-center justify-between px-4 py-3">
-                    <div><p className="text-sm font-medium text-[#1b2a4a]">{p.numero_pedido}</p><p className="text-xs text-gray-400">{fecha(p.created_at)}</p></div>
+                    <div><p className="text-sm font-medium text-[#16233f]">{p.numero_pedido}</p><p className="text-xs text-gray-400">{fecha(p.created_at)}</p></div>
                     <div className="text-right"><p className="text-sm font-semibold text-gray-800">{clp(p.total)}</p><span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${e.c}`}>{e.t}</span></div>
                   </div>
                 )

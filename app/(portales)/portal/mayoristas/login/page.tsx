@@ -33,16 +33,16 @@ export default function LoginMayorista() {
   }
 
   return (
-    <div className="min-h-screen bg-[#1b2a4a] flex items-center justify-center p-5">
+    <div className="min-h-screen bg-[#16233f] flex items-center justify-center p-5">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-7">
-        <div className="flex items-center gap-2 justify-center mb-1"><Sprout className="w-6 h-6 text-[#c9a24e]" /><span className="font-bold tracking-widest text-[#1b2a4a]">NOMMA FOOD</span></div>
+        <div className="flex items-center gap-2 justify-center mb-1"><Sprout className="w-6 h-6 text-[#c9a24e]" /><span className="font-bold tracking-widest text-[#16233f]">NOMMA FOOD</span></div>
         <p className="text-center text-sm text-gray-500 mb-5">Portal Mayorista</p>
 
         {modo === 'reset' ? (
           resetOk ? (
             <div className="text-center">
               <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto mb-2" />
-              <p className="font-semibold text-[#1b2a4a]">Revisa tu correo</p>
+              <p className="font-semibold text-[#16233f]">Revisa tu correo</p>
               <p className="text-sm text-gray-500 mt-1">Si <b>{email}</b> está registrado, te enviamos un enlace para crear una nueva contraseña.</p>
               <button onClick={() => { setModo('login'); setResetOk(false) }} className="mt-4 text-sm text-[#c9a24e] underline flex items-center gap-1 mx-auto"><ArrowLeft size={14} /> Volver a ingresar</button>
             </div>
@@ -51,7 +51,7 @@ export default function LoginMayorista() {
               <p className="text-center text-sm text-gray-600 mb-1">Te enviaremos un enlace para recuperar tu contraseña.</p>
               <div className="relative"><Mail size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" /><input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="Tu correo" className="w-full pl-9 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#c9a24e]" /></div>
               {err && <p className="text-sm text-red-600">{err}</p>}
-              <button type="submit" disabled={loading} className="w-full bg-[#c9a24e] hover:bg-[#b8923f] text-[#1b2a4a] font-bold py-3 rounded-xl flex items-center justify-center gap-2 disabled:opacity-60">{loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Enviar enlace'}</button>
+              <button type="submit" disabled={loading} className="w-full bg-[#c9a24e] hover:bg-[#b8923f] text-[#16233f] font-bold py-3 rounded-xl flex items-center justify-center gap-2 disabled:opacity-60">{loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Enviar enlace'}</button>
               <button type="button" onClick={() => { setModo('login'); setErr(null) }} className="w-full text-sm text-gray-500 flex items-center justify-center gap-1"><ArrowLeft size={14} /> Volver</button>
             </form>
           )
@@ -60,7 +60,7 @@ export default function LoginMayorista() {
             <div className="relative"><Mail size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" /><input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="Tu correo" className="w-full pl-9 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#c9a24e]" /></div>
             <div className="relative"><Lock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" /><input type="password" required value={pass} onChange={e => setPass(e.target.value)} placeholder="Contraseña" className="w-full pl-9 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#c9a24e]" /></div>
             {err && <p className="text-sm text-red-600">{err}</p>}
-            <button type="submit" disabled={loading} className="w-full bg-[#c9a24e] hover:bg-[#b8923f] text-[#1b2a4a] font-bold py-3 rounded-xl flex items-center justify-center gap-2 disabled:opacity-60">{loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Ingresar'}</button>
+            <button type="submit" disabled={loading} className="w-full bg-[#c9a24e] hover:bg-[#b8923f] text-[#16233f] font-bold py-3 rounded-xl flex items-center justify-center gap-2 disabled:opacity-60">{loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Ingresar'}</button>
             <button type="button" onClick={() => { setModo('reset'); setErr(null) }} className="w-full text-center text-xs text-[#c9a24e] hover:underline">¿Olvidaste tu contraseña?</button>
           </form>
         )}
