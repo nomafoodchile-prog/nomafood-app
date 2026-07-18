@@ -36,9 +36,12 @@ export async function POST(
       precio_final: Number((item.precio_lista * (1 - descPct / 100)).toFixed(2)),
     }))
 
+    const IVA_PCT = 19
     const subtotal   = items.reduce((s: number, i: any) => s + i.precio_lista * i.cantidad, 0)
     const descuento  = items.reduce((s: number, i: any) => s + (i.precio_lista - i.precio_final) * i.cantidad, 0)
-    const total      = items.reduce((s: number, i: any) => s + i.precio_final * i.cantidad, 0)
+    const neto       = items.reduce((s: number, i: any) => s + i.precio_final * i.cantidad, 0)
+    const iva        = Math.round(neto * IVA_PCT / 100)   // CLP: IVA redondeado al peso
+    const total      = Number((neto + iva).toFixed(2))    // BRUTO = lo que se cobra
 
     // Crear pedido en Supabase
     const { data: pedido, error: pErr } = await supabase
@@ -48,7 +51,9 @@ export async function POST(
         estado:             'confirmado',
         subtotal:           Number(subtotal.toFixed(2)),
         descuento_monto:    Number(descuento.toFixed(2)),
-        total:              Number(total.toFixed(2)),
+        neto:               Number(neto.toFixed(2)),
+        iva:                iva,
+        total:              total,
         notas:              body.notas || null,
         fecha_entrega_req:  body.fecha_entrega_req || null,
         direccion_entrega:  body.direccion_entrega || null,
@@ -85,9 +90,19 @@ export async function POST(
           id:          item.producto_id || item.producto_sku || 'prod',
           title:       item.producto_nombre,
           quantity:    Number(item.cantidad),
-          unit_price:  Number(item.precio_final),
+          unit_price:  Number(item.precio_final),   // precio neto por unidad
           currency_id: 'CLP',
         }))
+        // Línea de IVA para que el cobro total sea el BRUTO (neto + IVA 19%)
+        if (iva > 0) {
+          mpItems.push({
+            id:          'iva-19',
+            title:       'IVA 19%',
+            quantity:    1,
+            unit_price:  iva,
+            currency_id: 'CLP',
+          })
+        }
 
         const mpRes = await fetch('https://api.mercadopago.com/checkout/preferences', {
           method: 'POST',
@@ -102,7 +117,7 @@ export async function POST(
               email: mayorista.email || '',
             },
             external_reference: pedido.id,
-            statement_descriptor: 'NOMA FOOD',
+            statement_descriptor: 'NOMMA FOOD',
             back_urls: {
               success: `${baseUrl}/portal/mayoristas/${params.token}/confirmacion?pedido=${pedido.id}&status=success`,
               failure: `${baseUrl}/portal/mayoristas/${params.token}/confirmacion?pedido=${pedido.id}&status=failure`,

@@ -178,6 +178,9 @@ export default function PortalMayoristas({ params }: { params: { token: string }
   const cartSubtotal = cart.reduce((s, i) => s + i.precio_lista     * i.cantidad, 0)
   const cartAhorro   = cartSubtotal - cartTotal
   const cartCount    = cart.reduce((s, i) => s + i.cantidad, 0)
+  const IVA_PCT      = 19
+  const cartIva      = Math.round(cartTotal * IVA_PCT / 100) // el neto es cartTotal
+  const cartTotalIva = cartTotal + cartIva                   // BRUTO = lo que paga el cliente
 
   /* ── Checkout ── */
   const submitOrder = async () => {
@@ -639,10 +642,19 @@ export default function PortalMayoristas({ params }: { params: { token: string }
                       <div className="border-t border-gray-100 pt-2" />
                     </>
                   )}
-                  <div className="flex justify-between font-bold text-[#16233f]">
-                    <span>Total pedido</span>
-                    <span className="text-[#c9a24e] text-lg">{fmt(cartTotal)}</span>
+                  <div className="flex justify-between text-sm text-gray-600 mb-1">
+                    <span>Neto</span>
+                    <span>{fmt(cartTotal)}</span>
                   </div>
+                  <div className="flex justify-between text-sm text-gray-600 mb-2">
+                    <span>IVA ({IVA_PCT}%)</span>
+                    <span>{fmt(cartIva)}</span>
+                  </div>
+                  <div className="border-t border-gray-100 pt-2 flex justify-between font-bold text-[#16233f]">
+                    <span>Total a pagar</span>
+                    <span className="text-[#c9a24e] text-lg">{fmt(cartTotalIva)}</span>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-1.5">Precios netos; el IVA (19%) se suma al total.</p>
                 </div>
 
                 <button
@@ -721,9 +733,17 @@ export default function PortalMayoristas({ params }: { params: { token: string }
                     <span className="text-green-400">-{fmt(cartAhorro)}</span>
                   </div>
                 )}
-                <div className="flex justify-between font-bold text-lg">
-                  <span>Total</span>
-                  <span className="text-[#c9a24e]">{fmt(cartTotal)}</span>
+                <div className="flex justify-between text-sm text-gray-300 mb-1">
+                  <span>Neto</span>
+                  <span>{fmt(cartTotal)}</span>
+                </div>
+                <div className="flex justify-between text-sm text-gray-300 mb-2">
+                  <span>IVA ({IVA_PCT}%)</span>
+                  <span>{fmt(cartIva)}</span>
+                </div>
+                <div className="border-t border-white/10 pt-2 flex justify-between font-bold text-lg">
+                  <span>Total a pagar</span>
+                  <span className="text-[#c9a24e]">{fmt(cartTotalIva)}</span>
                 </div>
               </div>
             </div>
@@ -741,7 +761,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
               ) : (
                 <>
                   <CreditCard className="w-4 h-4" />
-                  Confirmar y pagar {fmt(cartTotal)}
+                  Confirmar y pagar {fmt(cartTotalIva)}
                 </>
               )}
             </button>
