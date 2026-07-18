@@ -185,7 +185,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
   const cartIva      = Math.round(cartTotal * IVA_PCT / 100) // el neto es cartTotal
   const cartTotalIva = cartTotal + cartIva                   // BRUTO = lo que paga el cliente
 
-  // NOMMA Card (fidelización)
+  // NOMMA CARD (fidelización)
   const META_CANJE = 10000
   const ptsDisp    = mayorista?.puntos_disponibles || 0
   const ptsPend    = mayorista?.puntos_pendientes || 0
@@ -431,7 +431,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
             }`}
           >
             <CreditCard className="w-4 h-4 inline mr-1" />
-            NOMMA Card
+            NOMMA CARD
           </button>
         </div>
 
@@ -856,7 +856,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
         ════════════════════════════════════════════════════════ */}
         {showNomma && (
           <div>
-            <h2 className="text-lg font-bold text-[#16233f] mb-4">NOMMA Card</h2>
+            <h2 className="text-lg font-bold text-[#16233f] mb-4">NOMMA CARD</h2>
 
             {/* Tarjeta de membresía */}
             <div className="relative overflow-hidden rounded-3xl p-6 text-white shadow-lg" style={{ background: 'linear-gradient(135deg,#1f3355 0%,#16233f 55%,#101a31 100%)' }}>
@@ -909,7 +909,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
 
             {/* Cómo funciona */}
             <div className="bg-white rounded-2xl p-4 shadow-sm mt-4">
-              <p className="text-sm font-semibold text-[#16233f] mb-2">¿Cómo funciona tu NOMMA Card?</p>
+              <p className="text-sm font-semibold text-[#16233f] mb-2">¿Cómo funciona tu NOMMA CARD?</p>
               <ul className="space-y-2 text-xs text-gray-600">
                 <li className="flex gap-2"><span className="text-[#c9a24e] font-bold">•</span> Acumulas <b>1,5% del monto neto</b> de cada compra.</li>
                 <li className="flex gap-2"><span className="text-[#c9a24e] font-bold">•</span> Los puntos pasan a <b>disponibles</b> cuando tu pedido se entrega con éxito.</li>

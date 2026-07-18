@@ -49,7 +49,7 @@ export async function GET(
       .order('created_at', { ascending: false })
       .limit(10)
 
-    // NOMMA Card: puntos = 1,5% del neto. Disponibles = pedidos entregados;
+    // NOMMA CARD: puntos = 1,5% del neto. Disponibles = pedidos entregados;
     // Pendientes = pedidos en curso (aún no entregados). Cancelados no suman.
     // (Si aún no existen columnas neto/total, la query devuelve null → 0 puntos.)
     const { data: paraPuntos } = await supabase

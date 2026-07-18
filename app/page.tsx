@@ -35,7 +35,7 @@ const serif = "Georgia, 'Times New Roman', serif"
 const NAV = [
   { t: 'Nosotros', h: '#nosotros', icon: Factory },
   { t: 'Productos', h: '#productos', icon: Cookie },
-  { t: 'NOMMA POINTS', h: '#nomma-points', icon: CreditCard },
+  { t: 'NOMMA CARD', h: '#nomma-card', icon: CreditCard },
   { t: 'Trabajemos juntos', h: '#solicitud-mayorista', icon: Handshake },
 ]
 
@@ -372,8 +372,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ══ 8. NOMMA POINTS ══ */}
-      <section id="nomma-points" className="nf-sec" style={{ background: `linear-gradient(160deg, ${NAVY} 0%, ${NAVY_DEEP} 100%)`, color: '#fff' }}>
+      {/* ══ 8. NOMMA CARD ══ */}
+      <section id="nomma-card" className="nf-sec" style={{ background: `linear-gradient(160deg, ${NAVY} 0%, ${NAVY_DEEP} 100%)`, color: '#fff' }}>
         <div className="nf-wrap nf-points" style={{ padding: '74px 22px' }}>
           <div>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: GOLD_SOFT, fontSize: 13, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 16 }}>
@@ -381,7 +381,7 @@ export default function LandingPage() {
             </div>
             <h2 style={{ fontFamily: serif, fontSize: 38, fontWeight: 700, margin: '0 0 16px', lineHeight: 1.12 }}>Tu negocio también gana con cada compra</h2>
             <p style={{ color: 'rgba(255,255,255,.82)', fontSize: 17, lineHeight: 1.65, marginBottom: 26 }}>
-              Con <strong style={{ color: GOLD }}>NOMMA POINTS</strong> acumulas beneficios reales por cada pedido. Convierte tus compras en nuevas oportunidades para tu negocio.
+              Con <strong style={{ color: GOLD }}>NOMMA CARD</strong> acumulas beneficios reales por cada pedido. Convierte tus compras en nuevas oportunidades para tu negocio.
             </p>
             <div style={{ display: 'grid', gap: 14, marginBottom: 8 }}>
               {[
@@ -410,7 +410,7 @@ export default function LandingPage() {
               <div style={{ position: 'absolute', top: -60, right: -40, width: 200, height: 200, borderRadius: '50%', background: 'radial-gradient(circle, rgba(201,162,78,.28), transparent 70%)' }} />
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', position: 'relative' }}>
                 <div>
-                  <div style={{ fontWeight: 800, letterSpacing: 2, fontSize: 15 }}>NOMMA POINTS</div>
+                  <div style={{ fontWeight: 800, letterSpacing: 2, fontSize: 15 }}>NOMMA CARD</div>
                   <div style={{ fontSize: 11, opacity: .6, letterSpacing: 1 }}>NOMMA FOOD · Cliente mayorista</div>
                 </div>
                 <div style={{ width: 40, height: 40, borderRadius: 10, background: GOLD, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Sprout size={22} color={NAVY} /></div>
@@ -475,7 +475,7 @@ export default function LandingPage() {
               ['¿Atienden universidades, minimarkets o cafeterías?', 'Sí. Nuestra propuesta está pensada para universidades, minimarkets, cafeterías, oficinas y tiendas de conveniencia, entre otros canales.'],
               ['¿Hacen despacho?', 'Sí, con despacho programado según la frecuencia de tu negocio. Hoy operamos en la Región Metropolitana.'],
               ['¿Próximamente enviarán a regiones?', 'Estamos preparando el despacho a regiones. Muy pronto podremos llegar a más zonas del país.'],
-              ['¿Cómo funciona NOMMA POINTS?', 'Acumulas 1,5% del monto neto de cada compra. Los puntos se acreditan al entregar el pedido con éxito y puedes canjearlos desde 10.000 puntos por productos o descuentos.'],
+              ['¿Cómo funciona NOMMA CARD?', 'Acumulas 1,5% del monto neto de cada compra. Los puntos se acreditan al entregar el pedido con éxito y puedes canjearlos desde 10.000 puntos por productos o descuentos.'],
               ['¿Cuál es el beneficio de trabajar con NOMMA FOOD?', 'Además de la calidad y presentación comercial, ofrecemos acompañamiento cercano, productos pensados para rotación y una relación comercial de largo plazo.'],
             ].map(([q, a], i) => (
               <div key={i} className="nf-faq" style={{ background: '#fff', borderRadius: 14, border: `1px solid ${LINE}`, overflow: 'hidden' }}>
@@ -539,7 +539,7 @@ export default function LandingPage() {
             <div style={{ fontWeight: 700, marginBottom: 14, fontSize: 14, letterSpacing: .5 }}>Enlaces</div>
             <div style={{ display: 'grid', gap: 10, fontSize: 14, color: 'rgba(255,255,255,.72)' }}>
               <a href="#productos" style={{ color: 'inherit', textDecoration: 'none' }}>Productos</a>
-              <a href="#nomma-points" style={{ color: 'inherit', textDecoration: 'none' }}>NOMMA Points</a>
+              <a href="#nomma-card" style={{ color: 'inherit', textDecoration: 'none' }}>NOMMA CARD</a>
               <a href="#solicitud-mayorista" style={{ color: 'inherit', textDecoration: 'none' }}>Solicitar cuenta mayorista</a>
               <a href="/portal/mayoristas/login" style={{ color: 'inherit', textDecoration: 'none' }}>Ingresar al portal</a>
             </div>
