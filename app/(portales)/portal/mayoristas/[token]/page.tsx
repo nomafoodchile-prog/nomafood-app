@@ -17,6 +17,8 @@ interface Mayorista {
   email: string
   descuento_pct: number
   limite_credito: number
+  puntos_disponibles?: number
+  puntos_pendientes?: number
 }
 
 interface Producto {
@@ -95,6 +97,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
   const [cart, setCart]             = useState<CartItem[]>([])
   const [showCart, setShowCart]     = useState(false)
   const [showPedidos, setShowPedidos] = useState(false)
+  const [showNomma, setShowNomma]   = useState(false)
 
   // Catalog filters
   const [busqueda, setBusqueda]     = useState('')
@@ -181,6 +184,14 @@ export default function PortalMayoristas({ params }: { params: { token: string }
   const IVA_PCT      = 19
   const cartIva      = Math.round(cartTotal * IVA_PCT / 100) // el neto es cartTotal
   const cartTotalIva = cartTotal + cartIva                   // BRUTO = lo que paga el cliente
+
+  // NOMMA Card (fidelización)
+  const META_CANJE = 10000
+  const ptsDisp    = mayorista?.puntos_disponibles || 0
+  const ptsPend    = mayorista?.puntos_pendientes || 0
+  const ptsFaltan  = Math.max(0, META_CANJE - ptsDisp)
+  const ptsPct     = Math.min(100, Math.round((ptsDisp / META_CANJE) * 100))
+  const nfmt       = (n: number) => new Intl.NumberFormat('es-CL').format(Math.round(n))
 
   /* ── Checkout ── */
   const submitOrder = async () => {
@@ -336,7 +347,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
             </button>
             {/* Cart button */}
             <button
-              onClick={() => { setShowCart(true); setShowPedidos(false) }}
+              onClick={() => { setShowCart(true); setShowPedidos(false); setShowNomma(false) }}
               className="relative p-2 bg-[#c9a24e] hover:bg-[#b8923f] rounded-xl transition-colors"
             >
               <ShoppingCart className="w-5 h-5 text-white" />
@@ -351,16 +362,24 @@ export default function PortalMayoristas({ params }: { params: { token: string }
 
         {/* Bienvenida */}
         <div className="max-w-lg mx-auto px-4 pb-3">
-          <div className="flex items-center justify-between text-xs text-gray-400">
-            <span>
+          <div className="flex items-center justify-between text-xs text-gray-400 gap-2">
+            <span className="truncate">
               <User className="w-3 h-3 inline mr-1" />
               {mayorista?.nombre} · {mayorista?.empresa || 'Mayorista'}
             </span>
-            {(mayorista?.descuento_pct || 0) > 0 && (
-              <span className="bg-[#c9a24e]/20 text-[#c9a24e] px-2 py-0.5 rounded-full font-medium">
-                {mayorista?.descuento_pct}% descuento
-              </span>
-            )}
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {(mayorista?.descuento_pct || 0) > 0 && (
+                <span className="bg-[#c9a24e]/20 text-[#c9a24e] px-2 py-0.5 rounded-full font-medium">
+                  {mayorista?.descuento_pct}% desc.
+                </span>
+              )}
+              <button
+                onClick={() => { setShowNomma(true); setShowCart(false); setShowPedidos(false) }}
+                className="flex items-center gap-1 bg-[#c9a24e] text-[#16233f] px-2.5 py-0.5 rounded-full font-bold hover:opacity-90 transition-opacity"
+              >
+                <CreditCard className="w-3 h-3" /> {nfmt(ptsDisp)} pts
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -377,38 +396,49 @@ export default function PortalMayoristas({ params }: { params: { token: string }
         {/* ── Tabs ── */}
         <div className="flex gap-2 mt-4 mb-4">
           <button
-            onClick={() => { setShowCart(false); setShowPedidos(false) }}
-            className={`flex-1 py-2 px-3 rounded-xl text-sm font-medium transition-colors ${
-              !showCart && !showPedidos
+            onClick={() => { setShowCart(false); setShowPedidos(false); setShowNomma(false) }}
+            className={`flex-1 py-2 px-2 rounded-xl text-sm font-medium transition-colors ${
+              !showCart && !showPedidos && !showNomma
                 ? 'bg-[#16233f] text-white'
                 : 'bg-white text-gray-600 hover:bg-gray-50'
             }`}
           >
-            <Package className="w-4 h-4 inline mr-1.5" />
+            <Package className="w-4 h-4 inline mr-1" />
             Catálogo
           </button>
           <button
-            onClick={() => { setShowPedidos(true); setShowCart(false) }}
-            className={`flex-1 py-2 px-3 rounded-xl text-sm font-medium transition-colors ${
+            onClick={() => { setShowPedidos(true); setShowCart(false); setShowNomma(false) }}
+            className={`flex-1 py-2 px-2 rounded-xl text-sm font-medium transition-colors ${
               showPedidos
                 ? 'bg-[#16233f] text-white'
                 : 'bg-white text-gray-600 hover:bg-gray-50'
             }`}
           >
-            <ClipboardList className="w-4 h-4 inline mr-1.5" />
-            Mis pedidos
+            <ClipboardList className="w-4 h-4 inline mr-1" />
+            Pedidos
             {pedidos.length > 0 && (
-              <span className="ml-1.5 bg-[#c9a24e] text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
+              <span className="ml-1 bg-[#c9a24e] text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
                 {pedidos.length}
               </span>
             )}
+          </button>
+          <button
+            onClick={() => { setShowNomma(true); setShowCart(false); setShowPedidos(false) }}
+            className={`flex-1 py-2 px-2 rounded-xl text-sm font-medium transition-colors ${
+              showNomma
+                ? 'bg-[#16233f] text-white'
+                : 'bg-white text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            <CreditCard className="w-4 h-4 inline mr-1" />
+            NOMMA Card
           </button>
         </div>
 
         {/* ════════════════════════════════════════════════════════
              VISTA: CATÁLOGO
         ════════════════════════════════════════════════════════ */}
-        {!showCart && !showPedidos && (
+        {!showCart && !showPedidos && !showNomma && (
           <div>
             {/* Búsqueda */}
             <div className="relative mb-3">
@@ -820,6 +850,75 @@ export default function PortalMayoristas({ params }: { params: { token: string }
             )}
           </div>
         )}
+
+        {/* ════════════════════════════════════════════════════════
+             VISTA: NOMMA CARD (fidelización)
+        ════════════════════════════════════════════════════════ */}
+        {showNomma && (
+          <div>
+            <h2 className="text-lg font-bold text-[#16233f] mb-4">NOMMA Card</h2>
+
+            {/* Tarjeta de membresía */}
+            <div className="relative overflow-hidden rounded-3xl p-6 text-white shadow-lg" style={{ background: 'linear-gradient(135deg,#1f3355 0%,#16233f 55%,#101a31 100%)' }}>
+              <div className="absolute -top-16 -right-10 w-56 h-56 rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(201,162,78,.28), transparent 70%)' }} />
+              <div className="relative">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-[11px] tracking-widest text-gray-400">NOMMA FOOD</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <h3 className="text-xl font-extrabold tracking-wide">NOMMA CARD</h3>
+                      <CreditCard className="w-5 h-5 text-[#c9a24e]" />
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-semibold bg-[#c9a24e]/20 text-[#c9a24e] px-2.5 py-1 rounded-full whitespace-nowrap">MEMBRESÍA MAYORISTA</span>
+                </div>
+
+                <div className="mt-5">
+                  <p className="text-[11px] tracking-widest text-gray-400">NEGOCIO</p>
+                  <p className="text-lg font-semibold">{mayorista?.empresa || mayorista?.nombre}</p>
+                </div>
+
+                <div className="flex gap-10 mt-5">
+                  <div>
+                    <p className="text-[11px] tracking-widest text-gray-400">DISPONIBLES</p>
+                    <p className="text-3xl font-extrabold text-[#c9a24e]">{nfmt(ptsDisp)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] tracking-widest text-gray-400">PENDIENTES</p>
+                    <p className="text-3xl font-extrabold text-white/90">{nfmt(ptsPend)}</p>
+                  </div>
+                </div>
+
+                {/* Progreso hacia el canje */}
+                <div className="mt-6">
+                  <div className="flex justify-between text-xs text-gray-300 mb-1.5">
+                    <span>Hacia el canje mínimo</span>
+                    <span className="font-semibold">{nfmt(ptsDisp)} / {nfmt(META_CANJE)}</span>
+                  </div>
+                  <div className="h-2.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,.12)' }}>
+                    <div className="h-full rounded-full" style={{ width: `${ptsPct}%`, background: 'linear-gradient(90deg,#e2ca8f,#c9a24e)' }} />
+                  </div>
+                  <p className="text-[11px] text-gray-400 mt-2">
+                    {ptsFaltan > 0
+                      ? <>Canje disponible desde {nfmt(META_CANJE)} puntos · faltan <b className="text-white">{nfmt(ptsFaltan)}</b></>
+                      : <>¡Ya puedes canjear tus puntos! 🎉</>}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Cómo funciona */}
+            <div className="bg-white rounded-2xl p-4 shadow-sm mt-4">
+              <p className="text-sm font-semibold text-[#16233f] mb-2">¿Cómo funciona tu NOMMA Card?</p>
+              <ul className="space-y-2 text-xs text-gray-600">
+                <li className="flex gap-2"><span className="text-[#c9a24e] font-bold">•</span> Acumulas <b>1,5% del monto neto</b> de cada compra.</li>
+                <li className="flex gap-2"><span className="text-[#c9a24e] font-bold">•</span> Los puntos pasan a <b>disponibles</b> cuando tu pedido se entrega con éxito.</li>
+                <li className="flex gap-2"><span className="text-[#c9a24e] font-bold">•</span> Mientras el pedido está en curso, quedan <b>pendientes</b>.</li>
+                <li className="flex gap-2"><span className="text-[#c9a24e] font-bold">•</span> Canjeas desde <b>{nfmt(META_CANJE)} puntos</b> por productos o descuentos.</li>
+              </ul>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── Bottom bar cuando hay items en carrito ── */}
@@ -827,7 +926,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-40">
           <div className="max-w-lg mx-auto">
             <button
-              onClick={() => { setShowCart(true); setShowPedidos(false) }}
+              onClick={() => { setShowCart(true); setShowPedidos(false); setShowNomma(false) }}
               className="w-full bg-[#c9a24e] hover:bg-[#b8923f] text-white font-semibold py-3 px-6 rounded-xl transition-colors flex items-center justify-between"
             >
               <span className="bg-white/20 text-white text-sm font-bold px-2 py-0.5 rounded-lg">

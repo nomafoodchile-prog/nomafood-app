@@ -49,7 +49,31 @@ export async function GET(
       .order('created_at', { ascending: false })
       .limit(10)
 
-    return NextResponse.json({ mayorista, catalogo, pedidos: pedidos || [] })
+    // NOMMA Card: puntos = 1,5% del neto. Disponibles = pedidos entregados;
+    // Pendientes = pedidos en curso (aún no entregados). Cancelados no suman.
+    // (Si aún no existen columnas neto/total, la query devuelve null → 0 puntos.)
+    const { data: paraPuntos } = await supabase
+      .from('mayorista_pedidos')
+      .select('estado, neto, total')
+      .eq('mayorista_id', mayorista.id)
+      .neq('estado', 'borrador')
+      .neq('estado', 'cancelado')
+
+    const RATE = 0.015
+    let puntos_disponibles = 0
+    let puntos_pendientes = 0
+    for (const p of paraPuntos || []) {
+      const base = Number(p.neto) || Number(p.total) || 0
+      const pts = Math.floor(base * RATE)
+      if (p.estado === 'entregado') puntos_disponibles += pts
+      else puntos_pendientes += pts
+    }
+
+    return NextResponse.json({
+      mayorista: { ...mayorista, puntos_disponibles, puntos_pendientes },
+      catalogo,
+      pedidos: pedidos || [],
+    })
   } catch (e) {
     console.error('[portal/mayoristas] GET error:', e)
     return NextResponse.json({ error: 'Error interno' }, { status: 500 })
