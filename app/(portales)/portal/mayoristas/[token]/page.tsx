@@ -326,7 +326,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
 
       {/* ── Header ── */}
       <header className="bg-[#16233f] text-white sticky top-0 z-50 shadow-lg">
-        <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
+        <div className="max-w-lg lg:max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-[#c9a24e] flex items-center justify-center flex-shrink-0">
               <Sprout className="w-5 h-5 text-[#16233f]" />
@@ -361,7 +361,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
         </div>
 
         {/* Bienvenida */}
-        <div className="max-w-lg mx-auto px-4 pb-3">
+        <div className="max-w-lg lg:max-w-4xl mx-auto px-4 pb-3">
           <div className="flex items-center justify-between text-xs text-gray-400 gap-2">
             <span className="truncate">
               <User className="w-3 h-3 inline mr-1" />
@@ -391,7 +391,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
         </div>
       )}
 
-      <div className="max-w-lg mx-auto px-4 pb-24">
+      <div className="max-w-lg lg:max-w-4xl mx-auto px-4 pb-24">
 
         {/* ── Tabs ── */}
         <div className="flex gap-2 mt-4 mb-4">
@@ -488,7 +488,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
                 <p className="text-sm">No hay productos{busqueda ? ` para "${busqueda}"` : ''}</p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
                 {catalogoFiltrado.map(prod => {
                   const inCart = cart.find(i => i.producto_id === prod.id)
                   const isExpanded = expandedProduct === prod.id
@@ -587,7 +587,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
              VISTA: CARRITO
         ═══════════════════════════════════════════════════════ */}
         {showCart && !showCheckout && (
-          <div>
+          <div className="lg:max-w-xl lg:mx-auto">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-[#16233f]">Tu pedido</h2>
               <button
@@ -702,7 +702,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
              VISTA: CHECKOUT
         ════════════════════════════════════════════════════════ */}
         {showCart && showCheckout && (
-          <div>
+          <div className="lg:max-w-xl lg:mx-auto">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-[#16233f]">Detalles del pedido</h2>
               <button
@@ -811,7 +811,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
                 <p className="text-sm">No tienes pedidos aún</p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
                 {pedidos.map(pedido => (
                   <div key={pedido.id} className="bg-white rounded-2xl overflow-hidden shadow-sm">
                     <div className="p-4">
@@ -855,7 +855,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
              VISTA: NOMMA CARD (fidelización)
         ════════════════════════════════════════════════════════ */}
         {showNomma && (
-          <div>
+          <div className="lg:max-w-2xl lg:mx-auto">
             <h2 className="text-lg font-bold text-[#16233f] mb-4">NOMMA CARD</h2>
 
             {/* Tarjeta de membresía */}
@@ -924,7 +924,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
       {/* ── Bottom bar cuando hay items en carrito ── */}
       {cart.length > 0 && !showCart && (
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-40">
-          <div className="max-w-lg mx-auto">
+          <div className="max-w-lg lg:max-w-4xl mx-auto">
             <button
               onClick={() => { setShowCart(true); setShowPedidos(false); setShowNomma(false) }}
               className="w-full bg-[#c9a24e] hover:bg-[#b8923f] text-white font-semibold py-3 px-6 rounded-xl transition-colors flex items-center justify-between"
