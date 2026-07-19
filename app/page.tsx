@@ -586,6 +586,7 @@ function FormularioMayorista() {
     empresa: '', rut: '', giro: '', nombre: '', cargo: '', telefono: '', email: '',
     direccion: '', direccion_despacho: '', comuna: '', tipo_cliente: '',
     productos_interes: '', volumen_estimado: '', comentario: '',
+    dias_atencion: '', horario_atencion: '',
     consentimiento: false, website: '', // website = honeypot anti-spam
   }
   const [f, setF] = useState(empty)
@@ -603,6 +604,8 @@ function FormularioMayorista() {
       f.direccion_despacho ? `Dirección de despacho: ${f.direccion_despacho}.` : '',
       f.comentario,
     ].filter(Boolean).join(' ')
+    // Días + horario de atención se combinan en horario_recepcion (campo existente).
+    const horario_recepcion = [f.dias_atencion, f.horario_atencion].filter(Boolean).join(' · ') || null
     try {
       const r = await fetch('/api/mayoristas/solicitud', {
         method: 'POST',
@@ -612,6 +615,7 @@ function FormularioMayorista() {
           cargo: f.cargo, telefono: f.telefono, email: f.email,
           direccion: f.direccion, comuna: f.comuna, tipo_cliente: f.tipo_cliente,
           productos_interes: f.productos_interes, volumen_estimado: f.volumen_estimado,
+          horario_recepcion,
           comentario, consentimiento: f.consentimiento, website: f.website,
           origen: 'landing',
         }),
@@ -634,7 +638,7 @@ function FormularioMayorista() {
   const field = (k: string, label: string, opts: { type?: string; full?: boolean; ph?: string } = {}) => (
     <div key={k} style={{ gridColumn: opts.full ? '1 / -1' : 'auto' }}>
       <label style={labelStyle}>{label}</label>
-      <input style={inputStyle} type={opts.type || 'text'} value={S((f as Row)[k])} onChange={e => set(k, e.target.value)} placeholder={opts.ph || ''} required={['empresa', 'rut', 'giro', 'nombre', 'cargo', 'telefono', 'email', 'direccion', 'comuna', 'tipo_cliente', 'volumen_estimado'].includes(k)} />
+      <input style={inputStyle} type={opts.type || 'text'} value={S((f as Row)[k])} onChange={e => set(k, e.target.value)} placeholder={opts.ph || ''} required={['empresa', 'rut', 'giro', 'nombre', 'cargo', 'telefono', 'email', 'direccion', 'comuna', 'tipo_cliente', 'volumen_estimado', 'horario_atencion'].includes(k)} />
     </div>
   )
 
@@ -690,6 +694,14 @@ function FormularioMayorista() {
                 {['Semanal', 'Quincenal', 'Mensual', 'Ocasional', 'Aún no lo sé'].map(o => <option key={o} value={o}>{o}</option>)}
               </select>
             </div>
+            <div>
+              <label style={labelStyle}>Días de atención *</label>
+              <select style={inputStyle} value={f.dias_atencion} onChange={e => set('dias_atencion', e.target.value)} required>
+                <option value="">Selecciona…</option>
+                {['Lunes a viernes', 'Lunes a sábado', 'Lunes a domingo', 'Todos los días', 'Fines de semana', 'Otro'].map(o => <option key={o} value={o}>{o}</option>)}
+              </select>
+            </div>
+            {field('horario_atencion', 'Horario de atención *', { ph: 'Ej: 09:00 a 18:00' })}
             {field('productos_interes', 'Productos de interés', { full: true, ph: 'Ej: línea salada, pastelería, congelados…' })}
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={labelStyle}>Comentarios adicionales</label>
