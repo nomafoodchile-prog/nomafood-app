@@ -22,19 +22,23 @@ export async function GET(
       return NextResponse.json({ error: 'Token inválido o expirado' }, { status: 401 })
     }
 
-    // Catálogo de productos activos con precio mayorista calculado
+    // Catálogo de productos activos con precio mayorista calculado.
+    // Excluye tipos internos (insumos/materia prima) para que NO aparezcan en el portal.
+    const TIPOS_INTERNOS = ['materia_prima', 'envase_insumo', 'preelaboracion']
     const { data: productos } = await supabase
       .from('products')
-      .select('id, nombre, sku, precio, unidad, categoria, stock_actual, imagen_url, descripcion')
+      .select('id, nombre, sku, precio, unidad, categoria, stock_actual, imagen_url, descripcion, tipo_producto')
       .eq('activo', true)
       .order('categoria')
       .order('nombre')
 
-    const catalogo = (productos || []).map(p => ({
-      ...p,
-      precio_lista: p.precio,
-      precio_mayorista: Number((p.precio * (1 - mayorista.descuento_pct / 100)).toFixed(2)),
-    }))
+    const catalogo = (productos || [])
+      .filter(p => !TIPOS_INTERNOS.includes(String((p as { tipo_producto?: string }).tipo_producto)))
+      .map(p => ({
+        ...p,
+        precio_lista: p.precio,
+        precio_mayorista: Number((p.precio * (1 - mayorista.descuento_pct / 100)).toFixed(2)),
+      }))
 
     // Pedidos recientes (últimos 10)
     const { data: pedidos } = await supabase
