@@ -5,8 +5,9 @@ import {
   Sprout, Leaf, Snowflake, Truck, ArrowRight, Factory, Sparkles,
   GraduationCap, Coffee, Building2, Store, ShoppingBag, Award, Handshake,
   MapPin, Mail, Check, ChevronDown, MessageCircle, Gift,
-  TrendingUp, PackageCheck, Star, CalendarClock, Cookie, CreditCard, Menu, X,
+  TrendingUp, PackageCheck, Star, CalendarClock, Cookie, CreditCard, Menu, X, Ship,
 } from 'lucide-react'
+import ImportacionSection from '@/components/ImportacionSection'
 
 type Row = Record<string, unknown>
 const S = (v: unknown) => (v === null || v === undefined ? '' : String(v))
@@ -35,6 +36,7 @@ const serif = "Georgia, 'Times New Roman', serif"
 const NAV = [
   { t: 'Nosotros', h: '#nosotros', icon: Factory },
   { t: 'Productos', h: '#productos', icon: Cookie },
+  { t: 'Importación', h: '#importacion', icon: Ship },
   { t: 'NOMMA CARD', h: '#nomma-card', icon: CreditCard },
   { t: 'Trabajemos juntos', h: '#solicitud-mayorista', icon: Handshake },
 ]
@@ -485,6 +487,9 @@ export default function LandingPage() {
 
       {/* ══ 10. FORMULARIO MAYORISTA ══ */}
       <FormularioMayorista />
+
+      {/* ══ 10.b CANAL DE IMPORTACIÓN ══ */}
+      <ImportacionSection />
 
       {/* ══ 11. FAQ ══ */}
       <section className="nf-sec" style={{ background: WARM }}>

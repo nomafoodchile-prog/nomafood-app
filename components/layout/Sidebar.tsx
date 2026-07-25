@@ -28,6 +28,7 @@ import {
   MessageCircle,
   AlertTriangle,
   BarChart3,
+  Ship,
 } from 'lucide-react'
 import { Logo } from './Logo'
 import { supabase } from '@/lib/supabase/client'
@@ -67,6 +68,7 @@ const navItems: NavItem[] = [
       { label: 'Productos', href: '/comercial/productos', icon: Tag },
       { label: 'Clientes', href: '/comercial/clientes', icon: Users },
       { label: 'Campañas', href: '/comercial/campanas', icon: Megaphone },
+      { label: 'Importaciones', href: '/comercial/importaciones', icon: Ship },
       { label: 'Analítica web', href: '/comercial/analitica', icon: BarChart3 },
     ],
   },
