@@ -65,7 +65,7 @@ export default function LoginMayorista() {
           </form>
         )}
 
-        <p className="text-center text-xs text-gray-400 mt-4">¿Aún no eres cliente? <a href="/mayoristas" className="text-[#c9a24e] underline">Solicita acceso</a></p>
+        <p className="text-center text-xs text-gray-400 mt-4">¿Aún no eres cliente? <a href="/#solicitud-mayorista" className="text-[#c9a24e] underline">Solicita acceso</a></p>
       </div>
     </div>
   )
