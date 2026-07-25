@@ -38,6 +38,7 @@ const TABS: TabDef[] = [
     { k: 'codigo_tipo', label: 'Tipo de código', t: 'select', opts: ['ninguno', 'ean13', 'code128', 'qr'] },
     { k: 'codigo_valor', label: 'Código (valor)', t: 'text' },
     { k: 'descripcion', label: 'Descripción comercial', t: 'textarea' },
+    { k: 'foto_oficial_url', label: 'Foto del producto (URL)', t: 'text' },
     { k: 'activo', label: 'Activo comercial', t: 'toggle' },
     { k: 'visible_catalogo', label: 'Visible en catálogo', t: 'toggle' },
     { k: 'maneja_lote', label: 'Manejo de lote', t: 'toggle' },
