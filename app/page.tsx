@@ -327,41 +327,28 @@ export default function LandingPage() {
         <div className="nf-wrap" style={{ padding: '60px 22px' }}>
           <Eyebrow>En el punto de venta</Eyebrow>
           <H2>Así se ve nuestra propuesta en vitrina</H2>
-          <p style={{ textAlign: 'center', color: MUTED, maxWidth: 600, margin: '0 auto 40px', fontSize: 16.5, lineHeight: 1.6 }}>
-            Mendocinos, empanadas, galletas, ensaladas, gohan y mucho más: productos listos para una vitrina atractiva que invita a la compra.
+          <p style={{ textAlign: 'center', color: MUTED, maxWidth: 620, margin: '0 auto 40px', fontSize: 16.5, lineHeight: 1.6 }}>
+            Nuestros productos vegetarianos y veganos lucen perfectos en una vitrina refrigerada: mendocinos, galletas, empanadas, ensaladas, gohan y más, listos para vender en cafeterías, minimarkets y oficinas.
           </p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(188px, 1fr))', gap: 18 }}>
-            {[
-              { name: 'Mendocino', file: 'mendocino.jpg', estrella: true },
-              { name: 'Empanadas', file: 'empanadas.jpg' },
-              { name: 'Galletas', file: 'galletas.jpg' },
-              { name: 'Ensaladas', file: 'ensaladas.jpg' },
-              { name: 'Gohan', file: 'gohan.jpg' },
-            ].map(p => (
-              <div key={p.name} className="nf-card" style={{ background: '#fff', borderRadius: 18, overflow: 'hidden', border: `1px solid ${LINE}` }}>
-                <div style={{ position: 'relative', aspectRatio: '4 / 3', background: `linear-gradient(135deg, #eee9dc, #f6f3ec)`, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                  {p.estrella ? (
-                    <span style={{ position: 'absolute', top: 10, left: 10, zIndex: 2, display: 'inline-flex', alignItems: 'center', gap: 5, background: GOLD, color: NAVY, fontWeight: 800, fontSize: 11.5, letterSpacing: .3, padding: '5px 10px', borderRadius: 20, boxShadow: '0 4px 12px rgba(201,162,78,.45)' }}>
-                      <Star size={13} fill={NAVY} /> Producto estrella
-                    </span>
-                  ) : null}
-                  <span style={{ color: MUTED, fontSize: 12.5, fontWeight: 600 }}>Foto próximamente</span>
-                  {/* Al subir /public/productos/{file}, la foto reemplaza el fondo automáticamente */}
-                  <img
-                    src={`/productos/${p.file}`}
-                    alt={p.name}
-                    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
-                    onError={e => { e.currentTarget.style.display = 'none' }}
-                  />
-                </div>
-                <div style={{ padding: '13px 16px', fontWeight: 700, fontSize: 15.5, textAlign: 'center' }}>{p.name}</div>
+          {/* Foto de vitrina refrigerada (referencial hasta tener la foto real con etiquetas definitivas) */}
+          <div style={{ position: 'relative', maxWidth: 960, margin: '0 auto', aspectRatio: '16 / 9', borderRadius: 22, overflow: 'hidden', border: `1px solid ${LINE}`, boxShadow: '0 20px 50px rgba(22,35,63,.12)', background: `linear-gradient(135deg, #eee9dc, #f6f3ec)` }}>
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: 30 }}>
+              <div>
+                <div style={{ width: 66, height: 66, borderRadius: 16, background: '#fff', border: `1px solid ${LINE}`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}><Store size={30} color={GOLD} /></div>
+                <div style={{ fontWeight: 700, fontSize: 16, color: NAVY }}>Aquí irá la foto de nuestra vitrina refrigerada</div>
               </div>
-            ))}
-            {/* Invitación al catálogo completo */}
-            <a href="#productos" className="nf-card" style={{ textDecoration: 'none', background: NAVY, borderRadius: 18, overflow: 'hidden', border: `1px solid ${NAVY}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', color: '#fff', minHeight: 160, padding: 18 }}>
-              <Store size={28} color={GOLD} />
-              <div style={{ fontWeight: 700, fontSize: 15.5, marginTop: 10 }}>Y mucho más</div>
-              <div style={{ fontSize: 13, color: 'rgba(255,255,255,.7)', marginTop: 4 }}>Ver todo el catálogo →</div>
+            </div>
+            <img
+              src="/productos/vitrina.jpg"
+              alt="Vitrina refrigerada con productos NOMMA FOOD"
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+              onError={e => { e.currentTarget.style.display = 'none' }}
+            />
+            <span style={{ position: 'absolute', bottom: 10, right: 12, background: 'rgba(22,35,63,.72)', color: '#fff', fontSize: 11.5, fontWeight: 600, padding: '4px 10px', borderRadius: 20 }}>Imagen referencial</span>
+          </div>
+          <div style={{ textAlign: 'center', marginTop: 22 }}>
+            <a href="#productos" style={{ color: NAVY, fontWeight: 700, textDecoration: 'none', fontSize: 15, display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+              <Store size={17} color={GOLD} /> Ver todo el catálogo →
             </a>
           </div>
         </div>
