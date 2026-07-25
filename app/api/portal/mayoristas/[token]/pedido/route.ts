@@ -29,6 +29,31 @@ export async function POST(
       return NextResponse.json({ error: 'El carrito está vacío' }, { status: 400 })
     }
 
+    // Validar stock disponible ANTES de crear el pedido (evita vender sin stock)
+    const idsStock = body.items.map((i: any) => i.producto_id).filter(Boolean)
+    if (idsStock.length) {
+      const { data: stockRows } = await supabase
+        .from('products')
+        .select('id, nombre, stock_actual')
+        .in('id', idsStock)
+      const stockMap = new Map((stockRows || []).map((p: any) => [p.id, p]))
+      const faltantes: string[] = []
+      for (const it of body.items) {
+        if (!it.producto_id) continue
+        const p = stockMap.get(it.producto_id)
+        const disp = p ? Number(p.stock_actual) : 0
+        if (!p || disp < Number(it.cantidad)) {
+          faltantes.push(`${it.producto_nombre || p?.nombre || 'Producto'} (quedan ${Math.max(0, disp)})`)
+        }
+      }
+      if (faltantes.length) {
+        return NextResponse.json(
+          { error: `Sin stock suficiente: ${faltantes.join(', ')}. Ajusta las cantidades e intenta de nuevo.` },
+          { status: 409 },
+        )
+      }
+    }
+
     // Calcular totales
     const descPct = mayorista.descuento_pct || 0
     const items = body.items.map((item: any) => ({
