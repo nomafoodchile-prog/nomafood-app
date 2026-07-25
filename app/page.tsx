@@ -27,8 +27,8 @@ const OLIVE = '#5c6b4a'
 const MUTED = '#6b6a63'
 const LINE = '#eae5d8'
 
-// ⚠️ Nataly: reemplaza por el número real de WhatsApp comercial (formato internacional sin +).
-const WHATSAPP_URL = 'https://wa.me/56900000000'
+// WhatsApp comercial de NOMMA FOOD.
+const WHATSAPP_URL = 'https://wa.me/56941104151'
 
 const serif = "Georgia, 'Times New Roman', serif"
 
