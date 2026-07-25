@@ -27,6 +27,7 @@ import {
   Radio,
   MessageCircle,
   AlertTriangle,
+  BarChart3,
 } from 'lucide-react'
 import { Logo } from './Logo'
 import { supabase } from '@/lib/supabase/client'
@@ -66,6 +67,7 @@ const navItems: NavItem[] = [
       { label: 'Productos', href: '/comercial/productos', icon: Tag },
       { label: 'Clientes', href: '/comercial/clientes', icon: Users },
       { label: 'Campañas', href: '/comercial/campanas', icon: Megaphone },
+      { label: 'Analítica web', href: '/comercial/analitica', icon: BarChart3 },
     ],
   },
   {
@@ -239,7 +241,7 @@ export function Sidebar() {
           NF
         </div>
         <div>
-          <p className="text-sm font-bold text-white leading-tight">Noma Food</p>
+          <p className="text-sm font-bold text-white leading-tight">NOMMA FOOD</p>
           <p className="text-[10px] text-gray-500 leading-tight">Alma Libre Grupo SpA</p>
         </div>
       </div>

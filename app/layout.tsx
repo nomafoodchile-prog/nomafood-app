@@ -1,5 +1,9 @@
 ﻿import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import "./globals.css";
+
+// Google Analytics 4 — se activa solo si NEXT_PUBLIC_GA_ID está configurada en Vercel.
+const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 
 const SITE_URL = "https://nommafood.cl";
 const TITLE = "NOMMA FOOD | Productos vegetarianos y veganos para canal mayorista";
@@ -53,7 +57,21 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <body>{children}</body>
+      <body>
+        {children}
+        {GA_ID ? (
+          <>
+            <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} strategy="afterInteractive" />
+            <Script
+              id="ga4-init"
+              strategy="afterInteractive"
+              dangerouslySetInnerHTML={{
+                __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${GA_ID}');`,
+              }}
+            />
+          </>
+        ) : null}
+      </body>
     </html>
   );
 }

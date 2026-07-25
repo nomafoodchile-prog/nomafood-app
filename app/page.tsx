@@ -51,6 +51,28 @@ export default function LandingPage() {
       .catch(() => setLoading(false))
   }, [])
 
+  // Registro de visita (analítica propia): fuente, campaña y UTMs.
+  useEffect(() => {
+    try {
+      const q = new URLSearchParams(window.location.search)
+      let vid = localStorage.getItem('nf_vid')
+      if (!vid) { vid = Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem('nf_vid', vid) }
+      fetch('/api/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        keepalive: true,
+        body: JSON.stringify({
+          path: window.location.pathname,
+          referrer: document.referrer || null,
+          utm_source: q.get('utm_source'),
+          utm_medium: q.get('utm_medium'),
+          utm_campaign: q.get('utm_campaign'),
+          visitor_id: vid,
+        }),
+      }).catch(() => {})
+    } catch { /* no romper la landing por analítica */ }
+  }, [])
+
   const categorias = [...new Set(prods.map(p => S(p.categoria) || 'Otros'))]
 
   return (
