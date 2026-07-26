@@ -42,5 +42,10 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|public).*)'],
+  // Excluimos también los archivos SEO/compartir que Google y las redes piden
+  // directo (robots, sitemap, imagen OpenGraph, íconos): sin esto el middleware
+  // los redirige a /login y rompe el indexado y los previews al compartir.
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|public|robots.txt|sitemap.xml|opengraph-image|twitter-image|icon|apple-icon|manifest.webmanifest).*)',
+  ],
 }
