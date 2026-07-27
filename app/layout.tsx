@@ -2,8 +2,10 @@
 import Script from "next/script";
 import "./globals.css";
 
-// Google Analytics 4 — se activa solo si NEXT_PUBLIC_GA_ID está configurada en Vercel.
-const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
+// Google Analytics 4 — se activa solo si hay un measurement ID configurado en Vercel.
+// Aceptamos ambos nombres por compatibilidad: la variable ya existente en Vercel
+// se llama NEXT_PUBLIC_GA4_ID, y NEXT_PUBLIC_GA_ID es el nombre original del código.
+const GA_ID = process.env.NEXT_PUBLIC_GA_ID || process.env.NEXT_PUBLIC_GA4_ID;
 
 const SITE_URL = "https://nommafood.cl";
 const TITLE = "NOMMA FOOD | Productos vegetarianos y veganos para canal mayorista";
