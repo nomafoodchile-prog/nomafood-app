@@ -27,13 +27,13 @@ export async function OPTIONS(req: NextRequest) {
   return new NextResponse(null, { status: 204, headers: corsHeaders(req.headers.get('origin')) })
 }
 
-// Envía un correo por Resend. No lanza: devuelve true/false.
-async function enviarEmail(from: string, to: string, subject: string, html: string) {
-  if (!real(process.env.RESEND_API_KEY) || !to) return false
+// Envía un correo por Resend con la API key indicada. No lanza: devuelve true/false.
+async function enviarEmail(from: string, to: string, subject: string, html: string, apiKey = process.env.RESEND_API_KEY) {
+  if (!real(apiKey) || !to) return false
   try {
     const r = await fetch('https://api.resend.com/emails', {
       method: 'POST',
-      headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ from, to, subject, html }),
     })
     return r.ok
@@ -123,6 +123,12 @@ export async function POST(req: NextRequest) {
   const remitenteCliente = esBrotes
     ? (process.env.WHOLESALE_BROTES_FROM_EMAIL || remitenteNomma)
     : remitenteNomma
+  // Si hay una cuenta Resend propia de Brotes (dominio brotesasiaticos.cl verificado ahí),
+  // la confirmación al cliente de Brotes sale con esa key. Si no, cae a la key principal
+  // (con el remitente provisional en nomafood.cl). Cambiar WHOLESALE_BROTES_FROM_EMAIL a
+  // una dirección @brotesasiaticos.cl SOLO cuando WHOLESALE_BROTES_RESEND_KEY esté puesta.
+  const brotesKey = process.env.WHOLESALE_BROTES_RESEND_KEY
+  const clienteKey = esBrotes && real(brotesKey) ? brotesKey : process.env.RESEND_API_KEY
   const comercialEmail = process.env.WHOLESALE_ACCESS_REQUEST_TO_EMAIL
 
   // En paralelo (enviarEmail nunca lanza: devuelve false si falla o está en demo).
@@ -130,7 +136,7 @@ export async function POST(req: NextRequest) {
   const conf = buildConfirmacionCliente(resumen)
   const [avisoSent, clienteSent] = await Promise.all([
     comercialEmail ? enviarEmail(remitenteNomma, comercialEmail, aviso.subject, aviso.html) : Promise.resolve(false),
-    enviarEmail(remitenteCliente, insert.email, conf.subject, conf.html),
+    enviarEmail(remitenteCliente, insert.email, conf.subject, conf.html, clienteKey),
   ])
 
   // Registro en outbox (queda el rastro aunque el envío directo falle o esté en demo)
