@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type FormEvent, type CSSProperties, type ReactNode } from 'react'
 import {
-  Sprout, Leaf, Snowflake, Truck, ArrowRight, Factory, Sparkles,
+  Sprout, Leaf, Snowflake, ArrowRight, Factory, Sparkles,
   GraduationCap, Coffee, Building2, Store, ShoppingBag, Award, Handshake,
   MapPin, Mail, Check, ChevronDown, MessageCircle, Gift,
   TrendingUp, PackageCheck, Star, CalendarClock, Cookie, CreditCard, Menu, X, Ship,
@@ -168,7 +168,7 @@ export default function LandingPage() {
               Productos clásicos e innovadores, <span style={{ color: GOLD }}>listos para vender.</span>
             </h1>
             <p style={{ fontSize: 18.5, color: 'rgba(255,255,255,.82)', maxWidth: 520, lineHeight: 1.6, marginBottom: 30 }}>
-              Abastecimiento mayorista para negocios que buscan calidad, presentación y una propuesta distinta. Elaboración propia, cadena de frío y atención cercana.
+              Abastecimiento mayorista para negocios que buscan calidad, presentación y una propuesta distinta. Sabores innovadores, cadena de frío y atención cercana.
             </p>
             <div style={{ display: 'flex', gap: 13, flexWrap: 'wrap', marginBottom: 30 }}>
               <a href="#solicitud-mayorista" className="nf-btn" style={{ background: GOLD, color: NAVY, textDecoration: 'none', fontWeight: 700, padding: '15px 28px', borderRadius: 11, display: 'inline-flex', alignItems: 'center', gap: 9, fontSize: 15.5, boxShadow: '0 10px 26px rgba(201,162,78,.35)' }}>
@@ -179,7 +179,7 @@ export default function LandingPage() {
               </a>
             </div>
             <div style={{ display: 'flex', gap: 22, flexWrap: 'wrap' }}>
-              {[[<Factory key="f" size={16} color={GOLD_SOFT} />, 'Producción propia'], [<Snowflake key="s" size={16} color={GOLD_SOFT} />, 'Cadena de frío'], [<CalendarClock key="c" size={16} color={GOLD_SOFT} />, 'Despacho programado']].map(([ic, tx], i) => (
+              {[[<Sparkles key="f" size={16} color={GOLD_SOFT} />, 'Sabores innovadores'], [<Snowflake key="s" size={16} color={GOLD_SOFT} />, 'Cadena de frío'], [<CalendarClock key="c" size={16} color={GOLD_SOFT} />, 'Despacho programado']].map(([ic, tx], i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, color: 'rgba(255,255,255,.78)' }}>{ic}{tx}</div>
               ))}
             </div>
@@ -216,28 +216,17 @@ export default function LandingPage() {
       {/* ══ 3. BENEFICIOS PRINCIPALES ══ */}
       <section id="nosotros" className="nf-sec" style={{ background: WARM }}>
         <div className="nf-wrap" style={{ padding: '68px 22px' }}>
-          <Eyebrow>Por qué NOMMA FOOD</Eyebrow>
-          <H2>Una propuesta pensada para tu vitrina</H2>
-          <p style={{ textAlign: 'center', color: MUTED, maxWidth: 620, margin: '0 auto 44px', fontSize: 16.5, lineHeight: 1.6 }}>
-            Calidad de fábrica, presentación comercial y un socio que entiende tu negocio.
-          </p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 18 }}>
-            {[
-              { i: <Leaf size={22} color={OLIVE} />, t: 'Ingredientes de calidad', d: 'Seleccionados con cuidado, sin conservantes ni aditivos innecesarios.' },
-              { i: <Factory size={22} color={OLIVE} />, t: 'Producción propia', d: 'Elaboramos en nuestra cocina, con control y trazabilidad por lote.' },
-              { i: <Sparkles size={22} color={OLIVE} />, t: 'Presentación comercial', d: 'Productos pensados para rotación y para verse bien en vitrina.' },
-              { i: <Truck size={22} color={OLIVE} />, t: 'Directo de fábrica', d: 'Sin intermediarios: mejor precio, frescura y disponibilidad.' },
-              { i: <Snowflake size={22} color={OLIVE} />, t: 'Cadena de frío', d: 'Cuidamos el producto desde la producción hasta tu local.' },
-              { i: <GraduationCap size={22} color={OLIVE} />, t: 'Ideal para tu canal', d: 'Universidades, minimarkets, cafeterías, oficinas y conveniencia.' },
-              { i: <Handshake size={22} color={OLIVE} />, t: 'Atención mayorista', d: 'Trato cercano, asesoría comercial y relación de largo plazo.' },
-              { i: <CalendarClock size={22} color={OLIVE} />, t: 'Despacho programado', d: 'Coordinamos entregas según la frecuencia de tu negocio.' },
-            ].map((b, i) => (
-              <div key={i} className="nf-card" style={{ background: '#fff', borderRadius: 16, padding: 24, border: `1px solid ${LINE}` }}>
-                <div style={{ width: 48, height: 48, borderRadius: 12, background: CREAM, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 15 }}>{b.i}</div>
-                <div style={{ fontWeight: 700, marginBottom: 6, fontSize: 15.5 }}>{b.t}</div>
-                <div style={{ fontSize: 14, color: MUTED, lineHeight: 1.55 }}>{b.d}</div>
-              </div>
-            ))}
+          <div style={{ textAlign: 'center' }}>
+            <Eyebrow>Nuestra propuesta</Eyebrow>
+            <H2>Reinventamos lo que ya se vende</H2>
+            <p style={{ color: MUTED, maxWidth: 660, margin: '0 auto 30px', fontSize: 17, lineHeight: 1.7 }}>
+              No inventamos categorías nuevas: tomamos productos que tu cliente ya conoce y quiere, y los llevamos a otro nivel — mejores ingredientes, versión vegetariana y vegana, y sabores nuevos. Muy pronto, el mendocino en varios sabores: chocolate blanco, chocolate negro, coco y más.
+            </p>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
+              {[[<Sparkles key="a" size={16} color={OLIVE} />, 'Sabores nuevos'], [<Snowflake key="b" size={16} color={OLIVE} />, 'Cadena de frío'], [<Handshake key="c" size={16} color={OLIVE} />, 'Atención cercana']].map(([ic, tx], i) => (
+                <div key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#fff', border: `1px solid ${LINE}`, borderRadius: 30, padding: '10px 18px', fontWeight: 700, fontSize: 14, color: NAVY }}>{ic}{tx}</div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -319,38 +308,6 @@ export default function LandingPage() {
                   </div>
                 </div>
               ))}
-        </div>
-      </section>
-
-      {/* ══ 6. VITRINA / MUESTRA COMERCIAL ══ */}
-      <section className="nf-sec" style={{ background: WARM }}>
-        <div className="nf-wrap" style={{ padding: '60px 22px' }}>
-          <Eyebrow>En el punto de venta</Eyebrow>
-          <H2>Así se ve nuestra propuesta en vitrina</H2>
-          <p style={{ textAlign: 'center', color: MUTED, maxWidth: 620, margin: '0 auto 40px', fontSize: 16.5, lineHeight: 1.6 }}>
-            Nuestros productos vegetarianos y veganos lucen perfectos en una vitrina refrigerada: mendocinos, galletas, empanadas, ensaladas, gohan y más, listos para vender en cafeterías, minimarkets y oficinas.
-          </p>
-          {/* Foto de vitrina refrigerada (referencial hasta tener la foto real con etiquetas definitivas) */}
-          <div style={{ position: 'relative', maxWidth: 960, margin: '0 auto', aspectRatio: '16 / 9', borderRadius: 22, overflow: 'hidden', border: `1px solid ${LINE}`, boxShadow: '0 20px 50px rgba(22,35,63,.12)', background: `linear-gradient(135deg, #eee9dc, #f6f3ec)` }}>
-            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: 30 }}>
-              <div>
-                <div style={{ width: 66, height: 66, borderRadius: 16, background: '#fff', border: `1px solid ${LINE}`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}><Store size={30} color={GOLD} /></div>
-                <div style={{ fontWeight: 700, fontSize: 16, color: NAVY }}>Aquí irá la foto de nuestra vitrina refrigerada</div>
-              </div>
-            </div>
-            <img
-              src="/productos/vitrina.jpg"
-              alt="Vitrina refrigerada con productos NOMMA FOOD"
-              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
-              onError={e => { e.currentTarget.style.display = 'none' }}
-            />
-            <span style={{ position: 'absolute', bottom: 10, right: 12, background: 'rgba(22,35,63,.72)', color: '#fff', fontSize: 11.5, fontWeight: 600, padding: '4px 10px', borderRadius: 20 }}>Imagen referencial</span>
-          </div>
-          <div style={{ textAlign: 'center', marginTop: 22 }}>
-            <a href="#productos" style={{ color: NAVY, fontWeight: 700, textDecoration: 'none', fontSize: 15, display: 'inline-flex', alignItems: 'center', gap: 7 }}>
-              <Store size={17} color={GOLD} /> Ver todo el catálogo →
-            </a>
-          </div>
         </div>
       </section>
 
@@ -489,6 +446,8 @@ export default function LandingPage() {
               ['¿Atienden universidades, minimarkets o cafeterías?', 'Sí. Nuestra propuesta está pensada para universidades, minimarkets, cafeterías, oficinas y tiendas de conveniencia, entre otros canales.'],
               ['¿Hacen despacho?', 'Sí, con despacho programado según la frecuencia de tu negocio. Hoy operamos en la Región Metropolitana.'],
               ['¿Próximamente enviarán a regiones?', 'Estamos preparando el despacho a regiones. Muy pronto podremos llegar a más zonas del país.'],
+              ['¿Puedo importar productos desde el extranjero con NOMMA FOOD?', 'Sí. Tenemos un canal de importación para traer productos desde el extranjero. Cuéntanos qué buscas en la sección Importación y te ayudamos con la cotización y el proceso.'],
+              ['¿Cómo funciona el proceso de importación?', 'Nos dices qué producto te interesa y coordinamos la cotización, los tiempos y el despacho. Te acompañamos en todo el proceso para que importar sea simple y seguro.'],
               ['¿Cómo funciona NOMMA CARD?', 'Acumulas 1,5% del monto neto de cada compra. Los puntos se acreditan al entregar el pedido con éxito y puedes canjearlos desde 10.000 puntos por productos o descuentos.'],
               ['¿Cuál es el beneficio de trabajar con NOMMA FOOD?', 'Además de la calidad y presentación comercial, ofrecemos acompañamiento cercano, productos pensados para rotación y una relación comercial de largo plazo.'],
             ].map(([q, a], i) => (
@@ -538,14 +497,14 @@ export default function LandingPage() {
               </div>
             </div>
             <p style={{ color: 'rgba(255,255,255,.62)', fontSize: 14, lineHeight: 1.6, maxWidth: 320 }}>
-              Productos vegetarianos y veganos de calidad, listos para comercializar. Elaboración propia con cariño, en Santiago de Chile.
+              Productos vegetarianos y veganos de calidad, listos para comercializar. Hechos y seleccionados con cariño, en Santiago de Chile.
             </p>
           </div>
           <div>
             <div style={{ fontWeight: 700, marginBottom: 14, fontSize: 14, letterSpacing: .5 }}>Contacto</div>
             <div style={{ display: 'grid', gap: 10, fontSize: 14, color: 'rgba(255,255,255,.72)' }}>
-              <a href="mailto:contacto@nomafood.cl" style={{ color: 'inherit', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 9 }}><Mail size={16} color={GOLD} /> contacto@nomafood.cl</a>
-              <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 9 }}><MessageCircle size={16} color={GOLD} /> WhatsApp comercial</a>
+              <a href="mailto:nommafood.cl@gmail.com" style={{ color: 'inherit', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 9 }}><Mail size={16} color={GOLD} /> nommafood.cl@gmail.com</a>
+              <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 9 }}><MessageCircle size={16} color={GOLD} /> +56 9 4110 4151</a>
               <span style={{ display: 'flex', alignItems: 'center', gap: 9 }}><MapPin size={16} color={GOLD} /> Santiago, Chile</span>
             </div>
           </div>
