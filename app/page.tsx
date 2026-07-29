@@ -220,7 +220,7 @@ export default function LandingPage() {
             <Eyebrow>Nuestra propuesta</Eyebrow>
             <H2>Reinventamos lo que ya se vende</H2>
             <p style={{ color: MUTED, maxWidth: 660, margin: '0 auto 30px', fontSize: 17, lineHeight: 1.7 }}>
-              No inventamos categorías nuevas: tomamos productos que tu cliente ya conoce y quiere, y los llevamos a otro nivel — mejores ingredientes, versión vegetariana y vegana, y sabores nuevos. Muy pronto, el mendocino en varios sabores: chocolate blanco, chocolate negro, coco y más.
+              No inventamos categorías nuevas: tomamos productos que tu cliente ya conoce y quiere, y los llevamos a otro nivel — mejores ingredientes y sabores nuevos.
             </p>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
               {[[<Sparkles key="a" size={16} color={OLIVE} />, 'Sabores nuevos'], [<Snowflake key="b" size={16} color={OLIVE} />, 'Cadena de frío'], [<Handshake key="c" size={16} color={OLIVE} />, 'Atención cercana']].map(([ic, tx], i) => (
