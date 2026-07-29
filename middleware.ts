@@ -42,10 +42,12 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Excluimos también los archivos SEO/compartir que Google y las redes piden
-  // directo (robots, sitemap, imagen OpenGraph, íconos): sin esto el middleware
-  // los redirige a /login y rompe el indexado y los previews al compartir.
+  // Excluimos todos los archivos ESTÁTICOS para que el middleware no los
+  // redirija a /login: cualquier ruta con extensión (`.*\..*` cubre imágenes de
+  // /productos, robots.txt, sitemap.xml, manifest, etc.) más las rutas de
+  // metadata sin extensión (opengraph-image, íconos). Sin esto se rompen las
+  // fotos del catálogo, el indexado y los previews al compartir.
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|public|robots.txt|sitemap.xml|opengraph-image|twitter-image|icon|apple-icon|manifest.webmanifest).*)',
+    '/((?!_next/static|_next/image|favicon.ico|opengraph-image|twitter-image|icon|apple-icon|.*\\..*).*)',
   ],
 }
