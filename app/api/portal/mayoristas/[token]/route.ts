@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 
+// El catálogo del portal (stock, precios) debe ser SIEMPRE en tiempo real:
+// sin esto Next cachea la respuesta y el cliente ve stock/precios viejos.
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 // GET /api/portal/mayoristas/[token]
 // Retorna: mayorista info + catálogo de productos + pedidos recientes
 export async function GET(
