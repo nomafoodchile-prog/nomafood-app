@@ -558,6 +558,7 @@ function FormularioMayorista() {
   const empty = {
     empresa: '', rut: '', giro: '', nombre: '', cargo: '', telefono: '', email: '',
     direccion: '', direccion_despacho: '', comuna: '', tipo_cliente: '',
+    cantidad_sucursales: '',
     productos_interes: '', volumen_estimado: '', comentario: '',
     dias_atencion: '', horario_atencion: '',
     consentimiento: false, website: '', // website = honeypot anti-spam
@@ -587,6 +588,7 @@ function FormularioMayorista() {
           empresa: f.empresa, rut: f.rut, giro: f.giro, nombre: f.nombre,
           cargo: f.cargo, telefono: f.telefono, email: f.email,
           direccion: f.direccion, comuna: f.comuna, tipo_cliente: f.tipo_cliente,
+          cantidad_sucursales: f.cantidad_sucursales,
           productos_interes: f.productos_interes, volumen_estimado: f.volumen_estimado,
           horario_recepcion,
           comentario, consentimiento: f.consentimiento, website: f.website,
@@ -653,6 +655,7 @@ function FormularioMayorista() {
             {field('comuna', 'Comuna *')}
             {field('direccion', 'Dirección de facturación *', { full: true })}
             {field('direccion_despacho', 'Dirección de despacho', { full: true, ph: 'Si es distinta a la de facturación' })}
+            {field('cantidad_sucursales', 'Cantidad de sucursales', { type: 'number', ph: 'Ej: 1 si tienes un solo local' })}
             <div>
               <label style={labelStyle}>Tipo de negocio *</label>
               <select style={inputStyle} value={f.tipo_cliente} onChange={e => set('tipo_cliente', e.target.value)} required>

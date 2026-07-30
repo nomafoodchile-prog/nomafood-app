@@ -88,6 +88,7 @@ export async function POST(req: NextRequest) {
     telefono, email,
     cargo: String(body.cargo).trim(),
     tipo_cliente: String(body.tipo_cliente).trim(),
+    cantidad_sucursales: body.cantidad_sucursales ? Number(body.cantidad_sucursales) : null,
     volumen_estimado: String(body.volumen_estimado).trim(),
     productos_interes: body.productos_interes ? String(body.productos_interes).trim() : null,
     horario_recepcion: body.horario_recepcion ? String(body.horario_recepcion).trim() : null,

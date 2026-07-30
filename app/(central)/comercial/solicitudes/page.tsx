@@ -8,7 +8,7 @@ interface Sol {
   id: string; numero: string; nombre: string; empresa: string | null; rut: string | null; giro: string | null
   comuna: string | null; direccion: string | null; telefono: string | null; email: string | null; cargo: string | null
   tipo_cliente: string | null; volumen_estimado: string | null; productos_interes: string | null; horario_recepcion: string | null
-  tiene_vitrina: boolean | null; comentario: string | null; origen: string | null; estado: string
+  tiene_vitrina: boolean | null; comentario: string | null; origen: string | null; estado: string; cantidad_sucursales: number | null
   mayorista_id: string | null; created_at: string
 }
 interface Evt { id: string; tipo: string; estado: string | null; canal: string | null; mensaje: string | null; created_at: string }
@@ -172,6 +172,7 @@ export default function SolicitudesAcceso() {
                 <Dato label="Vitrina refrig." v={sel.tiene_vitrina == null ? '—' : sel.tiene_vitrina ? 'Sí' : 'No'} />
                 <Dato label="Horario" v={sel.horario_recepcion} />
                 <Dato label="Origen" v={sel.origen} />
+                <Dato label="Sucursales" v={sel.cantidad_sucursales != null ? String(sel.cantidad_sucursales) : '—'} />
               </div>
               <p className="text-sm text-gray-600 flex items-center gap-2"><MapPin size={14} className="text-[#c9a24e]" />{sel.direccion}, {sel.comuna}</p>
               <div className="flex flex-wrap gap-3 text-sm">
