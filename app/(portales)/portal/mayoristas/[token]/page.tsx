@@ -353,12 +353,15 @@ export default function PortalMayoristas({ params }: { params: { token: string }
             {/* Cart button */}
             <button
               onClick={() => { setShowCart(true); setShowPedidos(false); setShowNomma(false) }}
-              className="relative p-2 bg-[#c9a24e] hover:bg-[#b8923f] rounded-xl transition-colors"
+              className="relative flex items-center gap-1.5 px-3 py-2 bg-[#c9a24e] hover:bg-[#b8923f] rounded-xl transition-colors"
             >
               <ShoppingCart className="w-5 h-5 text-white" />
               {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
-                  {cartCount > 9 ? '9+' : cartCount}
+                <span className="text-white text-sm font-bold whitespace-nowrap">{fmt(cartTotal)}</span>
+              )}
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold min-w-[20px] h-5 px-1 rounded-full flex items-center justify-center">
+                  {cartCount}
                 </span>
               )}
             </button>
@@ -387,6 +390,15 @@ export default function PortalMayoristas({ params }: { params: { token: string }
             </div>
           </div>
         </div>
+
+        {/* Aviso de mínimo mientras el cliente compra */}
+        {cartCount > 0 && bajoMinimo && (
+          <div className="max-w-lg lg:max-w-4xl mx-auto px-4 pb-2">
+            <div className="text-xs text-center bg-amber-400 text-[#5a3e00] font-semibold rounded-lg px-3 py-1.5">
+              Llevas {fmt(cartTotal)} · te faltan {fmt(faltanteMin)} para el pedido mínimo de {fmt(MINIMO_NETO)}
+            </div>
+          </div>
+        )}
       </header>
 
       {/* ── Toast ── */}
