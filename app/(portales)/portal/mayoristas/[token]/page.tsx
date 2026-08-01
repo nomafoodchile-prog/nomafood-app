@@ -177,13 +177,18 @@ export default function PortalMayoristas({ params }: { params: { token: string }
     }
   }
 
-  const cartTotal    = cart.reduce((s, i) => s + i.precio_mayorista * i.cantidad, 0)
+  const cartTotal    = cart.reduce((s, i) => s + i.precio_mayorista * i.cantidad, 0)  // neto productos
   const cartSubtotal = cart.reduce((s, i) => s + i.precio_lista     * i.cantidad, 0)
   const cartAhorro   = cartSubtotal - cartTotal
   const cartCount    = cart.reduce((s, i) => s + i.cantidad, 0)
   const IVA_PCT      = 19
-  const cartIva      = Math.round(cartTotal * IVA_PCT / 100) // el neto es cartTotal
-  const cartTotalIva = cartTotal + cartIva                   // BRUTO = lo que paga el cliente
+  const MINIMO_NETO  = 80000
+  const DESPACHO     = 3500
+  const bajoMinimo   = cartCount > 0 && cartTotal < MINIMO_NETO
+  const faltanteMin  = Math.max(0, MINIMO_NETO - cartTotal)
+  const cartDespacho = cartCount > 0 ? DESPACHO : 0
+  const cartIva      = Math.round(cartTotal * IVA_PCT / 100)  // IVA solo sobre productos
+  const cartTotalIva = cartTotal + cartIva + cartDespacho     // + despacho ($3.500 IVA incl.)
 
   // NOMMA CARD (fidelización)
   const META_CANJE = 10000
@@ -673,8 +678,12 @@ export default function PortalMayoristas({ params }: { params: { token: string }
                     </>
                   )}
                   <div className="flex justify-between text-sm text-gray-600 mb-1">
-                    <span>Neto</span>
+                    <span>Neto productos</span>
                     <span>{fmt(cartTotal)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm text-gray-600 mb-1">
+                    <span>Despacho (RM · IVA incl.)</span>
+                    <span>{fmt(cartDespacho)}</span>
                   </div>
                   <div className="flex justify-between text-sm text-gray-600 mb-2">
                     <span>IVA ({IVA_PCT}%)</span>
@@ -687,9 +696,15 @@ export default function PortalMayoristas({ params }: { params: { token: string }
                   <p className="text-xs text-gray-400 mt-1.5">Precios netos; el IVA (19%) se suma al total.</p>
                 </div>
 
+                {bajoMinimo && (
+                  <div className="mb-3 text-sm bg-amber-50 border border-amber-200 text-amber-800 rounded-xl px-4 py-3">
+                    El pedido mínimo es de <b>{fmt(MINIMO_NETO)}</b> neto. Te faltan <b>{fmt(faltanteMin)}</b> para poder finalizar tu pedido.
+                  </div>
+                )}
                 <button
                   onClick={() => setShowCheckout(true)}
-                  className="w-full bg-[#c9a24e] hover:bg-[#b8923f] text-white font-semibold py-3 px-6 rounded-xl transition-colors"
+                  disabled={bajoMinimo}
+                  className={`w-full font-semibold py-3 px-6 rounded-xl transition-colors ${bajoMinimo ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-[#c9a24e] hover:bg-[#b8923f] text-white'}`}
                 >
                   Confirmar pedido →
                 </button>
