@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   ShoppingCart, Package, ChevronDown, ChevronUp, Trash2, Plus, Minus,
   CheckCircle2, AlertCircle, Clock, User, LogOut, RefreshCw,
-  CreditCard, ClipboardList, Search, Filter, Wifi, WifiOff, Sprout
+  CreditCard, ClipboardList, Search, Filter, Wifi, WifiOff, Sprout, MapPin
 } from 'lucide-react'
 
 /* ════════════════════════════════════════════════════════════
@@ -98,6 +98,8 @@ export default function PortalMayoristas({ params }: { params: { token: string }
   const [showCart, setShowCart]     = useState(false)
   const [showPedidos, setShowPedidos] = useState(false)
   const [showNomma, setShowNomma]   = useState(false)
+  const [showDir, setShowDir]       = useState(false)
+  const [direcciones, setDirecciones] = useState<any[]>([])
 
   // Catalog filters
   const [busqueda, setBusqueda]     = useState('')
@@ -112,6 +114,9 @@ export default function PortalMayoristas({ params }: { params: { token: string }
   const [placing, setPlacing]         = useState(false)
   const [orderSuccess, setOrderSuccess] = useState<{ numero: string; total: number; init_point: string | null } | null>(null)
   const [successMsg, setSuccessMsg]   = useState<string | null>(null)
+  const [dirForm, setDirForm]         = useState({ alias: '', direccion: '', comuna: '', contacto: '', telefono: '' })
+  const [dirSaving, setDirSaving]     = useState(false)
+  const [dirShowForm, setDirShowForm] = useState(false)
 
   /* ── Carga de datos ── */
   const loadData = useCallback(async () => {
@@ -128,6 +133,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
       setMayorista(data.mayorista)
       setCatalogo(data.catalogo || [])
       setPedidos(data.pedidos || [])
+      setDirecciones(data.direcciones || [])
       setError(null)
     } catch {
       setOnline(false)
@@ -174,6 +180,28 @@ export default function PortalMayoristas({ params }: { params: { token: string }
       setCart(prev => prev.filter(i => i.producto_id !== prodId))
     } else {
       setCart(prev => prev.map(i => i.producto_id === prodId ? { ...i, cantidad: qty } : i))
+    }
+  }
+
+  async function agregarDireccion() {
+    if (!dirForm.direccion.trim()) { setSuccessMsg('Escribe la dirección.'); return }
+    setDirSaving(true)
+    try {
+      const res = await fetch(`/api/portal/mayoristas/${token}/direccion`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dirForm),
+      })
+      const d = await res.json()
+      if (!res.ok || !d.ok) throw new Error(d.error || 'No se pudo guardar')
+      setDirForm({ alias: '', direccion: '', comuna: '', contacto: '', telefono: '' })
+      setDirShowForm(false)
+      setSuccessMsg('Dirección enviada. Queda pendiente de aprobación por la central.')
+      loadData()
+    } catch (e: any) {
+      setSuccessMsg(e?.message || 'Error al guardar la dirección')
+    } finally {
+      setDirSaving(false)
     }
   }
 
@@ -352,7 +380,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
             </button>
             {/* Cart button */}
             <button
-              onClick={() => { setShowCart(true); setShowPedidos(false); setShowNomma(false) }}
+              onClick={() => { setShowCart(true); setShowPedidos(false); setShowNomma(false); setShowDir(false) }}
               className="relative flex items-center gap-1.5 px-3 py-2 bg-[#c9a24e] hover:bg-[#b8923f] rounded-xl transition-colors"
             >
               <ShoppingCart className="w-5 h-5 text-white" />
@@ -382,7 +410,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
                 </span>
               )}
               <button
-                onClick={() => { setShowNomma(true); setShowCart(false); setShowPedidos(false) }}
+                onClick={() => { setShowNomma(true); setShowCart(false); setShowPedidos(false); setShowDir(false) }}
                 className="flex items-center gap-1 bg-[#c9a24e] text-[#16233f] px-2.5 py-0.5 rounded-full font-bold hover:opacity-90 transition-opacity"
               >
                 <CreditCard className="w-3 h-3" /> {nfmt(ptsDisp)} pts
@@ -413,9 +441,9 @@ export default function PortalMayoristas({ params }: { params: { token: string }
         {/* ── Tabs ── */}
         <div className="flex gap-2 mt-4 mb-4">
           <button
-            onClick={() => { setShowCart(false); setShowPedidos(false); setShowNomma(false) }}
+            onClick={() => { setShowCart(false); setShowPedidos(false); setShowNomma(false); setShowDir(false) }}
             className={`flex-1 py-2 px-2 rounded-xl text-sm font-medium transition-colors ${
-              !showCart && !showPedidos && !showNomma
+              !showCart && !showPedidos && !showNomma && !showDir
                 ? 'bg-[#16233f] text-white'
                 : 'bg-white text-gray-600 hover:bg-gray-50'
             }`}
@@ -424,7 +452,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
             Catálogo
           </button>
           <button
-            onClick={() => { setShowPedidos(true); setShowCart(false); setShowNomma(false) }}
+            onClick={() => { setShowPedidos(true); setShowCart(false); setShowNomma(false); setShowDir(false) }}
             className={`flex-1 py-2 px-2 rounded-xl text-sm font-medium transition-colors ${
               showPedidos
                 ? 'bg-[#16233f] text-white'
@@ -440,7 +468,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
             )}
           </button>
           <button
-            onClick={() => { setShowNomma(true); setShowCart(false); setShowPedidos(false) }}
+            onClick={() => { setShowNomma(true); setShowCart(false); setShowPedidos(false); setShowDir(false) }}
             className={`flex-1 py-2 px-2 rounded-xl text-sm font-medium transition-colors ${
               showNomma
                 ? 'bg-[#16233f] text-white'
@@ -450,12 +478,23 @@ export default function PortalMayoristas({ params }: { params: { token: string }
             <CreditCard className="w-4 h-4 inline mr-1" />
             NOMMA CARD
           </button>
+          <button
+            onClick={() => { setShowDir(true); setShowCart(false); setShowPedidos(false); setShowNomma(false) }}
+            className={`flex-1 py-2 px-2 rounded-xl text-sm font-medium transition-colors ${
+              showDir
+                ? 'bg-[#16233f] text-white'
+                : 'bg-white text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            <MapPin className="w-4 h-4 inline mr-1" />
+            Direcciones
+          </button>
         </div>
 
         {/* ════════════════════════════════════════════════════════
              VISTA: CATÁLOGO
         ════════════════════════════════════════════════════════ */}
-        {!showCart && !showPedidos && !showNomma && (
+        {!showCart && !showPedidos && !showNomma && !showDir && (
           <div>
             {/* Búsqueda */}
             <div className="relative mb-3">
@@ -946,6 +985,65 @@ export default function PortalMayoristas({ params }: { params: { token: string }
             </div>
           </div>
         )}
+
+        {/* ════════════════════════════════════════════════════════
+             VISTA: DIRECCIONES DE DESPACHO
+        ════════════════════════════════════════════════════════ */}
+        {showDir && (
+          <div className="lg:max-w-2xl lg:mx-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-[#16233f]">Mis direcciones de despacho</h2>
+              <button
+                onClick={() => setDirShowForm(v => !v)}
+                className="text-sm font-semibold text-[#c9a24e] flex items-center gap-1"
+              >
+                <Plus className="w-4 h-4" /> Agregar
+              </button>
+            </div>
+
+            {dirShowForm && (
+              <div className="bg-white rounded-2xl p-4 shadow-sm mb-4 space-y-3">
+                <p className="text-xs text-gray-500">La dirección queda <b>pendiente de aprobación</b> por la central antes de poder usarla.</p>
+                <input className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm" placeholder="Alias (ej: Sucursal Providencia)" value={dirForm.alias} onChange={e => setDirForm({ ...dirForm, alias: e.target.value })} />
+                <input className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm" placeholder="Dirección *" value={dirForm.direccion} onChange={e => setDirForm({ ...dirForm, direccion: e.target.value })} />
+                <input className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm" placeholder="Comuna" value={dirForm.comuna} onChange={e => setDirForm({ ...dirForm, comuna: e.target.value })} />
+                <input className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm" placeholder="Contacto en el local" value={dirForm.contacto} onChange={e => setDirForm({ ...dirForm, contacto: e.target.value })} />
+                <input className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm" placeholder="Teléfono" value={dirForm.telefono} onChange={e => setDirForm({ ...dirForm, telefono: e.target.value })} />
+                <button onClick={agregarDireccion} disabled={dirSaving} className="w-full bg-[#c9a24e] hover:bg-[#b8923f] text-white font-semibold py-2.5 rounded-xl disabled:opacity-60">
+                  {dirSaving ? 'Enviando…' : 'Enviar para aprobación'}
+                </button>
+              </div>
+            )}
+
+            {direcciones.length === 0 ? (
+              <div className="bg-white rounded-2xl p-6 shadow-sm text-center text-sm text-gray-500">
+                <MapPin className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+                Aún no tienes direcciones guardadas. Agrega la de cada sucursal para despachar a distintos locales.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {direcciones.map((d: any) => (
+                  <div key={d.id} className="bg-white rounded-2xl p-4 shadow-sm">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-semibold text-[#16233f] text-sm">{d.alias || 'Dirección'}</p>
+                        <p className="text-sm text-gray-600">{d.direccion}{d.comuna ? `, ${d.comuna}` : ''}</p>
+                        {d.contacto && <p className="text-xs text-gray-400">{d.contacto}{d.telefono ? ` · ${d.telefono}` : ''}</p>}
+                      </div>
+                      <span className={`text-xs font-semibold px-2 py-1 rounded-full flex-shrink-0 ${
+                        d.estado === 'aprobada' ? 'bg-green-100 text-green-700'
+                        : d.estado === 'rechazada' ? 'bg-red-100 text-red-700'
+                        : 'bg-amber-100 text-amber-700'
+                      }`}>
+                        {d.estado === 'aprobada' ? 'Aprobada' : d.estado === 'rechazada' ? 'Rechazada' : 'En revisión'}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* ── Bottom bar cuando hay items en carrito ── */}
@@ -953,7 +1051,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-40">
           <div className="max-w-lg lg:max-w-4xl mx-auto">
             <button
-              onClick={() => { setShowCart(true); setShowPedidos(false); setShowNomma(false) }}
+              onClick={() => { setShowCart(true); setShowPedidos(false); setShowNomma(false); setShowDir(false) }}
               className="w-full bg-[#c9a24e] hover:bg-[#b8923f] text-white font-semibold py-3 px-6 rounded-xl transition-colors flex items-center justify-between"
             >
               <span className="bg-white/20 text-white text-sm font-bold px-2 py-0.5 rounded-lg">

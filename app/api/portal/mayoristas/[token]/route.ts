@@ -78,10 +78,19 @@ export async function GET(
       else puntos_pendientes += pts
     }
 
+    // Direcciones de despacho del cliente (self-service; se aprueban en la Central)
+    const { data: direcciones } = await supabase
+      .from('mayorista_direcciones')
+      .select('id, alias, direccion, comuna, contacto, telefono, estado, created_at')
+      .eq('mayorista_id', mayorista.id)
+      .eq('activo', true)
+      .order('created_at', { ascending: false })
+
     return NextResponse.json({
       mayorista: { ...mayorista, puntos_disponibles, puntos_pendientes },
       catalogo,
       pedidos: pedidos || [],
+      direcciones: direcciones || [],
     })
   } catch (e) {
     console.error('[portal/mayoristas] GET error:', e)
