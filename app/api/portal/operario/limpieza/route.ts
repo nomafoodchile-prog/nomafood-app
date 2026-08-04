@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSupabase } from '@/lib/supabase/auth-server'
 import { createServerClient } from '@/lib/supabase/server'
-import { proximaDe, estadoDe } from '@/app/api/central/limpieza/route'
+import { proximaDe, estadoDe } from '@/lib/ops/recurrencia'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
