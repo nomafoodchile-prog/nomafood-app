@@ -86,11 +86,17 @@ export async function GET(
       .eq('activo', true)
       .order('created_at', { ascending: false })
 
+    // Interruptor global de pedidos (marcha blanca). Por defecto BLOQUEADO.
+    const { data: cfgPed } = await supabase
+      .from('app_config').select('valor').eq('clave', 'pedidos_habilitados').maybeSingle()
+    const pedidos_habilitados = cfgPed?.valor === 'true'
+
     return NextResponse.json({
       mayorista: { ...mayorista, puntos_disponibles, puntos_pendientes },
       catalogo,
       pedidos: pedidos || [],
       direcciones: direcciones || [],
+      pedidos_habilitados,
     })
   } catch (e) {
     console.error('[portal/mayoristas] GET error:', e)

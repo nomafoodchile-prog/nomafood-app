@@ -25,6 +25,17 @@ export async function POST(
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
+    // Interruptor global de pedidos (marcha blanca). Por defecto BLOQUEADO:
+    // si la config no existe o no es 'true', no se permiten compras.
+    const { data: cfgPed } = await supabase
+      .from('app_config').select('valor').eq('clave', 'pedidos_habilitados').maybeSingle()
+    if (cfgPed?.valor !== 'true') {
+      return NextResponse.json(
+        { error: 'El portal aún no está habilitado para pedidos. ¡Muy pronto podrás comprar!' },
+        { status: 403 }
+      )
+    }
+
     if (!body.items || body.items.length === 0) {
       return NextResponse.json({ error: 'El carrito está vacío' }, { status: 400 })
     }

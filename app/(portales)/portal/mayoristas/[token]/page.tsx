@@ -100,6 +100,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
   const [showNomma, setShowNomma]   = useState(false)
   const [showDir, setShowDir]       = useState(false)
   const [direcciones, setDirecciones] = useState<any[]>([])
+  const [pedidosHabilitados, setPedidosHabilitados] = useState(false)
 
   // Catalog filters
   const [busqueda, setBusqueda]     = useState('')
@@ -134,6 +135,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
       setCatalogo(data.catalogo || [])
       setPedidos(data.pedidos || [])
       setDirecciones(data.direcciones || [])
+      setPedidosHabilitados(data.pedidos_habilitados === true)
       setError(null)
     } catch {
       setOnline(false)
@@ -491,6 +493,16 @@ export default function PortalMayoristas({ params }: { params: { token: string }
           </button>
         </div>
 
+        {/* Aviso marcha blanca (pedidos aún no habilitados) */}
+        {!pedidosHabilitados && (
+          <div className="mb-4 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 flex items-start gap-3">
+            <Clock className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-amber-800">
+              <b>Portal en marcha blanca.</b> Puedes revisar el catálogo y armar tu carrito, pero los <b>pedidos se habilitan muy pronto</b>. Te avisaremos apenas puedas comprar. 🌱
+            </div>
+          </div>
+        )}
+
         {/* ════════════════════════════════════════════════════════
              VISTA: CATÁLOGO
         ════════════════════════════════════════════════════════ */}
@@ -747,17 +759,22 @@ export default function PortalMayoristas({ params }: { params: { token: string }
                   <p className="text-xs text-gray-400 mt-1.5">Precios netos; el IVA (19%) se suma al total.</p>
                 </div>
 
-                {bajoMinimo && (
+                {!pedidosHabilitados && (
+                  <div className="mb-3 text-sm bg-amber-50 border border-amber-200 text-amber-800 rounded-xl px-4 py-3">
+                    Los pedidos aún no están habilitados (marcha blanca). Muy pronto podrás comprar. 🌱
+                  </div>
+                )}
+                {bajoMinimo && pedidosHabilitados && (
                   <div className="mb-3 text-sm bg-amber-50 border border-amber-200 text-amber-800 rounded-xl px-4 py-3">
                     El pedido mínimo es de <b>{fmt(MINIMO_NETO)}</b> neto. Te faltan <b>{fmt(faltanteMin)}</b> para poder finalizar tu pedido.
                   </div>
                 )}
                 <button
                   onClick={() => setShowCheckout(true)}
-                  disabled={bajoMinimo}
-                  className={`w-full font-semibold py-3 px-6 rounded-xl transition-colors ${bajoMinimo ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-[#c9a24e] hover:bg-[#b8923f] text-white'}`}
+                  disabled={bajoMinimo || !pedidosHabilitados}
+                  className={`w-full font-semibold py-3 px-6 rounded-xl transition-colors ${(bajoMinimo || !pedidosHabilitados) ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-[#c9a24e] hover:bg-[#b8923f] text-white'}`}
                 >
-                  Confirmar pedido →
+                  {pedidosHabilitados ? 'Confirmar pedido →' : 'Pedidos muy pronto'}
                 </button>
               </>
             )}
