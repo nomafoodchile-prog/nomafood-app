@@ -9,6 +9,7 @@ import {
   ChefHat,
   Package,
   SprayCan,
+  Wrench,
   ShoppingBag,
   Tag,
   Users,
@@ -58,6 +59,7 @@ const navItems: NavItem[] = [
       { label: 'Operarios', href: '/operaciones/operarios', icon: Users },
       { label: 'Inventario', href: '/operaciones/inventario', icon: Package },
       { label: 'Limpieza', href: '/operaciones/limpieza', icon: SprayCan },
+      { label: 'Mantención', href: '/operaciones/mantencion', icon: Wrench },
     ],
   },
   {
