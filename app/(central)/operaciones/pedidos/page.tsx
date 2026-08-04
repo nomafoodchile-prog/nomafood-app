@@ -139,14 +139,15 @@ export default function PedidosPage() {
                 <th className="text-left py-3 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide hidden md:table-cell">Entrega</th>
                 <th className="text-left py-3 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Estado</th>
                 <th className="text-right py-3 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Total</th>
+                <th className="text-right py-3 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Orden</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {loading ? (
-                <tr><td colSpan={5} className="py-12 text-center"><Loader2 className="w-5 h-5 text-[#1b2a4a] animate-spin mx-auto" /></td></tr>
+                <tr><td colSpan={6} className="py-12 text-center"><Loader2 className="w-5 h-5 text-[#1b2a4a] animate-spin mx-auto" /></td></tr>
               ) : filtrados.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-12 text-center text-gray-400 text-sm">
+                  <td colSpan={6} className="py-12 text-center text-gray-400 text-sm">
                     <PackageOpen className="w-8 h-8 text-gray-200 mx-auto mb-2" />
                     No hay pedidos {filtro !== 'todos' ? 'con ese estado' : 'todavía'}.
                   </td>
@@ -166,6 +167,9 @@ export default function PedidosPage() {
                         <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${e.c}`}>{e.t}</span>
                       </td>
                       <td className="py-3 px-4 text-right font-semibold text-[#1a1a1a]">{clp(p.total)}</td>
+                      <td className="py-3 px-4 text-right">
+                        <a href={`/orden-compra/${p.id}`} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-[#c9a24e] hover:underline whitespace-nowrap">Orden compra ↗</a>
+                      </td>
                     </tr>
                   )
                 })
