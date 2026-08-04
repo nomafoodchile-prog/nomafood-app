@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic'
 const CENTRAL_ROLES = ['SuperAdmin', 'Administracion', 'Gerencia', 'EncargadoProduccion']
 
 // Días entre cada ejecución según la recurrencia
-const INTERVALO: Record<string, number> = { turno: 1, diaria: 1, semanal: 7, quincenal: 14, mensual: 30, anual: 365 }
+const INTERVALO: Record<string, number> = { turno: 1, diaria: 1, semanal: 7, quincenal: 14, mensual: 30, trimestral: 90, semestral: 180, anual: 365 }
 export function hoyCL(): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Santiago' }).format(new Date())
 }
