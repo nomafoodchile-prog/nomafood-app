@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Plus, X, Loader2, SprayCan, ChevronDown, Clock, Printer, Check, MapPin } from 'lucide-react'
+import { Plus, X, Loader2, SprayCan, ChevronDown, Clock, Printer, Check, MapPin, List, CalendarDays, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react'
 
 const REC: Record<string, { l: string; c: string }> = {
   turno:     { l: 'Cada turno', c: 'bg-blue-50 text-blue-700' },
@@ -14,8 +14,12 @@ const REC: Record<string, { l: string; c: string }> = {
 const recLabel = (r: string) => REC[r]?.l || r
 const recClass = (r: string) => REC[r]?.c || 'bg-gray-100 text-gray-600'
 
-interface Tarea { id: string; nombre: string; pasos: string[]; tiempo_estimado_min: number | null; recurrencia: string; ultima: any }
+interface Tarea { id: string; nombre: string; pasos: string[]; tiempo_estimado_min: number | null; recurrencia: string; ultima: any; proxima: string; estado: 'atrasado' | 'hoy' | 'ok' }
 interface Area { id: string; nombre: string; tareas: Tarea[] }
+
+const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
+const DIAS = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá', 'Do']
+const toISO = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 
 function printProc(area: string, t: Tarea) {
   const pasos = (t.pasos || []).map(p => `<li>${p}</li>`).join('')
@@ -45,6 +49,9 @@ export default function LimpiezaPage() {
   const [saving, setSaving] = useState(false)
   const [areaForm, setAreaForm] = useState('')
   const [tForm, setTForm] = useState({ area_id: '', nombre: '', tiempo_estimado_min: '', recurrencia: 'diaria', pasos: '' })
+  const [vista, setVista] = useState<'lista' | 'calendario'>('lista')
+  const [cursor, setCursor] = useState(() => { const d = new Date(); return { y: d.getFullYear(), m: d.getMonth() } })
+  const [diaSel, setDiaSel] = useState<string | null>(null)
 
   const cargar = useCallback(async () => {
     setLoading(true)
@@ -83,6 +90,22 @@ export default function LimpiezaPage() {
 
   const totalTareas = areas.reduce((n, a) => n + a.tareas.length, 0)
 
+  // Datos para el calendario
+  const todas = areas.flatMap(a => a.tareas.map(t => ({ ...t, area: a.nombre })))
+  const atrasadas = todas.filter(t => t.estado === 'atrasado')
+  const porDia = new Map<string, typeof todas>()
+  for (const t of todas) { const arr = porDia.get(t.proxima) || []; arr.push(t); porDia.set(t.proxima, arr) }
+
+  const primerDia = new Date(cursor.y, cursor.m, 1)
+  const offset = (primerDia.getDay() + 6) % 7 // lunes = 0
+  const diasMes = new Date(cursor.y, cursor.m + 1, 0).getDate()
+  const celdas: (number | null)[] = [...Array(offset).fill(null), ...Array.from({ length: diasMes }, (_, i) => i + 1)]
+  const hoyISO = toISO(new Date())
+  const tareasDiaSel = diaSel ? (porDia.get(diaSel) || []) : []
+
+  const mesAnterior = () => setCursor(c => c.m === 0 ? { y: c.y - 1, m: 11 } : { y: c.y, m: c.m - 1 })
+  const mesSiguiente = () => setCursor(c => c.m === 11 ? { y: c.y + 1, m: 0 } : { y: c.y, m: c.m + 1 })
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
@@ -96,12 +119,77 @@ export default function LimpiezaPage() {
         </div>
       </div>
 
+      {/* Toggle Lista / Calendario */}
+      <div className="inline-flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+        <button onClick={() => setVista('lista')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 ${vista === 'lista' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><List size={14} /> Lista</button>
+        <button onClick={() => setVista('calendario')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 ${vista === 'calendario' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><CalendarDays size={14} /> Calendario</button>
+      </div>
+
+      {atrasadas.length > 0 && (
+        <div className="flex items-center gap-2 bg-red-50 border border-red-100 rounded-xl px-4 py-2.5 text-sm text-red-700">
+          <AlertTriangle size={16} /> <span><b>{atrasadas.length}</b> tarea{atrasadas.length !== 1 ? 's' : ''} de limpieza atrasada{atrasadas.length !== 1 ? 's' : ''}.</span>
+        </div>
+      )}
+
       {loading ? (
         <div className="py-16 text-center"><Loader2 className="w-6 h-6 text-[#1b2a4a] animate-spin mx-auto" /></div>
       ) : areas.length === 0 ? (
         <div className="noma-card text-center py-14 text-gray-400 text-sm">
           <SprayCan className="w-8 h-8 text-gray-200 mx-auto mb-2" />
           Aún no hay áreas ni tareas. Empieza creando un área (ej. &quot;Cocina de producción&quot;) y luego sus tareas.
+        </div>
+      ) : vista === 'calendario' ? (
+        <div className="grid lg:grid-cols-3 gap-4">
+          <div className="noma-card lg:col-span-2">
+            <div className="flex items-center justify-between mb-4">
+              <button onClick={mesAnterior} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500"><ChevronLeft size={18} /></button>
+              <h2 className="font-bold text-[#1a1a1a] capitalize">{MESES[cursor.m]} {cursor.y}</h2>
+              <button onClick={mesSiguiente} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500"><ChevronRight size={18} /></button>
+            </div>
+            <div className="grid grid-cols-7 gap-1 text-center">
+              {DIAS.map(d => <div key={d} className="text-[10px] font-bold text-gray-400 uppercase py-1">{d}</div>)}
+              {celdas.map((n, i) => {
+                if (n === null) return <div key={i} />
+                const iso = toISO(new Date(cursor.y, cursor.m, n))
+                const items = porDia.get(iso) || []
+                const hayAtraso = items.some(t => t.estado === 'atrasado')
+                const esHoy = iso === hoyISO
+                const sel = iso === diaSel
+                return (
+                  <button key={i} onClick={() => setDiaSel(sel ? null : iso)}
+                    className={`aspect-square rounded-lg text-xs flex flex-col items-center justify-center gap-0.5 border transition-all ${sel ? 'border-[#c9a24e] bg-[#f5f0e8]' : esHoy ? 'border-[#1b2a4a]/30 bg-[#1b2a4a]/5' : 'border-transparent hover:bg-gray-50'}`}>
+                    <span className={esHoy ? 'font-bold text-[#1b2a4a]' : 'text-gray-600'}>{n}</span>
+                    {items.length > 0 && <span className={`w-1.5 h-1.5 rounded-full ${hayAtraso ? 'bg-red-500' : 'bg-[#c9a24e]'}`} />}
+                  </button>
+                )
+              })}
+            </div>
+            <div className="flex items-center gap-4 mt-4 text-[11px] text-gray-400">
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#c9a24e]" /> Toca ese día</span>
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500" /> Atrasada</span>
+            </div>
+          </div>
+          <div className="noma-card">
+            <h3 className="font-bold text-[#1a1a1a] text-sm mb-3">{diaSel ? `Tareas del ${new Date(diaSel + 'T00:00:00').toLocaleDateString('es-CL', { day: 'numeric', month: 'long' })}` : 'Selecciona un día'}</h3>
+            {!diaSel ? (
+              <p className="text-xs text-gray-400">Haz clic en un día del calendario para ver qué limpieza toca.</p>
+            ) : tareasDiaSel.length === 0 ? (
+              <p className="text-xs text-gray-400">Sin tareas ese día.</p>
+            ) : (
+              <div className="space-y-2">
+                {tareasDiaSel.map(t => (
+                  <div key={t.id} className="border border-gray-100 rounded-lg p-2.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-sm text-[#1a1a1a]">{t.nombre}</span>
+                      {t.estado === 'atrasado' && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-red-100 text-red-700">Atrasada</span>}
+                    </div>
+                    <p className="text-xs text-gray-400 mt-0.5">{t.area} · <span className={recClass(t.recurrencia) + ' px-1.5 py-0.5 rounded-full text-[10px] font-bold'}>{recLabel(t.recurrencia)}</span></p>
+                    <button onClick={() => { marcarHecha(t.id); setDiaSel(null) }} className="text-xs font-semibold flex items-center gap-1.5 text-green-700 mt-2"><Check size={13} /> Marcar hecha</button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       ) : (
         <>
@@ -119,7 +207,7 @@ export default function LimpiezaPage() {
                     {a.tareas.map(t => (
                       <div key={t.id} className="border-t border-gray-100">
                         <button onClick={() => setOpenTarea(openTarea === t.id ? null : t.id)} className="w-full flex items-center justify-between gap-3 py-3 text-left">
-                          <span className="text-sm text-[#1a1a1a] flex items-center gap-2 flex-wrap">{t.nombre}<span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${recClass(t.recurrencia)}`}>{recLabel(t.recurrencia)}</span></span>
+                          <span className="text-sm text-[#1a1a1a] flex items-center gap-2 flex-wrap">{t.nombre}<span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${recClass(t.recurrencia)}`}>{recLabel(t.recurrencia)}</span>{t.estado === 'atrasado' && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700">Atrasada</span>}{t.estado === 'hoy' && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">Hoy</span>}</span>
                           <span className="flex items-center gap-2 flex-shrink-0 text-xs text-gray-500"><Clock size={13} /> {t.tiempo_estimado_min ? `${t.tiempo_estimado_min} min` : '—'} <ChevronDown size={14} className={`transition-transform ${openTarea === t.id ? 'rotate-180' : ''}`} /></span>
                         </button>
                         {openTarea === t.id && (

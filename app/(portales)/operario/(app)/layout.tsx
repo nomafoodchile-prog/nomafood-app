@@ -3,13 +3,14 @@
 import { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Home, ClipboardList, ChefHat, CalendarDays, User, Loader2 } from 'lucide-react'
+import { Home, ClipboardList, ChefHat, SprayCan, CalendarDays, User, Loader2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 
 const NAV = [
   { href: '/operario', label: 'Inicio', icon: Home },
   { href: '/operario/tareas', label: 'Tareas', icon: ClipboardList },
   { href: '/operario/produccion', label: 'Producir', icon: ChefHat },
+  { href: '/operario/limpieza', label: 'Limpieza', icon: SprayCan },
   { href: '/operario/asistencia', label: 'Asistencia', icon: CalendarDays },
   { href: '/operario/perfil', label: 'Perfil', icon: User },
 ]
