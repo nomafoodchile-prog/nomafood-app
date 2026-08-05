@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Plus, X, Search, Users, TrendingUp, AlertCircle, Building2, Loader2 } from 'lucide-react'
+import { Plus, X, Search, Users, TrendingUp, AlertCircle, Building2, Loader2, KeyRound, CheckCircle2, Copy } from 'lucide-react'
 
 interface Cliente {
   id: string
@@ -35,6 +35,32 @@ export default function ClientesPage() {
   const [busqueda, setBusqueda] = useState('')
   const [filtroEstado, setFiltroEstado] = useState<'Todos' | 'Activo' | 'Inactivo'>('Todos')
   const [form, setForm] = useState({ empresa: '', rut: '', email: '', telefono: '', contacto: '', estado: 'Activo' })
+  // Modal de contraseña
+  const [pwCliente, setPwCliente] = useState<Cliente | null>(null)
+  const [pwValue, setPwValue] = useState('')
+  const [pwSaving, setPwSaving] = useState(false)
+  const [pwErr, setPwErr] = useState<string | null>(null)
+  const [pwOk, setPwOk] = useState(false)
+
+  function abrirClave(c: Cliente) {
+    setPwCliente(c); setPwValue(''); setPwErr(null); setPwOk(false)
+  }
+  async function definirClave(e: React.FormEvent) {
+    e.preventDefault(); if (!pwCliente) return
+    setPwErr(null)
+    if (pwValue.length < 6) { setPwErr('La contraseña debe tener al menos 6 caracteres.'); return }
+    setPwSaving(true)
+    try {
+      const res = await fetch('/api/central/clientes/password', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mayorista_id: pwCliente.id, password: pwValue }),
+      })
+      const d = await res.json()
+      if (!res.ok) { setPwErr(d.error || 'No se pudo guardar.'); setPwSaving(false); return }
+      setPwOk(true)
+    } catch { setPwErr('Error de conexión.') }
+    setPwSaving(false)
+  }
 
   const cargar = useCallback(async () => {
     setLoading(true)
@@ -150,13 +176,14 @@ export default function ClientesPage() {
                 <th className="text-left py-3 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Tipo</th>
                 <th className="text-right py-3 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Saldo</th>
                 <th className="text-left py-3 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide hidden sm:table-cell">Estado</th>
+                <th className="text-right py-3 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Acceso</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {loading ? (
-                <tr><td colSpan={7} className="py-12 text-center"><Loader2 className="w-5 h-5 text-[#1b2a4a] animate-spin mx-auto" /></td></tr>
+                <tr><td colSpan={8} className="py-12 text-center"><Loader2 className="w-5 h-5 text-[#1b2a4a] animate-spin mx-auto" /></td></tr>
               ) : filtrados.length === 0 ? (
-                <tr><td colSpan={7} className="py-12 text-center text-gray-400 text-sm">
+                <tr><td colSpan={8} className="py-12 text-center text-gray-400 text-sm">
                   <Users className="w-8 h-8 text-gray-200 mx-auto mb-2" />
                   Aún no tienes clientes. Se crean al aprobar solicitudes (Solicitudes de acceso) o con "Nuevo cliente".
                 </td></tr>
@@ -176,6 +203,11 @@ export default function ClientesPage() {
                     </td>
                     <td className="py-3 px-4 hidden sm:table-cell">
                       {c.estado === 'Activo' ? <span className="noma-badge-green">Activo</span> : <span className="noma-badge-gray">Inactivo</span>}
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      <button onClick={() => abrirClave(c)} title="Definir contraseña de acceso" className="inline-flex items-center gap-1.5 text-xs font-semibold border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-600 hover:border-[#c9a24e] hover:text-[#1b2a4a]">
+                        <KeyRound size={13} /> Contraseña
+                      </button>
                     </td>
                   </tr>
                 ))
@@ -232,6 +264,51 @@ export default function ClientesPage() {
                 <button type="submit" disabled={saving} className="flex-1 noma-btn-primary disabled:opacity-60">{saving ? 'Guardando…' : 'Guardar cliente'}</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal contraseña */}
+      {pwCliente && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setPwCliente(null)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="font-bold text-[#1a1a1a] flex items-center gap-2"><KeyRound size={16} className="text-[#c9a24e]" /> Contraseña de acceso</h3>
+              <button onClick={() => setPwCliente(null)} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100"><X size={16} /></button>
+            </div>
+            <p className="text-xs text-gray-500 mb-4">{pwCliente.empresa}{pwCliente.email ? ` · ${pwCliente.email}` : ''}</p>
+
+            {!pwCliente.email ? (
+              <div className="text-sm text-amber-700 bg-amber-50 rounded-xl p-3">Este cliente no tiene correo cargado. Edítalo y agrégale un email para poder darle acceso.</div>
+            ) : pwOk ? (
+              <div>
+                <div className="flex items-center gap-2 text-green-700 bg-green-50 rounded-xl p-3 mb-3 text-sm">
+                  <CheckCircle2 size={18} /> ¡Listo! Ya puede entrar con su correo y esta clave.
+                </div>
+                <div className="bg-gray-50 rounded-xl p-3 text-sm space-y-2">
+                  <div className="flex items-center justify-between gap-2"><span className="text-gray-400 text-xs">Correo</span><span className="font-mono text-[#1a1a1a]">{pwCliente.email}</span></div>
+                  <div className="flex items-center justify-between gap-2"><span className="text-gray-400 text-xs">Contraseña</span><span className="font-mono text-[#1a1a1a]">{pwValue}</span></div>
+                  <div className="flex items-center justify-between gap-2"><span className="text-gray-400 text-xs">Portal</span><span className="text-[#1a1a1a] text-xs">nommafood.cl/portal/mayoristas/login</span></div>
+                </div>
+                <button
+                  onClick={() => navigator.clipboard?.writeText(`Ingresa a NOMMA FOOD:\nPortal: https://nommafood.cl/portal/mayoristas/login\nCorreo: ${pwCliente.email}\nContraseña: ${pwValue}`)}
+                  className="w-full mt-3 flex items-center justify-center gap-2 text-sm font-semibold border border-gray-200 rounded-xl py-2.5 text-gray-600 hover:border-[#c9a24e]">
+                  <Copy size={14} /> Copiar datos para enviar al cliente
+                </button>
+                <button onClick={() => setPwCliente(null)} className="w-full mt-2 noma-btn-primary">Cerrar</button>
+              </div>
+            ) : (
+              <form onSubmit={definirClave} className="space-y-3">
+                <p className="text-xs text-gray-500">Define una contraseña y entrégasela al cliente. Entra directo, sin correo de invitación.</p>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Nueva contraseña</label>
+                  <input type="text" value={pwValue} onChange={e => setPwValue(e.target.value)} className="noma-input font-mono" placeholder="Mínimo 6 caracteres" autoFocus />
+                </div>
+                {pwErr && <p className="text-sm text-red-600">{pwErr}</p>}
+                <button type="submit" disabled={pwSaving} className="w-full noma-btn-primary disabled:opacity-60">{pwSaving ? 'Guardando…' : 'Definir contraseña'}</button>
+              </form>
+            )}
           </div>
         </div>
       )}
