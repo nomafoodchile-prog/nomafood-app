@@ -40,15 +40,16 @@ export async function POST(req: NextRequest) {
   const { data: may } = await db.from('mayoristas').select('id, email, profile_id').eq('id', body.mayorista_id).maybeSingle()
   if (!may) return NextResponse.json({ error: 'Cliente no encontrado.' }, { status: 404 })
 
-  const email = String(may.email || '').trim().toLowerCase()
-  if (!email) return NextResponse.json({ error: 'Este cliente no tiene correo cargado. Agrégale un email primero.' }, { status: 400 })
+  // Correo objetivo: el que venga en el body (permite CORREGIR typos) o el de la ficha
+  const email = String(body.email || may.email || '').trim().toLowerCase()
+  if (!email || !email.includes('@')) return NextResponse.json({ error: 'Escribe un correo válido para el cliente.' }, { status: 400 })
 
   let userId: string | null = (may as any).profile_id || null
 
-  // Si ya está vinculado a un usuario, solo actualizamos su clave
+  // Si ya está vinculado a un usuario, actualizamos su clave (y corregimos el correo si cambió)
   if (userId) {
-    const { error } = await db.auth.admin.updateUserById(userId, { password, email_confirm: true })
-    if (error) return NextResponse.json({ error: 'No se pudo actualizar la contraseña.' }, { status: 500 })
+    const { error } = await db.auth.admin.updateUserById(userId, { email, password, email_confirm: true })
+    if (error) return NextResponse.json({ error: 'No se pudo actualizar el acceso. ' + (error.message || '') }, { status: 500 })
   } else {
     // Intentar crear el usuario; si ya existe, buscarlo y actualizarlo
     const { data: created, error: createErr } = await db.auth.admin.createUser({ email, password, email_confirm: true })
@@ -57,12 +58,12 @@ export async function POST(req: NextRequest) {
     } else {
       userId = await buscarUserPorEmail(db, email)
       if (!userId) return NextResponse.json({ error: 'No se pudo crear ni encontrar el usuario. ' + (createErr?.message || '') }, { status: 500 })
-      const { error } = await db.auth.admin.updateUserById(userId, { password, email_confirm: true })
-      if (error) return NextResponse.json({ error: 'No se pudo actualizar la contraseña.' }, { status: 500 })
+      const { error } = await db.auth.admin.updateUserById(userId, { email, password, email_confirm: true })
+      if (error) return NextResponse.json({ error: 'No se pudo actualizar el acceso. ' + (error.message || '') }, { status: 500 })
     }
-    // Vincular la ficha del cliente con el usuario
-    await db.from('mayoristas').update({ profile_id: userId }).eq('id', may.id)
   }
+  // Sincronizar la ficha del cliente: correo corregido + vínculo con el usuario
+  await db.from('mayoristas').update({ email, profile_id: userId }).eq('id', may.id)
 
   return NextResponse.json({ ok: true, email })
 }

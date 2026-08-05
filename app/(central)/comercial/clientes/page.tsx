@@ -53,26 +53,29 @@ export default function ClientesPage() {
 
   // Modal de contraseña
   const [pwCliente, setPwCliente] = useState<Cliente | null>(null)
+  const [pwEmail, setPwEmail] = useState('')
   const [pwValue, setPwValue] = useState('')
   const [pwSaving, setPwSaving] = useState(false)
   const [pwErr, setPwErr] = useState<string | null>(null)
   const [pwOk, setPwOk] = useState(false)
 
   function abrirClave(c: Cliente) {
-    setPwCliente(c); setPwValue(''); setPwErr(null); setPwOk(false)
+    setPwCliente(c); setPwEmail(c.email || ''); setPwValue(''); setPwErr(null); setPwOk(false)
   }
   async function definirClave(e: React.FormEvent) {
     e.preventDefault(); if (!pwCliente) return
     setPwErr(null)
+    if (!pwEmail.trim().includes('@')) { setPwErr('Escribe un correo válido.'); return }
     if (pwValue.length < 6) { setPwErr('La contraseña debe tener al menos 6 caracteres.'); return }
     setPwSaving(true)
     try {
       const res = await fetch('/api/central/clientes/password', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mayorista_id: pwCliente.id, password: pwValue }),
+        body: JSON.stringify({ mayorista_id: pwCliente.id, email: pwEmail.trim(), password: pwValue }),
       })
       const d = await res.json()
       if (!res.ok) { setPwErr(d.error || 'No se pudo guardar.'); setPwSaving(false); return }
+      if (d.email) setPwEmail(d.email)
       setPwOk(true)
     } catch { setPwErr('Error de conexión.') }
     setPwSaving(false)
@@ -318,22 +321,20 @@ export default function ClientesPage() {
               <h3 className="font-bold text-[#1a1a1a] flex items-center gap-2"><KeyRound size={16} className="text-[#c9a24e]" /> Contraseña de acceso</h3>
               <button onClick={() => setPwCliente(null)} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100"><X size={16} /></button>
             </div>
-            <p className="text-xs text-gray-500 mb-4">{pwCliente.empresa}{pwCliente.email ? ` · ${pwCliente.email}` : ''}</p>
+            <p className="text-xs text-gray-500 mb-4">{pwCliente.empresa}</p>
 
-            {!pwCliente.email ? (
-              <div className="text-sm text-amber-700 bg-amber-50 rounded-xl p-3">Este cliente no tiene correo cargado. Edítalo y agrégale un email para poder darle acceso.</div>
-            ) : pwOk ? (
+            {pwOk ? (
               <div>
                 <div className="flex items-center gap-2 text-green-700 bg-green-50 rounded-xl p-3 mb-3 text-sm">
                   <CheckCircle2 size={18} /> ¡Listo! Ya puede entrar con su correo y esta clave.
                 </div>
                 <div className="bg-gray-50 rounded-xl p-3 text-sm space-y-2">
-                  <div className="flex items-center justify-between gap-2"><span className="text-gray-400 text-xs">Correo</span><span className="font-mono text-[#1a1a1a]">{pwCliente.email}</span></div>
+                  <div className="flex items-center justify-between gap-2"><span className="text-gray-400 text-xs">Correo</span><span className="font-mono text-[#1a1a1a] text-xs">{pwEmail}</span></div>
                   <div className="flex items-center justify-between gap-2"><span className="text-gray-400 text-xs">Contraseña</span><span className="font-mono text-[#1a1a1a]">{pwValue}</span></div>
                   <div className="flex items-center justify-between gap-2"><span className="text-gray-400 text-xs">Portal</span><span className="text-[#1a1a1a] text-xs">nommafood.cl/portal/mayoristas/login</span></div>
                 </div>
                 <button
-                  onClick={() => navigator.clipboard?.writeText(`Ingresa a NOMMA FOOD:\nPortal: https://nommafood.cl/portal/mayoristas/login\nCorreo: ${pwCliente.email}\nContraseña: ${pwValue}`)}
+                  onClick={() => navigator.clipboard?.writeText(`Ingresa a NOMMA FOOD:\nPortal: https://nommafood.cl/portal/mayoristas/login\nCorreo: ${pwEmail}\nContraseña: ${pwValue}`)}
                   className="w-full mt-3 flex items-center justify-center gap-2 text-sm font-semibold border border-gray-200 rounded-xl py-2.5 text-gray-600 hover:border-[#c9a24e]">
                   <Copy size={14} /> Copiar datos para enviar al cliente
                 </button>
@@ -341,10 +342,14 @@ export default function ClientesPage() {
               </div>
             ) : (
               <form onSubmit={definirClave} className="space-y-3">
-                <p className="text-xs text-gray-500">Define una contraseña y entrégasela al cliente. Entra directo, sin correo de invitación.</p>
+                <p className="text-xs text-gray-500">Revisa el correo (corrígelo si tiene un error), define una contraseña y entrégasela al cliente.</p>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Correo del cliente</label>
+                  <input type="email" value={pwEmail} onChange={e => setPwEmail(e.target.value)} className="noma-input" placeholder="cliente@correo.com" />
+                </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 mb-1">Nueva contraseña</label>
-                  <input type="text" value={pwValue} onChange={e => setPwValue(e.target.value)} className="noma-input font-mono" placeholder="Mínimo 6 caracteres" autoFocus />
+                  <input type="text" value={pwValue} onChange={e => setPwValue(e.target.value)} className="noma-input font-mono" placeholder="Mínimo 6 caracteres" />
                 </div>
                 {pwErr && <p className="text-sm text-red-600">{pwErr}</p>}
                 <button type="submit" disabled={pwSaving} className="w-full noma-btn-primary disabled:opacity-60">{pwSaving ? 'Guardando…' : 'Definir contraseña'}</button>
