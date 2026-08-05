@@ -51,6 +51,7 @@ interface Pedido {
   total: number
   created_at: string
   mp_status?: string
+  mp_init_point?: string | null
   items: { producto_nombre: string; cantidad: number; unidad: string; precio_final: number }[]
 }
 
@@ -59,6 +60,7 @@ interface Pedido {
 ════════════════════════════════════════════════════════════ */
 const ESTADO_COLORS: Record<string, string> = {
   borrador:       'bg-gray-100 text-gray-600',
+  pendiente_pago: 'bg-orange-100 text-orange-700',
   confirmado:     'bg-blue-100 text-blue-700',
   pagado:         'bg-emerald-100 text-emerald-700',
   en_preparacion: 'bg-amber-100 text-amber-700',
@@ -68,6 +70,7 @@ const ESTADO_COLORS: Record<string, string> = {
 }
 const ESTADO_LABELS: Record<string, string> = {
   borrador:       'Borrador',
+  pendiente_pago: 'Pendiente de pago',
   confirmado:     'Confirmado',
   pagado:         'Pagado',
   en_preparacion: 'En preparación',
@@ -326,7 +329,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
           {orderSuccess.init_point ? (
             <>
               <p className="text-sm text-gray-600 mb-4">
-                Para confirmar tu pedido, <b>completa el pago con Mercado Pago</b>. Lo preparamos y despachamos una vez pagado.
+                Para confirmar tu pedido, <b>completa el pago con Mercado Pago</b>.
               </p>
               <a
                 href={orderSuccess.init_point}
@@ -940,6 +943,12 @@ export default function PortalMayoristas({ params }: { params: { token: string }
                             <p className="text-xs text-gray-400">+{pedido.items.length - 3} más...</p>
                           )}
                         </div>
+                      )}
+                      {pedido.estado === 'pendiente_pago' && pedido.mp_init_point && (
+                        <a href={pedido.mp_init_point}
+                           className="mt-3 flex items-center justify-center gap-2 w-full bg-[#009ee3] hover:bg-[#007ec0] text-white font-semibold py-2.5 rounded-xl transition-colors">
+                          <CreditCard className="w-4 h-4" /> Pagar ahora
+                        </a>
                       )}
                     </div>
                   </div>

@@ -50,7 +50,7 @@ export async function GET(
       .from('mayorista_pedidos')
       .select(`
         id, numero_pedido, estado, total, created_at, fecha_entrega_req,
-        mp_status,
+        mp_status, mp_init_point,
         items:mayorista_pedido_items(id, producto_nombre, cantidad, precio_final, unidad)
       `)
       .eq('mayorista_id', mayorista.id)
