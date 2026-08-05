@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Users, Loader2, RefreshCw, X, Check, Ban, UserPlus, MessageSquarePlus, Building2, MapPin, Phone, Mail, Send, Link2, Copy } from 'lucide-react'
+import { Users, Loader2, RefreshCw, X, Check, Ban, UserPlus, MessageSquarePlus, Building2, MapPin, Phone, Mail, Send, Link2, Copy, KeyRound, CheckCircle2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 
 interface Sol {
@@ -27,6 +27,26 @@ export default function SolicitudesAcceso() {
   const [nota, setNota] = useState('')
   const [busy, setBusy] = useState(false)
   const [acceso, setAcceso] = useState<{ email: string; emailSent: boolean; link: string | null; waLink: string | null } | null>(null)
+  // Definir contraseña (sin depender del correo)
+  const [pwOpen, setPwOpen] = useState(false)
+  const [pwValue, setPwValue] = useState('')
+  const [pwSaving, setPwSaving] = useState(false)
+  const [pwErr, setPwErr] = useState<string | null>(null)
+  const [pwOk, setPwOk] = useState<{ email: string } | null>(null)
+
+  async function definirClave(e: React.FormEvent) {
+    e.preventDefault(); if (!sel?.mayorista_id) return
+    setPwErr(null)
+    if (pwValue.length < 6) { setPwErr('La contraseña debe tener al menos 6 caracteres.'); return }
+    setPwSaving(true)
+    try {
+      const r = await fetch('/api/central/clientes/password', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mayorista_id: sel.mayorista_id, password: pwValue }) })
+      const d = await r.json()
+      if (!r.ok) { setPwErr(d.error || 'No se pudo guardar.'); setPwSaving(false); return }
+      setPwOk({ email: d.email || sel.email || '' })
+    } catch { setPwErr('Error de conexión.') }
+    setPwSaving(false)
+  }
 
   const cargar = useCallback(async () => {
     const { data } = await supabase.from('access_requests').select('*').order('created_at', { ascending: false }).limit(300)
@@ -47,6 +67,7 @@ export default function SolicitudesAcceso() {
   }, [])
   const abrir = useCallback(async (s: Sol) => {
     setSel(s); setNota(''); setAcceso(null)
+    setPwOpen(false); setPwValue(''); setPwErr(null); setPwOk(null)
     await recargarEventos(s.id)
   }, [recargarEventos])
 
@@ -224,9 +245,46 @@ export default function SolicitudesAcceso() {
               {sel.estado === 'en_revision' && <Accion onClick={() => cambiar('contactado')} busy={busy} label="Marcar contactado" />}
               {['en_revision', 'contactado'].includes(sel.estado) && <Accion onClick={() => cambiar('aprobado')} busy={busy} label="Aprobar" icon={Check} tone="green" />}
               {sel.estado === 'aprobado' && <Accion onClick={crearCliente} busy={busy} label="Crear cliente + acceso" icon={UserPlus} tone="gold" />}
-              {sel.estado === 'cuenta_creada' && sel.mayorista_id && <Accion onClick={() => crearCuenta(sel.mayorista_id!, sel.id, sel.telefono)} busy={busy} label="Reenviar invitación" icon={Send} tone="gold" />}
+              {sel.estado === 'cuenta_creada' && sel.mayorista_id && <Accion onClick={() => { setPwOpen(true); setPwValue(''); setPwErr(null); setPwOk(null) }} busy={busy} label="Definir contraseña" icon={KeyRound} tone="gold" />}
+              {sel.estado === 'cuenta_creada' && sel.mayorista_id && <Accion onClick={() => crearCuenta(sel.mayorista_id!, sel.id, sel.telefono)} busy={busy} label="Reenviar invitación" icon={Send} />}
               {!['rechazado', 'cuenta_creada'].includes(sel.estado) && <Accion onClick={() => cambiar('rechazado')} busy={busy} label="Rechazar" icon={Ban} tone="red" />}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Definir contraseña */}
+      {pwOpen && sel && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setPwOpen(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="font-bold text-[#1a1a1a] flex items-center gap-2"><KeyRound size={16} className="text-[#c9a24e]" /> Contraseña de acceso</h3>
+              <button onClick={() => setPwOpen(false)} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100"><X size={16} /></button>
+            </div>
+            <p className="text-xs text-gray-500 mb-4">{sel.empresa || sel.nombre}{sel.email ? ` · ${sel.email}` : ''}</p>
+
+            {!sel.email ? (
+              <div className="text-sm text-amber-700 bg-amber-50 rounded-xl p-3">Esta solicitud no tiene correo. No se puede crear el acceso.</div>
+            ) : pwOk ? (
+              <div>
+                <div className="flex items-center gap-2 text-green-700 bg-green-50 rounded-xl p-3 mb-3 text-sm"><CheckCircle2 size={18} /> ¡Listo! Ya puede entrar con su correo y esta clave.</div>
+                <div className="bg-gray-50 rounded-xl p-3 text-sm space-y-2">
+                  <div className="flex items-center justify-between gap-2"><span className="text-gray-400 text-xs">Correo</span><span className="font-mono text-[#1a1a1a] text-xs">{pwOk.email}</span></div>
+                  <div className="flex items-center justify-between gap-2"><span className="text-gray-400 text-xs">Contraseña</span><span className="font-mono text-[#1a1a1a]">{pwValue}</span></div>
+                  <div className="flex items-center justify-between gap-2"><span className="text-gray-400 text-xs">Portal</span><span className="text-[#1a1a1a] text-xs">nommafood.cl/portal/mayoristas/login</span></div>
+                </div>
+                <button onClick={() => navigator.clipboard?.writeText(`Ingresa a NOMMA FOOD:\nPortal: https://nommafood.cl/portal/mayoristas/login\nCorreo: ${pwOk.email}\nContraseña: ${pwValue}`)} className="w-full mt-3 flex items-center justify-center gap-2 text-sm font-semibold border border-gray-200 rounded-xl py-2.5 text-gray-600 hover:border-[#c9a24e]"><Copy size={14} /> Copiar datos para enviar al cliente</button>
+                <button onClick={() => setPwOpen(false)} className="w-full mt-2 bg-[#c9a24e] hover:bg-[#b8923f] text-[#1b2a4a] font-bold py-2.5 rounded-xl">Cerrar</button>
+              </div>
+            ) : (
+              <form onSubmit={definirClave} className="space-y-3">
+                <p className="text-xs text-gray-500">Define una contraseña y entrégasela al cliente. Entra directo, sin correo de invitación.</p>
+                <input type="text" value={pwValue} onChange={e => setPwValue(e.target.value)} className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#c9a24e]" placeholder="Mínimo 6 caracteres" autoFocus />
+                {pwErr && <p className="text-sm text-red-600">{pwErr}</p>}
+                <button type="submit" disabled={pwSaving} className="w-full bg-[#c9a24e] hover:bg-[#b8923f] text-[#1b2a4a] font-bold py-2.5 rounded-xl disabled:opacity-60">{pwSaving ? 'Guardando…' : 'Definir contraseña'}</button>
+              </form>
+            )}
           </div>
         </div>
       )}
