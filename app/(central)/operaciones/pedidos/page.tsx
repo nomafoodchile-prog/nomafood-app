@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Search, Filter, Loader2, RefreshCw, PackageOpen, Trash2 } from 'lucide-react'
+import { Search, Filter, Loader2, RefreshCw, PackageOpen, Trash2, List, CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 
 interface Pedido {
@@ -33,6 +33,10 @@ function clp(n: number) {
 function fecha(iso: string | null) {
   return iso ? new Date(iso).toLocaleDateString('es-CL') : '—'
 }
+const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
+const DIAS = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá', 'Do']
+const toISO = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+
 function badge(estado: string): { t: string; c: string } {
   const map: Record<string, { t: string; c: string }> = {
     borrador:            { t: 'Borrador',       c: 'bg-gray-100 text-gray-600' },
@@ -54,6 +58,9 @@ export default function PedidosPage() {
   const [refreshing, setRefreshing] = useState(false)
   const [search, setSearch] = useState('')
   const [filtro, setFiltro] = useState('todos')
+  const [vista, setVista] = useState<'lista' | 'calendario'>('lista')
+  const [cursor, setCursor] = useState(() => { const d = new Date(); return { y: d.getFullYear(), m: d.getMonth() } })
+  const [diaSel, setDiaSel] = useState<string | null>(null)
 
   const cargar = useCallback(async () => {
     const { data } = await supabase
@@ -95,6 +102,23 @@ export default function PedidosPage() {
     return matchSearch && matchFiltro
   })
 
+  // Calendario de despachos: por fecha de entrega solicitada (excluye cancelados)
+  const porDia = new Map<string, Pedido[]>()
+  for (const p of pedidos) {
+    if (!p.fecha_entrega_req || p.estado === 'cancelado') continue
+    const k = String(p.fecha_entrega_req).slice(0, 10)
+    const arr = porDia.get(k) || []; arr.push(p); porDia.set(k, arr)
+  }
+  const sinFecha = pedidos.filter(p => !p.fecha_entrega_req && !['cancelado', 'entregado'].includes(p.estado))
+  const primerDia = new Date(cursor.y, cursor.m, 1)
+  const offset = (primerDia.getDay() + 6) % 7
+  const diasMes = new Date(cursor.y, cursor.m + 1, 0).getDate()
+  const celdas: (number | null)[] = [...Array(offset).fill(null), ...Array.from({ length: diasMes }, (_, i) => i + 1)]
+  const hoyISO = toISO(new Date())
+  const pedidosDiaSel = diaSel ? (porDia.get(diaSel) || []) : []
+  const mesAnterior = () => setCursor(c => c.m === 0 ? { y: c.y - 1, m: 11 } : { y: c.y, m: c.m - 1 })
+  const mesSiguiente = () => setCursor(c => c.m === 11 ? { y: c.y + 1, m: 0 } : { y: c.y, m: c.m + 1 })
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -103,15 +127,88 @@ export default function PedidosPage() {
           <h1 className="text-2xl font-bold text-[#1a1a1a]">Pedidos</h1>
           <p className="text-sm text-gray-500 mt-0.5">{filtrados.length} pedidos reales · en vivo</p>
         </div>
-        <button
-          onClick={() => { setRefreshing(true); cargar() }}
-          className="flex items-center gap-2 text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-2 hover:border-[#c9a24e] transition-colors"
-        >
-          <RefreshCw size={15} className={refreshing ? 'animate-spin' : ''} />
-          Actualizar
-        </button>
+        <div className="flex items-center gap-2">
+          <div className="inline-flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+            <button onClick={() => setVista('lista')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 ${vista === 'lista' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><List size={14} /> Lista</button>
+            <button onClick={() => setVista('calendario')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 ${vista === 'calendario' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><CalendarDays size={14} /> Despachos</button>
+          </div>
+          <button
+            onClick={() => { setRefreshing(true); cargar() }}
+            className="flex items-center gap-2 text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-2 hover:border-[#c9a24e] transition-colors"
+          >
+            <RefreshCw size={15} className={refreshing ? 'animate-spin' : ''} />
+            Actualizar
+          </button>
+        </div>
       </div>
 
+      {vista === 'calendario' && (
+        <div className="grid lg:grid-cols-3 gap-4">
+          <div className="noma-card lg:col-span-2">
+            <div className="flex items-center justify-between mb-4">
+              <button onClick={mesAnterior} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500"><ChevronLeft size={18} /></button>
+              <h2 className="font-bold text-[#1a1a1a] capitalize">{MESES[cursor.m]} {cursor.y}</h2>
+              <button onClick={mesSiguiente} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500"><ChevronRight size={18} /></button>
+            </div>
+            <div className="grid grid-cols-7 gap-1 text-center">
+              {DIAS.map(d => <div key={d} className="text-[10px] font-bold text-gray-400 uppercase py-1">{d}</div>)}
+              {celdas.map((n, i) => {
+                if (n === null) return <div key={i} />
+                const iso = toISO(new Date(cursor.y, cursor.m, n))
+                const items = porDia.get(iso) || []
+                const hayPend = items.some(p => p.estado === 'pendiente_pago')
+                const esHoy = iso === hoyISO
+                const sel = iso === diaSel
+                return (
+                  <button key={i} onClick={() => setDiaSel(sel ? null : iso)}
+                    className={`aspect-square rounded-lg text-xs flex flex-col items-center justify-center gap-0.5 border transition-all ${sel ? 'border-[#c9a24e] bg-[#f5f0e8]' : esHoy ? 'border-[#1b2a4a]/30 bg-[#1b2a4a]/5' : 'border-transparent hover:bg-gray-50'}`}>
+                    <span className={esHoy ? 'font-bold text-[#1b2a4a]' : 'text-gray-600'}>{n}</span>
+                    {items.length > 0 && <span className={`text-[9px] font-bold px-1 rounded-full ${hayPend ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'}`}>{items.length}</span>}
+                  </button>
+                )
+              })}
+            </div>
+            <div className="flex items-center gap-4 mt-4 text-[11px] text-gray-400">
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-500" /> Pagado / en curso</span>
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-orange-500" /> Falta pago</span>
+            </div>
+          </div>
+          <div className="noma-card">
+            <h3 className="font-bold text-[#1a1a1a] text-sm mb-3">{diaSel ? `Despachos del ${new Date(diaSel + 'T00:00:00').toLocaleDateString('es-CL', { day: 'numeric', month: 'long' })}` : 'Selecciona un día'}</h3>
+            {!diaSel ? (
+              <p className="text-xs text-gray-400 mb-4">Haz clic en un día para ver qué pedidos se entregan.</p>
+            ) : pedidosDiaSel.length === 0 ? (
+              <p className="text-xs text-gray-400 mb-4">Sin despachos ese día.</p>
+            ) : (
+              <div className="space-y-2 mb-4">
+                {pedidosDiaSel.map(p => {
+                  const e = badge(p.estado)
+                  return (
+                    <div key={p.id} className="border border-gray-100 rounded-lg p-2.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-sm font-medium text-[#1a1a1a]">{p.mayorista?.empresa || p.mayorista?.nombre || '—'}</span>
+                        <span className="text-sm font-bold text-[#1a1a1a]">{clp(p.total)}</span>
+                      </div>
+                      <div className="flex items-center justify-between gap-2 mt-1">
+                        <span className="font-mono text-[10px] text-gray-400">{p.numero_pedido}</span>
+                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${e.c}`}>{e.t}</span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+            {sinFecha.length > 0 && (
+              <div className="border-t border-gray-100 pt-3">
+                <p className="text-[11px] font-bold text-gray-400 uppercase mb-1">Sin fecha de entrega ({sinFecha.length})</p>
+                <p className="text-[11px] text-gray-400">Estos pedidos no tienen fecha pedida por el cliente. Los ves en la vista Lista.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {vista === 'lista' && (<>
       {/* Filtros */}
       <div className="noma-card !p-4">
         <div className="flex flex-col sm:flex-row gap-3">
@@ -197,6 +294,7 @@ export default function PedidosPage() {
           </table>
         </div>
       </div>
+      </>)}
     </div>
   )
 }
