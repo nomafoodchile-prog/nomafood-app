@@ -813,13 +813,28 @@ export default function PortalMayoristas({ params }: { params: { token: string }
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
                   Dirección de entrega (opcional)
                 </label>
+                {direcciones.filter((d: any) => d.estado === 'aprobada').length > 0 && (
+                  <select
+                    onChange={e => setCheckoutDir(e.target.value)}
+                    className="w-full p-3 mb-2 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#c9a24e] bg-white"
+                    defaultValue=""
+                  >
+                    <option value="">Elige una de tus direcciones guardadas…</option>
+                    {direcciones.filter((d: any) => d.estado === 'aprobada').map((d: any) => (
+                      <option key={d.id} value={`${d.direccion}${d.comuna ? ', ' + d.comuna : ''}`}>
+                        {d.alias ? `${d.alias} — ` : ''}{d.direccion}{d.comuna ? `, ${d.comuna}` : ''}
+                      </option>
+                    ))}
+                  </select>
+                )}
                 <input
                   type="text"
                   value={checkoutDir}
                   onChange={e => setCheckoutDir(e.target.value)}
-                  placeholder="Ej: Av. Providencia 1234, Santiago"
+                  placeholder="…o escribe la dirección de entrega"
                   className="w-full p-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#c9a24e]"
                 />
+                <p className="text-[11px] text-gray-400 mt-1">Puedes guardar tus direcciones fijas en la pestaña “Direcciones”.</p>
               </div>
 
               <div className="bg-white rounded-2xl p-4 shadow-sm">
