@@ -198,7 +198,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
       if (!res.ok || !d.ok) throw new Error(d.error || 'No se pudo guardar')
       setDirForm({ alias: '', direccion: '', comuna: '', contacto: '', telefono: '' })
       setDirShowForm(false)
-      setSuccessMsg('Dirección enviada. Queda pendiente de aprobación por la central.')
+      setSuccessMsg('Dirección guardada. Ya puedes elegirla al hacer tu pedido.')
       loadData()
     } catch (e: any) {
       setSuccessMsg(e?.message || 'Error al guardar la dirección')
@@ -1035,14 +1035,14 @@ export default function PortalMayoristas({ params }: { params: { token: string }
 
             {dirShowForm && (
               <div className="bg-white rounded-2xl p-4 shadow-sm mb-4 space-y-3">
-                <p className="text-xs text-gray-500">La dirección queda <b>pendiente de aprobación</b> por la central antes de poder usarla.</p>
+                <p className="text-xs text-gray-500">Queda guardada al instante y podrás <b>elegirla al hacer tu pedido</b>.</p>
                 <input className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm" placeholder="Alias (ej: Sucursal Providencia)" value={dirForm.alias} onChange={e => setDirForm({ ...dirForm, alias: e.target.value })} />
                 <input className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm" placeholder="Dirección *" value={dirForm.direccion} onChange={e => setDirForm({ ...dirForm, direccion: e.target.value })} />
                 <input className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm" placeholder="Comuna" value={dirForm.comuna} onChange={e => setDirForm({ ...dirForm, comuna: e.target.value })} />
                 <input className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm" placeholder="Contacto en el local" value={dirForm.contacto} onChange={e => setDirForm({ ...dirForm, contacto: e.target.value })} />
                 <input className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm" placeholder="Teléfono" value={dirForm.telefono} onChange={e => setDirForm({ ...dirForm, telefono: e.target.value })} />
                 <button onClick={agregarDireccion} disabled={dirSaving} className="w-full bg-[#c9a24e] hover:bg-[#b8923f] text-white font-semibold py-2.5 rounded-xl disabled:opacity-60">
-                  {dirSaving ? 'Enviando…' : 'Enviar para aprobación'}
+                  {dirSaving ? 'Guardando…' : 'Guardar dirección'}
                 </button>
               </div>
             )}

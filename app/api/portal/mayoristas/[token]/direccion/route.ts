@@ -39,7 +39,7 @@ export async function POST(
         comuna:   body.comuna   ? String(body.comuna).trim()   : null,
         contacto: body.contacto ? String(body.contacto).trim() : null,
         telefono: body.telefono ? String(body.telefono).trim() : null,
-        estado:   'pendiente',
+        estado:   'aprobada', // auto-aprobada: la clienta la puede usar de inmediato en el checkout
       })
       .select('id')
       .single()

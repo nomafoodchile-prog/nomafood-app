@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   CheckCircle2, XCircle, AlertCircle, Clock, Zap, Database, Globe,
   Shield, Users, Package, ShoppingCart, Truck, ChefHat, ClipboardList,
@@ -435,6 +435,27 @@ export default function MarchaBlancoPage() {
   const [showIntegraciones, setShowIntegraciones] = useState(true)
   const [testRunning, setTestRunning] = useState<string | null>(null)
 
+  // Interruptor de pedidos (marcha blanca)
+  const [pedOn, setPedOn] = useState<boolean | null>(null)
+  const [pedSaving, setPedSaving] = useState(false)
+  const [pedErr, setPedErr] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetch('/api/central/config').then(r => r.ok ? r.json() : { pedidos_habilitados: false })
+      .then(d => setPedOn(!!d.pedidos_habilitados)).catch(() => setPedOn(false))
+  }, [])
+
+  async function togglePedidos(next: boolean) {
+    setPedSaving(true); setPedErr(null)
+    try {
+      const r = await fetch('/api/central/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ habilitado: next }) })
+      const d = await r.json()
+      if (!r.ok) { setPedErr(d.error || 'No se pudo guardar.'); setPedSaving(false); return }
+      setPedOn(next)
+    } catch { setPedErr('Error de conexión.') }
+    setPedSaving(false)
+  }
+
   // Calcular porcentaje general
   const avgPct = Math.round(MODULOS.reduce((s, m) => s + m.porcentaje, 0) / MODULOS.length)
   const integPct = Math.round(INTEGRACIONES.reduce((s, i) => s + i.porcentaje, 0) / INTEGRACIONES.length)
@@ -467,6 +488,32 @@ export default function MarchaBlancoPage() {
           <h1 className="text-xl font-bold text-[#1b2a4a]">Marcha Blanca / Estado de Implementación</h1>
         </div>
         <p className="text-sm text-gray-500">Centro de control de lanzamiento — Noma Food Sistema Operacional</p>
+      </div>
+
+      {/* INTERRUPTOR DE PEDIDOS */}
+      <div className={`mb-6 rounded-2xl border p-4 md:p-5 flex items-center justify-between gap-4 flex-wrap ${pedOn ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200'}`}>
+        <div className="flex items-center gap-3">
+          <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${pedOn ? 'bg-green-100' : 'bg-gray-100'}`}>
+            <ShoppingCart size={20} className={pedOn ? 'text-green-600' : 'text-gray-400'} />
+          </div>
+          <div>
+            <p className="font-bold text-[#1b2a4a]">Compras en el portal {pedOn === null ? '' : pedOn ? '· ACTIVADAS' : '· en marcha blanca'}</p>
+            <p className="text-xs text-gray-500">
+              {pedOn === null ? 'Cargando…' : pedOn
+                ? 'Los clientes pueden agregar al carrito y realizar pedidos.'
+                : 'Los clientes pueden mirar el catálogo, pero no comprar todavía.'}
+            </p>
+            {pedErr && <p className="text-xs text-red-600 mt-0.5">{pedErr}</p>}
+          </div>
+        </div>
+        <button
+          onClick={() => togglePedidos(!pedOn)}
+          disabled={pedOn === null || pedSaving}
+          className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors disabled:opacity-50 ${pedOn ? 'bg-green-600' : 'bg-gray-300'}`}
+          title={pedOn ? 'Apagar pedidos' : 'Habilitar pedidos'}
+        >
+          <span className={`inline-block h-6 w-6 transform rounded-full bg-white shadow transition-transform ${pedOn ? 'translate-x-7' : 'translate-x-1'}`} />
+        </button>
       </div>
 
       {/* KPIs GENERALES */}
