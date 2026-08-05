@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Plus, X, Search, Users, TrendingUp, AlertCircle, Building2, Loader2, KeyRound, CheckCircle2, Copy } from 'lucide-react'
+import { Plus, X, Search, Users, TrendingUp, AlertCircle, Building2, Loader2, KeyRound, CheckCircle2, Copy, ShoppingCart } from 'lucide-react'
 
 interface Cliente {
   id: string
@@ -35,6 +35,22 @@ export default function ClientesPage() {
   const [busqueda, setBusqueda] = useState('')
   const [filtroEstado, setFiltroEstado] = useState<'Todos' | 'Activo' | 'Inactivo'>('Todos')
   const [form, setForm] = useState({ empresa: '', rut: '', email: '', telefono: '', contacto: '', estado: 'Activo' })
+  // Interruptor de compras del portal (marcha blanca)
+  const [pedOn, setPedOn] = useState<boolean | null>(null)
+  const [pedSaving, setPedSaving] = useState(false)
+  useEffect(() => {
+    fetch('/api/central/config').then(r => r.ok ? r.json() : { pedidos_habilitados: false })
+      .then(d => setPedOn(!!d.pedidos_habilitados)).catch(() => setPedOn(false))
+  }, [])
+  async function togglePedidos(next: boolean) {
+    setPedSaving(true)
+    try {
+      const r = await fetch('/api/central/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ habilitado: next }) })
+      if (r.ok) setPedOn(next); else { const d = await r.json(); alert(d.error || 'No se pudo cambiar.') }
+    } catch { alert('Error de conexión.') }
+    setPedSaving(false)
+  }
+
   // Modal de contraseña
   const [pwCliente, setPwCliente] = useState<Cliente | null>(null)
   const [pwValue, setPwValue] = useState('')
@@ -117,6 +133,31 @@ export default function ClientesPage() {
         <button onClick={() => setShowForm(true)} className="noma-btn-primary text-sm flex items-center gap-2">
           <Plus size={16} />
           Nuevo cliente
+        </button>
+      </div>
+
+      {/* Interruptor de compras del portal */}
+      <div className={`rounded-2xl border p-4 flex items-center justify-between gap-4 flex-wrap ${pedOn ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200'}`}>
+        <div className="flex items-center gap-3">
+          <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${pedOn ? 'bg-green-100' : 'bg-gray-100'}`}>
+            <ShoppingCart size={20} className={pedOn ? 'text-green-600' : 'text-gray-400'} />
+          </div>
+          <div>
+            <p className="font-bold text-[#1a1a1a]">Compras del portal {pedOn === null ? '' : pedOn ? '· ACTIVADAS' : '· en marcha blanca'}</p>
+            <p className="text-xs text-gray-500">
+              {pedOn === null ? 'Cargando…' : pedOn
+                ? 'Los clientes pueden agregar al carrito y hacer pedidos.'
+                : 'Los clientes solo pueden mirar el catálogo, todavía no comprar.'}
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={() => togglePedidos(!pedOn)}
+          disabled={pedOn === null || pedSaving}
+          className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors disabled:opacity-50 ${pedOn ? 'bg-green-600' : 'bg-gray-300'}`}
+          title={pedOn ? 'Apagar compras' : 'Activar compras'}
+        >
+          <span className={`inline-block h-6 w-6 transform rounded-full bg-white shadow transition-transform ${pedOn ? 'translate-x-7' : 'translate-x-1'}`} />
         </button>
       </div>
 
