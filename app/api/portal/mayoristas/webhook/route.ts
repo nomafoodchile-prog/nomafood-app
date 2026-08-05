@@ -71,13 +71,13 @@ export async function POST(req: NextRequest) {
     // Mapear estado MP → estado pedido
     const estadoMap: Record<string, string> = {
       approved:     'pagado',
-      pending:      'confirmado',
-      in_process:   'confirmado',
+      pending:      'pendiente_pago',
+      in_process:   'pendiente_pago',
       rejected:     'cancelado',
       cancelled:    'cancelado',
       refunded:     'cancelado',
     }
-    const nuevoEstado = estadoMap[payment.status] || 'confirmado'
+    const nuevoEstado = estadoMap[payment.status] || 'pendiente_pago'
 
     await supabase
       .from('mayorista_pedidos')

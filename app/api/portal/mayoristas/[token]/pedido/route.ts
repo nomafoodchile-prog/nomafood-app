@@ -96,7 +96,7 @@ export async function POST(
       .from('mayorista_pedidos')
       .insert({
         mayorista_id:       mayorista.id,
-        estado:             'confirmado',
+        estado:             'pendiente_pago', // se confirma (pagado) recién cuando Mercado Pago aprueba el pago
         subtotal:           Number(subtotal.toFixed(2)),
         descuento_monto:    Number(descuento.toFixed(2)),
         neto:               Number(netoProd.toFixed(2)),

@@ -319,14 +319,14 @@ export default function PortalMayoristas({ params }: { params: { token: string }
       <div className="min-h-screen bg-[#f6f3ec] flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl p-8 text-center shadow-lg max-w-sm w-full">
           <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-[#16233f] mb-1">¡Pedido confirmado!</h2>
+          <h2 className="text-xl font-bold text-[#16233f] mb-1">¡Pedido creado!</h2>
           <p className="text-gray-500 text-sm mb-1">Pedido {orderSuccess.numero}</p>
           <p className="text-2xl font-bold text-[#c9a24e] mb-6">{fmt(orderSuccess.total)}</p>
 
           {orderSuccess.init_point ? (
             <>
               <p className="text-sm text-gray-600 mb-4">
-                Haz clic en el botón para completar el pago con Mercado Pago.
+                Para confirmar tu pedido, <b>completa el pago con Mercado Pago</b>. Lo preparamos y despachamos una vez pagado.
               </p>
               <a
                 href={orderSuccess.init_point}

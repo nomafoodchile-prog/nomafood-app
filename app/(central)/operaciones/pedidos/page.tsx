@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Search, Filter, Loader2, RefreshCw, PackageOpen } from 'lucide-react'
+import { Search, Filter, Loader2, RefreshCw, PackageOpen, Trash2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 
 interface Pedido {
@@ -17,8 +17,9 @@ interface Pedido {
 
 const ESTADOS: { key: string; label: string }[] = [
   { key: 'todos', label: 'Todos' },
-  { key: 'confirmado', label: 'Confirmado' },
+  { key: 'pendiente_pago', label: 'Pendiente de pago' },
   { key: 'pagado', label: 'Pagado' },
+  { key: 'confirmado', label: 'Confirmado' },
   { key: 'en_preparacion', label: 'En preparación' },
   { key: 'listo_para_despacho', label: 'Listo' },
   { key: 'asignado', label: 'En despacho' },
@@ -35,6 +36,7 @@ function fecha(iso: string | null) {
 function badge(estado: string): { t: string; c: string } {
   const map: Record<string, { t: string; c: string }> = {
     borrador:            { t: 'Borrador',       c: 'bg-gray-100 text-gray-600' },
+    pendiente_pago:      { t: 'Pendiente de pago', c: 'bg-orange-100 text-orange-700' },
     confirmado:          { t: 'Confirmado',     c: 'bg-blue-100 text-blue-700' },
     pagado:              { t: 'Pagado',         c: 'bg-green-100 text-green-700' },
     en_preparacion:      { t: 'En preparación', c: 'bg-amber-100 text-amber-700' },
@@ -63,6 +65,18 @@ export default function PedidosPage() {
     setLoading(false)
     setRefreshing(false)
   }, [])
+
+  const [eliminando, setEliminando] = useState<string | null>(null)
+  async function eliminar(id: string, numero: string) {
+    if (!confirm(`¿Eliminar el pedido ${numero}? Esta acción no se puede deshacer.`)) return
+    setEliminando(id)
+    try {
+      const r = await fetch(`/api/central/pedidos/${id}`, { method: 'DELETE' })
+      if (!r.ok) { const d = await r.json(); alert(d.error || 'No se pudo eliminar.') }
+      else setPedidos(prev => prev.filter(p => p.id !== id))
+    } catch { alert('Error de conexión.') }
+    setEliminando(null)
+  }
 
   useEffect(() => { cargar() }, [cargar])
   useEffect(() => {
@@ -168,7 +182,12 @@ export default function PedidosPage() {
                       </td>
                       <td className="py-3 px-4 text-right font-semibold text-[#1a1a1a]">{clp(p.total)}</td>
                       <td className="py-3 px-4 text-right">
-                        <a href={`/orden-compra/${p.id}`} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-[#c9a24e] hover:underline whitespace-nowrap">Orden compra ↗</a>
+                        <div className="flex items-center justify-end gap-3">
+                          <a href={`/orden-compra/${p.id}`} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-[#c9a24e] hover:underline whitespace-nowrap">Orden compra ↗</a>
+                          <button onClick={() => eliminar(p.id, p.numero_pedido)} disabled={eliminando === p.id} title="Eliminar pedido" className="text-gray-300 hover:text-red-500 disabled:opacity-50">
+                            {eliminando === p.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   )
