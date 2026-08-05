@@ -281,9 +281,11 @@ export default function PedidosPage() {
                       <td className="py-3 px-4 text-right">
                         <div className="flex items-center justify-end gap-3">
                           <a href={`/orden-compra/${p.id}`} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-[#c9a24e] hover:underline whitespace-nowrap">Orden compra ↗</a>
-                          <button onClick={() => eliminar(p.id, p.numero_pedido)} disabled={eliminando === p.id} title="Eliminar pedido" className="text-gray-300 hover:text-red-500 disabled:opacity-50">
-                            {eliminando === p.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
-                          </button>
+                          {!['pagado', 'en_preparacion', 'listo_para_despacho', 'asignado', 'entregado'].includes(p.estado) && (
+                            <button onClick={() => eliminar(p.id, p.numero_pedido)} disabled={eliminando === p.id} title="Eliminar pedido" className="text-gray-300 hover:text-red-500 disabled:opacity-50">
+                              {eliminando === p.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
