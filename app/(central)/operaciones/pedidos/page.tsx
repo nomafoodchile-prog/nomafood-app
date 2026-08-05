@@ -73,6 +73,13 @@ export default function PedidosPage() {
     setRefreshing(false)
   }, [])
 
+  async function guardarFecha(id: string, valor: string) {
+    setPedidos(prev => prev.map(p => p.id === id ? { ...p, fecha_entrega_req: valor || null } : p))
+    try {
+      await fetch(`/api/central/pedidos/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fecha_entrega_req: valor || null }) })
+    } catch { alert('No se pudo guardar la fecha.') }
+  }
+
   const [eliminando, setEliminando] = useState<string | null>(null)
   async function eliminar(id: string, numero: string) {
     if (!confirm(`¿Eliminar el pedido ${numero}? Esta acción no se puede deshacer.`)) return
@@ -273,7 +280,15 @@ export default function PedidosPage() {
                         <span className="font-mono text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">{p.numero_pedido}</span>
                       </td>
                       <td className="py-3 px-4 font-medium text-[#1a1a1a]">{cli}</td>
-                      <td className="py-3 px-4 text-gray-500 text-xs hidden md:table-cell">{fecha(p.fecha_entrega_req)}</td>
+                      <td className="py-3 px-4 hidden md:table-cell">
+                        <input
+                          type="date"
+                          value={p.fecha_entrega_req ? String(p.fecha_entrega_req).slice(0, 10) : ''}
+                          onChange={e => guardarFecha(p.id, e.target.value)}
+                          className="text-xs text-gray-600 border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:border-[#c9a24e]"
+                          title="Fecha de despacho"
+                        />
+                      </td>
                       <td className="py-3 px-4">
                         <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${e.c}`}>{e.t}</span>
                       </td>
