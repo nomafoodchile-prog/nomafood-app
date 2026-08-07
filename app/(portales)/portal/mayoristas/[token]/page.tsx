@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   ShoppingCart, Package, ChevronDown, ChevronUp, Trash2, Plus, Minus,
   CheckCircle2, AlertCircle, Clock, User, LogOut, RefreshCw,
-  CreditCard, ClipboardList, Search, Filter, Wifi, WifiOff, Sprout, MapPin
+  CreditCard, ClipboardList, Search, Filter, Wifi, WifiOff, Sprout, MapPin, Loader2
 } from 'lucide-react'
 
 /* ════════════════════════════════════════════════════════════
@@ -117,6 +117,23 @@ export default function PortalMayoristas({ params }: { params: { token: string }
   const [checkoutDir, setCheckoutDir]    = useState('')
   const [placing, setPlacing]         = useState(false)
   const [orderSuccess, setOrderSuccess] = useState<{ numero: string; total: number; init_point: string | null } | null>(null)
+  const [pagandoId, setPagandoId]     = useState<string | null>(null)
+
+  // Ir a pagar un pedido pendiente: si ya tiene link lo abre; si no, lo genera al vuelo.
+  async function pagarPedido(pedido: Pedido) {
+    if (pedido.mp_init_point) { window.location.href = pedido.mp_init_point; return }
+    setPagandoId(pedido.id)
+    try {
+      const res = await fetch(`/api/portal/mayoristas/${token}/pagar`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pedido_id: pedido.id }),
+      })
+      const d = await res.json()
+      if (res.ok && d.init_point) { window.location.href = d.init_point }
+      else alert(d.error || 'No se pudo abrir el pago. Intenta de nuevo.')
+    } catch { alert('Sin conexión. Intenta de nuevo.') }
+    setPagandoId(null)
+  }
   const [successMsg, setSuccessMsg]   = useState<string | null>(null)
   const [dirForm, setDirForm]         = useState({ alias: '', direccion: '', comuna: '', contacto: '', telefono: '' })
   const [dirSaving, setDirSaving]     = useState(false)
@@ -944,11 +961,11 @@ export default function PortalMayoristas({ params }: { params: { token: string }
                           )}
                         </div>
                       )}
-                      {pedido.estado === 'pendiente_pago' && pedido.mp_init_point && (
-                        <a href={pedido.mp_init_point}
-                           className="mt-3 flex items-center justify-center gap-2 w-full bg-[#009ee3] hover:bg-[#007ec0] text-white font-semibold py-2.5 rounded-xl transition-colors">
-                          <CreditCard className="w-4 h-4" /> Pagar ahora
-                        </a>
+                      {pedido.estado === 'pendiente_pago' && (
+                        <button onClick={() => pagarPedido(pedido)} disabled={pagandoId === pedido.id}
+                           className="mt-3 flex items-center justify-center gap-2 w-full bg-[#009ee3] hover:bg-[#007ec0] text-white font-semibold py-2.5 rounded-xl transition-colors disabled:opacity-60">
+                          {pagandoId === pedido.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />} Pagar ahora
+                        </button>
                       )}
                     </div>
                   </div>
