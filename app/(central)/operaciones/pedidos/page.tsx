@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Search, Filter, Loader2, RefreshCw, PackageOpen, Trash2, List, CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Search, Filter, Loader2, RefreshCw, PackageOpen, Trash2, List, CalendarDays, ChevronLeft, ChevronRight, CreditCard, Copy, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 
 interface Pedido {
@@ -78,6 +78,19 @@ export default function PedidosPage() {
     try {
       await fetch(`/api/central/pedidos/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fecha_entrega_req: valor || null }) })
     } catch { alert('No se pudo guardar la fecha.') }
+  }
+
+  const [generando, setGenerando] = useState<string | null>(null)
+  const [linkModal, setLinkModal] = useState<{ numero: string; url: string } | null>(null)
+  async function generarLink(id: string, numero: string) {
+    setGenerando(id)
+    try {
+      const r = await fetch(`/api/central/pedidos/${id}/pagar`, { method: 'POST' })
+      const d = await r.json()
+      if (!r.ok || !d.init_point) { alert(d.error || 'No se pudo generar el link.'); setGenerando(null); return }
+      setLinkModal({ numero, url: d.init_point })
+    } catch { alert('Error de conexión.') }
+    setGenerando(null)
   }
 
   const [eliminando, setEliminando] = useState<string | null>(null)
@@ -295,6 +308,11 @@ export default function PedidosPage() {
                       <td className="py-3 px-4 text-right font-semibold text-[#1a1a1a]">{clp(p.total)}</td>
                       <td className="py-3 px-4 text-right">
                         <div className="flex items-center justify-end gap-3">
+                          {p.estado === 'pendiente_pago' && (
+                            <button onClick={() => generarLink(p.id, p.numero_pedido)} disabled={generando === p.id} className="text-xs font-semibold flex items-center gap-1 text-[#009ee3] hover:underline whitespace-nowrap disabled:opacity-50">
+                              {generando === p.id ? <Loader2 size={12} className="animate-spin" /> : <CreditCard size={12} />} Link de pago
+                            </button>
+                          )}
                           <a href={`/orden-compra/${p.id}`} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-[#c9a24e] hover:underline whitespace-nowrap">Orden compra ↗</a>
                           {!['pagado', 'en_preparacion', 'listo_para_despacho', 'asignado', 'entregado'].includes(p.estado) && (
                             <button onClick={() => eliminar(p.id, p.numero_pedido)} disabled={eliminando === p.id} title="Eliminar pedido" className="text-gray-300 hover:text-red-500 disabled:opacity-50">
@@ -312,6 +330,27 @@ export default function PedidosPage() {
         </div>
       </div>
       </>)}
+
+      {/* Modal: link de pago generado */}
+      {linkModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setLinkModal(null)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="font-bold text-[#1a1a1a] flex items-center gap-2"><CreditCard size={16} className="text-[#009ee3]" /> Link de pago</h3>
+              <button onClick={() => setLinkModal(null)} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100"><X size={16} /></button>
+            </div>
+            <p className="text-xs text-gray-500 mb-4">Pedido {linkModal.numero}. Envíale este link al cliente para que pague con tarjeta.</p>
+            <div className="bg-gray-50 rounded-xl p-3 text-xs text-gray-700 break-all mb-3">{linkModal.url}</div>
+            <button
+              onClick={() => navigator.clipboard?.writeText(`Hola! Aquí puedes completar el pago de tu pedido ${linkModal.numero} en NOMMA FOOD: ${linkModal.url}`)}
+              className="w-full flex items-center justify-center gap-2 text-sm font-semibold border border-gray-200 rounded-xl py-2.5 text-gray-600 hover:border-[#c9a24e] mb-2">
+              <Copy size={14} /> Copiar mensaje para WhatsApp
+            </button>
+            <a href={linkModal.url} target="_blank" rel="noopener noreferrer" className="block text-center w-full bg-[#009ee3] hover:bg-[#007ec0] text-white font-semibold py-2.5 rounded-xl">Abrir el link de pago</a>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
