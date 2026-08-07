@@ -177,16 +177,6 @@ export async function POST(
             },
             external_reference: pedido.id,
             statement_descriptor: 'NOMMA FOOD',
-            // Solo tarjeta: excluir efectivo, transferencia y saldo Mercado Pago
-            // (así todo pago se aprueba al instante → el pedido pasa a 'pagado' de inmediato)
-            payment_methods: {
-              excluded_payment_types: [
-                { id: 'ticket' },        // efectivo
-                { id: 'atm' },           // pago en cajero
-                { id: 'bank_transfer' }, // transferencia
-                { id: 'account_money' }, // saldo Mercado Pago
-              ],
-            },
             back_urls: {
               success: `${baseUrl}/portal/mayoristas/${params.token}/confirmacion?pedido=${pedido.id}&status=success`,
               failure: `${baseUrl}/portal/mayoristas/${params.token}/confirmacion?pedido=${pedido.id}&status=failure`,
