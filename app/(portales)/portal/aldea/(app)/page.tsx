@@ -79,8 +79,12 @@ export default function AldeaDashboard() {
   useEffect(() => { if (vista === 'pedidos' && sucursal) cargarPedidos(sucursal) }, [vista, sucursal, cargarPedidos])
   useEffect(() => { setCart({}); setOkMsg(null) }, [sucursal])
 
-  function setQty(pid: string, delta: number, nombre?: string) {
+  function setQty(pid: string, delta: number) {
     setCart(c => { const n = Math.max(0, (c[pid] || 0) + delta); const nc = { ...c }; if (n === 0) delete nc[pid]; else nc[pid] = n; return nc })
+  }
+  function setQtyDirect(pid: string, raw: string) {
+    const n = Math.max(0, Math.floor(Number(raw.replace(/[^0-9]/g, '')) || 0))
+    setCart(c => { const nc = { ...c }; if (!n) delete nc[pid]; else nc[pid] = n; return nc })
   }
   async function enviarSolicitud() {
     const items = stock.filter(s => (cart[s.product_id] || 0) > 0).map(s => ({ product_id: s.product_id, cantidad: cart[s.product_id], producto_nombre: s.nombre, unidad: s.unidad }))
@@ -205,9 +209,11 @@ export default function AldeaDashboard() {
                 <div key={i.product_id} className="flex items-center gap-3 py-3 border-t border-gray-50 first:border-0">
                   <div className="w-11 h-11 rounded-xl bg-[#f5f0e8] grid place-items-center overflow-hidden flex-none">{i.imagen_url ? <img src={i.imagen_url} alt="" className="w-full h-full object-cover" /> : <Package size={18} className="text-[#c9a24e]" />}</div>
                   <div className="flex-1 min-w-0"><p className="font-semibold text-sm text-[#1a1a1a] truncate">{i.nombre}</p><p className="text-[11px] text-gray-400">{i.unidad} · tienes {i.stock_actual} / ideal {i.stock_ideal}</p></div>
-                  <div className="inline-flex items-center gap-2.5 border border-gray-200 rounded-lg px-1.5 py-1 flex-none">
+                  <div className="inline-flex items-center gap-1.5 border border-gray-200 rounded-lg px-1.5 py-1 flex-none">
                     <button onClick={() => setQty(i.product_id, -1)} className="w-7 h-7 rounded-md bg-gray-50 text-[#16233f] grid place-items-center"><Minus size={14} /></button>
-                    <b className="min-w-[18px] text-center text-sm tabular-nums">{cart[i.product_id] || 0}</b>
+                    <input type="number" inputMode="numeric" min={0} value={cart[i.product_id] ?? ''} placeholder="0"
+                      onChange={e => setQtyDirect(i.product_id, e.target.value)}
+                      className="w-11 text-center text-sm font-bold tabular-nums border-0 outline-none bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                     <button onClick={() => setQty(i.product_id, 1)} className="w-7 h-7 rounded-md bg-[#c9a24e] text-white grid place-items-center"><Plus size={14} /></button>
                   </div>
                 </div>
