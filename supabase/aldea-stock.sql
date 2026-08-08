@@ -8,7 +8,7 @@
 create table if not exists public.aldea_stock (
   id            uuid primary key default gen_random_uuid(),
   mayorista_id  uuid not null references public.mayoristas(id) on delete cascade, -- la sucursal
-  product_id    text not null,        -- referencia a products.id
+  product_id    uuid not null,        -- referencia a products.id (uuid)
   stock_actual  numeric not null default 0,
   stock_min     numeric not null default 0,
   stock_ideal   numeric not null default 0,
@@ -24,7 +24,7 @@ alter table public.aldea_stock enable row level security;
 create table if not exists public.aldea_catalogo (
   id            uuid primary key default gen_random_uuid(),
   mayorista_id  uuid not null references public.mayoristas(id) on delete cascade,
-  product_id    text not null,
+  product_id    uuid not null,        -- referencia a products.id (uuid)
   tipo          text not null default 'producto',  -- 'producto' | 'insumo'
   activo        boolean not null default true,
   created_at    timestamptz not null default now(),
