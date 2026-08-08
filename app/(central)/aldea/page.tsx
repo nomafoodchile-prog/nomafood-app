@@ -1,0 +1,160 @@
+'use client'
+
+import { useState, useEffect, useCallback } from 'react'
+import { Loader2, Sprout, ChevronDown, Check, Store } from 'lucide-react'
+
+interface Item { id: string; producto_nombre: string; unidad: string; cantidad_solicitada: number; cantidad_aprobada: number | null; cantidad_preparada: number | null; cantidad_despachada: number | null; cantidad_recibida: number | null }
+interface Sol { id: string; folio: string; sucursal: string; estado: string; prioridad: string; fecha_requerida: string | null; observaciones: string | null; created_at: string; items: Item[] }
+
+const EST: Record<string, { l: string; c: string }> = {
+  solicitud_enviada: { l: 'Enviada', c: 'bg-blue-100 text-blue-700' }, en_revision: { l: 'En revisión', c: 'bg-amber-100 text-amber-700' },
+  aprobada: { l: 'Aprobada', c: 'bg-teal-100 text-teal-700' }, en_preparacion: { l: 'En preparación', c: 'bg-amber-100 text-amber-700' },
+  en_picking: { l: 'En picking', c: 'bg-amber-100 text-amber-700' }, listo_despacho: { l: 'Listo despacho', c: 'bg-amber-100 text-amber-700' },
+  en_ruta: { l: 'En ruta', c: 'bg-blue-100 text-blue-700' }, entregada: { l: 'Entregada', c: 'bg-green-100 text-green-700' },
+  entregada_diferencias: { l: 'Con diferencias', c: 'bg-red-100 text-red-700' }, cancelada: { l: 'Cancelada', c: 'bg-gray-100 text-gray-500' },
+}
+const ESTADOS_SEL = ['solicitud_enviada', 'en_revision', 'aprobada', 'en_preparacion', 'en_picking', 'listo_despacho', 'en_ruta', 'entregada', 'cancelada']
+const fFecha = (s: string | null) => s ? new Date(s + (s.length <= 10 ? 'T00:00:00' : '')).toLocaleDateString('es-CL') : '—'
+
+export default function AldeaCentralPage() {
+  const [sols, setSols] = useState<Sol[]>([])
+  const [loading, setLoading] = useState(true)
+  const [filtro, setFiltro] = useState('todos')
+  const [abierto, setAbierto] = useState<string | null>(null)
+  const [draft, setDraft] = useState<Record<string, { estado: string; items: Record<string, { a: string; p: string; d: string }> }>>({})
+  const [guardando, setGuardando] = useState<string | null>(null)
+
+  const cargar = useCallback(async () => {
+    setLoading(true)
+    try { const r = await fetch('/api/central/aldea/solicitudes'); const d = await r.json(); setSols(r.ok ? (d.solicitudes || []) : []) }
+    catch { setSols([]) }
+    setLoading(false)
+  }, [])
+  useEffect(() => { cargar() }, [cargar])
+
+  function abrir(s: Sol) {
+    if (abierto === s.id) { setAbierto(null); return }
+    setAbierto(s.id)
+    const items: Record<string, { a: string; p: string; d: string }> = {}
+    for (const it of s.items) items[it.id] = {
+      a: it.cantidad_aprobada != null ? String(it.cantidad_aprobada) : '',
+      p: it.cantidad_preparada != null ? String(it.cantidad_preparada) : '',
+      d: it.cantidad_despachada != null ? String(it.cantidad_despachada) : '',
+    }
+    setDraft(prev => ({ ...prev, [s.id]: { estado: s.estado, items } }))
+  }
+
+  function setField(solId: string, itemId: string, campo: 'a' | 'p' | 'd', val: string) {
+    setDraft(prev => ({ ...prev, [solId]: { ...prev[solId], items: { ...prev[solId].items, [itemId]: { ...prev[solId].items[itemId], [campo]: val.replace(/[^0-9]/g, '') } } } }))
+  }
+  function aprobarTodo(s: Sol) {
+    setDraft(prev => {
+      const items = { ...prev[s.id].items }
+      for (const it of s.items) items[it.id] = { ...items[it.id], a: String(it.cantidad_solicitada) }
+      return { ...prev, [s.id]: { ...prev[s.id], items, estado: 'aprobada' } }
+    })
+  }
+
+  async function guardar(s: Sol) {
+    const d = draft[s.id]; if (!d) return
+    setGuardando(s.id)
+    try {
+      const items = s.items.map(it => ({ id: it.id, cantidad_aprobada: d.items[it.id]?.a ?? '', cantidad_preparada: d.items[it.id]?.p ?? '', cantidad_despachada: d.items[it.id]?.d ?? '' }))
+      const r = await fetch(`/api/central/aldea/solicitudes/${s.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ estado: d.estado, items }) })
+      if (!r.ok) { const e = await r.json(); alert(e.error || 'No se pudo guardar.'); setGuardando(null); return }
+      await cargar()
+    } catch { alert('Error de conexión.') }
+    setGuardando(null)
+  }
+
+  const vis = sols.filter(s => filtro === 'todos' || s.estado === filtro)
+  const nuevas = sols.filter(s => s.estado === 'solicitud_enviada').length
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-[#1a1a1a] flex items-center gap-2"><Sprout className="text-[#c9a24e]" size={22} /> Aldea Vegetal</h1>
+        <p className="text-sm text-gray-500 mt-0.5">Solicitudes de reposición de las cafeterías. Completa aprobado, preparado y despachado.</p>
+      </div>
+
+      <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1 w-fit overflow-x-auto max-w-full">
+        {([['todos', `Todas${nuevas ? ` · ${nuevas} nuevas` : ''}`], ['solicitud_enviada', 'Enviadas'], ['aprobada', 'Aprobadas'], ['en_preparacion', 'En preparación'], ['en_ruta', 'En ruta'], ['entregada', 'Entregadas']] as const).map(([k, l]) => (
+          <button key={k} onClick={() => setFiltro(k)} className={`px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap ${filtro === k ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}>{l}</button>
+        ))}
+      </div>
+
+      {loading ? (
+        <div className="py-16 text-center"><Loader2 className="w-6 h-6 text-[#1b2a4a] animate-spin mx-auto" /></div>
+      ) : vis.length === 0 ? (
+        <div className="noma-card text-center py-14 text-gray-400 text-sm"><Store className="w-8 h-8 text-gray-200 mx-auto mb-2" />No hay solicitudes {filtro !== 'todos' ? 'en este estado' : 'todavía'}.</div>
+      ) : (
+        <div className="space-y-3">
+          {vis.map(s => {
+            const e = EST[s.estado] || { l: s.estado, c: 'bg-gray-100 text-gray-600' }
+            const open = abierto === s.id
+            const d = draft[s.id]
+            return (
+              <div key={s.id} className="noma-card !p-0 overflow-hidden">
+                <button onClick={() => abrir(s)} className="w-full flex items-center justify-between gap-3 p-4 hover:bg-gray-50/50 text-left">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <span className="font-mono text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">{s.folio}</span>
+                    <span className="font-semibold text-[#1a1a1a] text-sm flex items-center gap-1.5"><Store size={13} className="text-[#c9a24e]" /> {s.sucursal}</span>
+                    {s.prioridad === 'alta' && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-50 text-red-600">⚡ Alta</span>}
+                  </div>
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    <span className="text-xs text-gray-400 hidden sm:block">{s.items.length} ítems · {fFecha(s.created_at)}</span>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${e.c}`}>{e.l}</span>
+                    <ChevronDown size={16} className={`text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+                  </div>
+                </button>
+
+                {open && d && (
+                  <div className="px-4 pb-4 border-t border-gray-100 pt-3">
+                    {s.fecha_requerida && <p className="text-xs text-gray-500 mb-2">Entrega solicitada: <b>{fFecha(s.fecha_requerida)}</b></p>}
+                    {s.observaciones && <p className="text-xs text-gray-500 mb-3">📝 {s.observaciones}</p>}
+                    <div className="overflow-x-auto rounded-xl border border-gray-100 mb-3">
+                      <table className="w-full text-xs" style={{ minWidth: 520 }}>
+                        <thead className="bg-gray-50/60"><tr>
+                          <th className="text-left py-2 px-3 font-bold text-gray-400 uppercase text-[10px]">Producto</th>
+                          <th className="py-2 px-2 font-bold text-gray-400 uppercase text-[10px]">Solic.</th>
+                          <th className="py-2 px-2 font-bold text-gray-400 uppercase text-[10px]">Aprobado</th>
+                          <th className="py-2 px-2 font-bold text-gray-400 uppercase text-[10px]">Preparado</th>
+                          <th className="py-2 px-2 font-bold text-gray-400 uppercase text-[10px]">Despachado</th>
+                          <th className="py-2 px-2 font-bold text-gray-400 uppercase text-[10px]">Recib.</th>
+                        </tr></thead>
+                        <tbody>
+                          {s.items.map(it => (
+                            <tr key={it.id} className="border-t border-gray-50">
+                              <td className="py-2 px-3 font-medium text-[#1a1a1a]">{it.producto_nombre || 'Producto'}<span className="text-gray-400 font-normal"> · {it.unidad}</span></td>
+                              <td className="py-2 px-2 text-center font-bold tabular-nums">{it.cantidad_solicitada}</td>
+                              <td className="py-2 px-2 text-center"><input value={d.items[it.id]?.a ?? ''} onChange={ev => setField(s.id, it.id, 'a', ev.target.value)} placeholder="—" className="w-14 text-center border border-gray-200 rounded-md py-1 tabular-nums" /></td>
+                              <td className="py-2 px-2 text-center"><input value={d.items[it.id]?.p ?? ''} onChange={ev => setField(s.id, it.id, 'p', ev.target.value)} placeholder="—" className="w-14 text-center border border-gray-200 rounded-md py-1 tabular-nums" /></td>
+                              <td className="py-2 px-2 text-center"><input value={d.items[it.id]?.d ?? ''} onChange={ev => setField(s.id, it.id, 'd', ev.target.value)} placeholder="—" className="w-14 text-center border border-gray-200 rounded-md py-1 tabular-nums" /></td>
+                              <td className="py-2 px-2 text-center tabular-nums text-gray-500">{it.cantidad_recibida != null ? it.cantidad_recibida : '—'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <button onClick={() => aprobarTodo(s)} className="text-xs font-semibold border border-gray-200 rounded-lg px-3 py-1.5 text-gray-600 hover:border-[#c9a24e]">Aprobar todo (= solicitado)</button>
+                      <div className="flex items-center gap-1.5 ml-auto">
+                        <label className="text-xs text-gray-500">Estado:</label>
+                        <select value={d.estado} onChange={ev => setDraft(prev => ({ ...prev, [s.id]: { ...prev[s.id], estado: ev.target.value } }))} className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white">
+                          {ESTADOS_SEL.map(k => <option key={k} value={k}>{EST[k]?.l || k}</option>)}
+                        </select>
+                        <button onClick={() => guardar(s)} disabled={guardando === s.id} className="text-xs font-semibold flex items-center gap-1.5 bg-green-600 text-white rounded-lg px-3 py-1.5 hover:bg-green-700 disabled:opacity-60">
+                          {guardando === s.id ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />} Guardar
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}

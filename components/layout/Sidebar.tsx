@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import {
   LayoutDashboard,
+  Sprout,
   ClipboardList,
   ChefHat,
   Package,
@@ -48,6 +49,7 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { label: 'Aldea Vegetal', href: '/aldea', icon: Sprout },
   {
     label: 'Operaciones',
     icon: ChefHat,
