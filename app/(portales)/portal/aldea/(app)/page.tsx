@@ -18,8 +18,8 @@ const MODULOS = [
   { k: 'stock', label: 'Mi Stock', icon: Package, desc: 'Inventario del local', on: true },
   { k: 'pedir', label: 'Nueva solicitud', icon: PlusCircle, desc: 'Pedir reposición', on: true },
   { k: 'pedidos', label: 'Pedidos', icon: Truck, desc: 'Seguimiento y trazabilidad', on: true },
+  { k: 'incidencias', label: 'Incidencias', icon: AlertTriangle, desc: 'Reportes y consultas', on: true },
   { k: 'facturas', label: 'Facturación', icon: Receipt, desc: 'Facturas por pagar', on: false },
-  { k: 'incidencias', label: 'Incidencias', icon: AlertTriangle, desc: 'Reportes y consultas', on: false },
   { k: 'consultas', label: 'Consultas', icon: MessageCircle, desc: 'Preguntas a NOMMA', on: false },
 ]
 const EST_STOCK: Record<string, { l: string; c: string }> = {
@@ -35,6 +35,9 @@ const EST_PED: Record<string, { l: string; c: string }> = {
   entregada_diferencias: { l: 'Con diferencias', c: 'bg-red-100 text-red-700' }, cancelada: { l: 'Cancelada', c: 'bg-gray-200 text-gray-600' },
 }
 const FILTROS = [['todos', 'Todos'], ['bajo', 'Bajo'], ['critico', 'Crítico'], ['sin_stock', 'Sin stock'], ['reposicion', 'Reposición']] as const
+const TIPO_INC: Record<string, string> = { pedido_incompleto: 'Pedido incompleto', producto_danado: 'Producto dañado', producto_incorrecto: 'Producto incorrecto', cantidad: 'Cantidad incorrecta', calidad: 'Calidad', temperatura: 'Temperatura', atraso: 'Atraso de despacho', chofer: 'Chofer', falta_stock: 'Falta de stock', diferencia_recepcion: 'Diferencia de recepción', consulta: 'Consulta', otro: 'Otro' }
+const EST_INC: Record<string, { l: string; c: string }> = { nueva: { l: 'Nueva', c: 'bg-blue-100 text-blue-700' }, en_revision: { l: 'En revisión', c: 'bg-amber-100 text-amber-700' }, en_solucion: { l: 'En solución', c: 'bg-amber-100 text-amber-700' }, resuelta: { l: 'Resuelta', c: 'bg-green-100 text-green-700' }, cerrada: { l: 'Cerrada', c: 'bg-gray-100 text-gray-500' } }
+const TIPO_OPCIONES = ['consulta', 'pedido_incompleto', 'producto_danado', 'producto_incorrecto', 'cantidad', 'calidad', 'temperatura', 'atraso', 'chofer', 'falta_stock', 'otro']
 const fFecha = (s: string | null) => s ? new Date(s + (s.length <= 10 ? 'T00:00:00' : '')).toLocaleDateString('es-CL') : '—'
 const nn = (v: any) => v == null ? '—' : String(v)
 
@@ -44,7 +47,7 @@ export default function AldeaDashboard() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [sucursal, setSucursal] = useState('')
-  const [vista, setVista] = useState<'inicio' | 'stock' | 'pedir' | 'pedidos' | 'recepcion'>('inicio')
+  const [vista, setVista] = useState<'inicio' | 'stock' | 'pedir' | 'pedidos' | 'recepcion' | 'incidencias'>('inicio')
 
   const [stock, setStock] = useState<StockItem[]>([])
   const [stockLoading, setStockLoading] = useState(false)
@@ -56,6 +59,7 @@ export default function AldeaDashboard() {
 
   const [pedidos, setPedidos] = useState<Pedido[]>([]); const [pedLoading, setPedLoading] = useState(false); const [abierto, setAbierto] = useState<string | null>(null)
   const [recSol, setRecSol] = useState<Pedido | null>(null); const [recib, setRecib] = useState<Record<string, string>>({}); const [notasRec, setNotasRec] = useState(''); const [confirmando, setConfirmando] = useState(false)
+  const [incs, setIncs] = useState<any[]>([]); const [incLoading, setIncLoading] = useState(false); const [repOpen, setRepOpen] = useState(false); const [repTipo, setRepTipo] = useState('consulta'); const [repDesc, setRepDesc] = useState(''); const [reportando, setReportando] = useState(false)
 
   useEffect(() => {
     fetch('/api/portal/aldea/session').then(async r => {
@@ -76,8 +80,25 @@ export default function AldeaDashboard() {
     setPedLoading(false)
   }, [])
 
+  const cargarIncs = useCallback(async (suc: string) => {
+    if (!suc) return; setIncLoading(true)
+    try { const r = await fetch(`/api/portal/aldea/incidencias?sucursal=${suc}`); const d = await r.json(); setIncs(r.ok ? (d.incidencias || []) : []) } catch { setIncs([]) }
+    setIncLoading(false)
+  }, [])
+  async function enviarIncidencia() {
+    if (!repDesc.trim()) return
+    setReportando(true)
+    try {
+      const r = await fetch('/api/portal/aldea/incidencias', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sucursal, tipo: repTipo, descripcion: repDesc }) })
+      if (!r.ok) { const e = await r.json(); alert(e.error || 'No se pudo enviar.'); setReportando(false); return }
+      setRepDesc(''); setRepOpen(false); cargarIncs(sucursal)
+    } catch { alert('Sin conexión.') }
+    setReportando(false)
+  }
+
   useEffect(() => { if ((vista === 'stock' || vista === 'pedir') && sucursal) cargarStock(sucursal) }, [vista, sucursal, cargarStock])
   useEffect(() => { if (vista === 'pedidos' && sucursal) cargarPedidos(sucursal) }, [vista, sucursal, cargarPedidos])
+  useEffect(() => { if (vista === 'incidencias' && sucursal) cargarIncs(sucursal) }, [vista, sucursal, cargarIncs])
   useEffect(() => { setCart({}); setOkMsg(null) }, [sucursal])
 
   function setQty(pid: string, delta: number) {
@@ -142,7 +163,7 @@ export default function AldeaDashboard() {
   const sucNombre = ses?.sucursales.find(s => s.id === sucursal)?.nombre || '—'
   const visibles = stock.filter(i => (filtro === 'todos' || i.estado === filtro) && (!q || i.nombre.toLowerCase().includes(q.toLowerCase()) || i.sku.toLowerCase().includes(q.toLowerCase())))
   const cartCount = Object.values(cart).reduce((a, b) => a + b, 0)
-  const TITULO: Record<string, string> = { stock: 'Mi Stock', pedir: 'Nueva solicitud', pedidos: 'Pedidos', recepcion: 'Confirmar recepción' }
+  const TITULO: Record<string, string> = { stock: 'Mi Stock', pedir: 'Nueva solicitud', pedidos: 'Pedidos', recepcion: 'Confirmar recepción', incidencias: 'Incidencias y consultas' }
 
   return (
     <div className="max-w-md mx-auto pb-24">
@@ -337,6 +358,39 @@ export default function AldeaDashboard() {
           <button onClick={confirmarRecepcion} disabled={confirmando} className="w-full bg-[#16233f] hover:bg-[#1b2a4a] text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 disabled:opacity-60">
             {confirmando ? <Loader2 size={18} className="animate-spin" /> : <PackageCheck size={18} />} Confirmar recepción · sube al stock
           </button>
+        </div>
+      )}
+
+      {/* INCIDENCIAS Y CONSULTAS */}
+      {vista === 'incidencias' && (
+        <div className="px-5 pt-4">
+          {!repOpen
+            ? <button onClick={() => setRepOpen(true)} className="w-full mb-4 bg-[#c9a24e] hover:bg-[#b8923f] text-[#16233f] font-bold py-2.5 rounded-xl flex items-center justify-center gap-2"><Plus size={17} /> Reportar / consultar</button>
+            : <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm mb-4 space-y-3">
+                <div className="flex items-center justify-between"><h3 className="font-bold text-sm text-[#16233f]">Nuevo reporte</h3><button onClick={() => setRepOpen(false)} className="text-gray-400 text-xl leading-none">×</button></div>
+                <div><label className="block text-xs font-semibold text-gray-600 mb-1">Tipo</label>
+                  <select value={repTipo} onChange={e => setRepTipo(e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm bg-white">
+                    {TIPO_OPCIONES.map(t => <option key={t} value={t}>{TIPO_INC[t] || t}</option>)}
+                  </select></div>
+                <div><label className="block text-xs font-semibold text-gray-600 mb-1">Descripción</label>
+                  <textarea value={repDesc} onChange={e => setRepDesc(e.target.value)} rows={3} placeholder="Cuéntanos qué pasó o qué necesitas consultar…" className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm" /></div>
+                <button onClick={enviarIncidencia} disabled={reportando || !repDesc.trim()} className="w-full bg-[#16233f] text-white font-semibold py-2.5 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50">{reportando ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />} Enviar</button>
+              </div>}
+
+          {incLoading ? <div className="py-12 text-center"><Loader2 className="w-5 h-5 text-[#1b2a4a] animate-spin mx-auto" /></div>
+            : incs.length === 0 ? <div className="bg-white rounded-2xl border border-gray-100 py-12 text-center text-gray-400 text-sm"><MessageCircle className="w-8 h-8 text-gray-200 mx-auto mb-2" />Sin incidencias ni consultas.</div>
+            : <div className="space-y-3">
+              {incs.map(i => { const e = EST_INC[i.estado] || { l: i.estado, c: 'bg-gray-100 text-gray-600' }; return (
+                <div key={i.id} className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <span className="font-semibold text-sm text-[#16233f]">{TIPO_INC[i.tipo] || i.tipo}</span>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${e.c}`}>{e.l}</span>
+                  </div>
+                  <p className="text-xs text-gray-600">{i.descripcion}</p>
+                  <p className="text-[10px] text-gray-400 mt-1">{fFecha(i.created_at)}</p>
+                  {i.respuesta_central && <div className="mt-2 bg-[#faf7ef] border border-[#e7d4a6] rounded-lg p-2.5 text-xs text-[#5a4a24]"><b>NOMMA respondió:</b> {i.respuesta_central}</div>}
+                </div>)})}
+            </div>}
         </div>
       )}
     </div>

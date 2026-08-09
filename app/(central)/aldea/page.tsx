@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Loader2, Sprout, ChevronDown, Check, Store } from 'lucide-react'
+import { Loader2, Sprout, ChevronDown, Check, Store, MessageCircle, ClipboardList } from 'lucide-react'
 
 interface Item { id: string; producto_nombre: string; unidad: string; cantidad_solicitada: number; cantidad_aprobada: number | null; cantidad_preparada: number | null; cantidad_despachada: number | null; cantidad_recibida: number | null }
 interface Sol { id: string; folio: string; sucursal: string; estado: string; prioridad: string; fecha_requerida: string | null; observaciones: string | null; created_at: string; items: Item[] }
@@ -15,6 +15,9 @@ const EST: Record<string, { l: string; c: string }> = {
 }
 const ESTADOS_SEL = ['solicitud_enviada', 'en_revision', 'aprobada', 'en_preparacion', 'en_picking', 'listo_despacho', 'en_ruta', 'entregada', 'cancelada']
 const fFecha = (s: string | null) => s ? new Date(s + (s.length <= 10 ? 'T00:00:00' : '')).toLocaleDateString('es-CL') : '—'
+const TIPO_INC: Record<string, string> = { diferencia_recepcion: 'Diferencia de recepción', pedido_incompleto: 'Pedido incompleto', producto_danado: 'Producto dañado', producto_incorrecto: 'Producto incorrecto', cantidad: 'Cantidad incorrecta', calidad: 'Calidad', temperatura: 'Temperatura', atraso: 'Atraso', chofer: 'Chofer', falta_stock: 'Falta de stock', consulta: 'Consulta', otro: 'Otro' }
+const EST_INC: Record<string, { l: string; c: string }> = { nueva: { l: 'Nueva', c: 'bg-blue-100 text-blue-700' }, en_revision: { l: 'En revisión', c: 'bg-amber-100 text-amber-700' }, en_solucion: { l: 'En solución', c: 'bg-amber-100 text-amber-700' }, resuelta: { l: 'Resuelta', c: 'bg-green-100 text-green-700' }, cerrada: { l: 'Cerrada', c: 'bg-gray-100 text-gray-500' } }
+const EST_INC_SEL = ['nueva', 'en_revision', 'en_solucion', 'resuelta', 'cerrada']
 
 export default function AldeaCentralPage() {
   const [sols, setSols] = useState<Sol[]>([])
@@ -23,6 +26,24 @@ export default function AldeaCentralPage() {
   const [abierto, setAbierto] = useState<string | null>(null)
   const [draft, setDraft] = useState<Record<string, { estado: string; items: Record<string, { a: string; p: string; d: string }> }>>({})
   const [guardando, setGuardando] = useState<string | null>(null)
+  const [tab, setTab] = useState<'solicitudes' | 'incidencias'>('solicitudes')
+  const [incs, setIncs] = useState<any[]>([]); const [incLoad, setIncLoad] = useState(true); const [incAbiertas, setIncAbiertas] = useState(0)
+  const [resp, setResp] = useState<Record<string, string>>({}); const [estInc, setEstInc] = useState<Record<string, string>>({}); const [guardInc, setGuardInc] = useState<string | null>(null)
+
+  const cargarIncs = useCallback(async () => {
+    setIncLoad(true)
+    try { const r = await fetch('/api/central/aldea/incidencias'); const d = await r.json(); setIncs(r.ok ? (d.incidencias || []) : []); setIncAbiertas(d.abiertas || 0) } catch { setIncs([]) }
+    setIncLoad(false)
+  }, [])
+  async function guardarInc(i: any) {
+    setGuardInc(i.id)
+    try {
+      const r = await fetch('/api/central/aldea/incidencias', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: i.id, respuesta_central: resp[i.id] ?? i.respuesta_central ?? '', estado: estInc[i.id] || i.estado }) })
+      if (!r.ok) { alert('No se pudo guardar.'); setGuardInc(null); return }
+      await cargarIncs()
+    } catch { alert('Error de conexión.') }
+    setGuardInc(null)
+  }
 
   const cargar = useCallback(async () => {
     setLoading(true)
@@ -30,7 +51,7 @@ export default function AldeaCentralPage() {
     catch { setSols([]) }
     setLoading(false)
   }, [])
-  useEffect(() => { cargar() }, [cargar])
+  useEffect(() => { cargar(); cargarIncs() }, [cargar, cargarIncs])
 
   function abrir(s: Sol) {
     if (abierto === s.id) { setAbierto(null); return }
@@ -74,9 +95,16 @@ export default function AldeaCentralPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-[#1a1a1a] flex items-center gap-2"><Sprout className="text-[#c9a24e]" size={22} /> Aldea Vegetal</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Solicitudes de reposición de las cafeterías. Completa aprobado, preparado y despachado.</p>
+        <p className="text-sm text-gray-500 mt-0.5">Solicitudes e incidencias de las cafeterías.</p>
       </div>
 
+      {/* Pestañas Solicitudes / Incidencias */}
+      <div className="inline-flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+        <button onClick={() => setTab('solicitudes')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 ${tab === 'solicitudes' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><ClipboardList size={14} /> Solicitudes{nuevas ? ` · ${nuevas}` : ''}</button>
+        <button onClick={() => setTab('incidencias')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 ${tab === 'incidencias' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><MessageCircle size={14} /> Incidencias{incAbiertas ? ` · ${incAbiertas}` : ''}</button>
+      </div>
+
+      {tab === 'solicitudes' && (<>
       <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1 w-fit overflow-x-auto max-w-full">
         {([['todos', `Todas${nuevas ? ` · ${nuevas} nuevas` : ''}`], ['solicitud_enviada', 'Enviadas'], ['aprobada', 'Aprobadas'], ['en_preparacion', 'En preparación'], ['en_ruta', 'En ruta'], ['entregada', 'Entregadas']] as const).map(([k, l]) => (
           <button key={k} onClick={() => setFiltro(k)} className={`px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap ${filtro === k ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}>{l}</button>
@@ -153,6 +181,35 @@ export default function AldeaCentralPage() {
               </div>
             )
           })}
+        </div>
+      )}
+      </>)}
+
+      {tab === 'incidencias' && (
+        incLoad ? <div className="py-16 text-center"><Loader2 className="w-6 h-6 text-[#1b2a4a] animate-spin mx-auto" /></div>
+        : incs.length === 0 ? <div className="noma-card text-center py-14 text-gray-400 text-sm"><MessageCircle className="w-8 h-8 text-gray-200 mx-auto mb-2" />No hay incidencias ni consultas.</div>
+        : <div className="space-y-3">
+          {incs.map(i => { const e = EST_INC[i.estado] || { l: i.estado, c: 'bg-gray-100 text-gray-600' }; return (
+            <div key={i.id} className="noma-card">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <span className="font-semibold text-sm text-[#1a1a1a] flex items-center gap-2"><Store size={13} className="text-[#c9a24e]" /> {i.sucursal} · {TIPO_INC[i.tipo] || i.tipo}{i.folio && <span className="font-mono text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">{i.folio}</span>}</span>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${e.c}`}>{e.l}</span>
+              </div>
+              <p className="text-sm text-gray-600 mt-1.5">{i.descripcion}</p>
+              <p className="text-[11px] text-gray-400 mt-0.5">{fFecha(i.created_at)}</p>
+              <div className="mt-3 flex items-end gap-2 flex-wrap">
+                <div className="flex-1 min-w-[180px]">
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Respuesta al local</label>
+                  <input defaultValue={i.respuesta_central || ''} onChange={ev => setResp(r => ({ ...r, [i.id]: ev.target.value }))} placeholder="Escribe la respuesta…" className="noma-input !py-2 text-sm" />
+                </div>
+                <select defaultValue={i.estado} onChange={ev => setEstInc(s => ({ ...s, [i.id]: ev.target.value }))} className="text-xs border border-gray-200 rounded-lg px-2 py-2 bg-white">
+                  {EST_INC_SEL.map(k => <option key={k} value={k}>{EST_INC[k]?.l || k}</option>)}
+                </select>
+                <button onClick={() => guardarInc(i)} disabled={guardInc === i.id} className="text-xs font-semibold flex items-center gap-1.5 bg-green-600 text-white rounded-lg px-3 py-2 hover:bg-green-700 disabled:opacity-60">
+                  {guardInc === i.id ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />} Guardar
+                </button>
+              </div>
+            </div>)})}
         </div>
       )}
     </div>
