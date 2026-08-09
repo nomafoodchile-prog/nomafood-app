@@ -37,9 +37,12 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     }
   }
 
-  // Cambiar estado
+  // Cambiar estado + datos de despacho (chofer)
   const upd: Record<string, any> = { updated_at: new Date().toISOString() }
   if (body.estado && ESTADOS.includes(String(body.estado))) upd.estado = body.estado
+  if ('chofer_nombre' in body) upd.chofer_nombre = body.chofer_nombre ? String(body.chofer_nombre).trim() : null
+  if ('chofer_telefono' in body) upd.chofer_telefono = body.chofer_telefono ? String(body.chofer_telefono).trim() : null
+  if ('hora_estimada' in body) upd.hora_estimada = body.hora_estimada ? String(body.hora_estimada).trim() : null
   const { error } = await db.from('aldea_solicitudes').update(upd).eq('id', id)
   if (error) return NextResponse.json({ error: 'No se pudo guardar.' }, { status: 500 })
 

@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
   if (!sucursal || !ctx.sucursales.has(sucursal)) return NextResponse.json({ error: 'No puedes ver esta sucursal' }, { status: 403 })
 
   const { data: sols } = await db.from('aldea_solicitudes')
-    .select('id, folio, estado, prioridad, fecha_requerida, observaciones, created_at')
+    .select('id, folio, estado, prioridad, fecha_requerida, observaciones, chofer_nombre, chofer_telefono, hora_estimada, created_at')
     .eq('mayorista_id', sucursal).order('created_at', { ascending: false }).limit(50)
 
   const ids = (sols || []).map(s => s.id)

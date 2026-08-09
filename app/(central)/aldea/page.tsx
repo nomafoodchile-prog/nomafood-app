@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Loader2, Sprout, ChevronDown, Check, Store, MessageCircle, ClipboardList, Users, UserPlus, Copy } from 'lucide-react'
 
 interface Item { id: string; producto_nombre: string; unidad: string; cantidad_solicitada: number; cantidad_aprobada: number | null; cantidad_preparada: number | null; cantidad_despachada: number | null; cantidad_recibida: number | null }
-interface Sol { id: string; folio: string; sucursal: string; estado: string; prioridad: string; fecha_requerida: string | null; observaciones: string | null; created_at: string; items: Item[] }
+interface Sol { id: string; folio: string; sucursal: string; estado: string; prioridad: string; fecha_requerida: string | null; observaciones: string | null; chofer_nombre: string | null; chofer_telefono: string | null; hora_estimada: string | null; created_at: string; items: Item[] }
 
 const EST: Record<string, { l: string; c: string }> = {
   solicitud_enviada: { l: 'Enviada', c: 'bg-blue-100 text-blue-700' }, en_revision: { l: 'En revisión', c: 'bg-amber-100 text-amber-700' },
@@ -24,7 +24,7 @@ export default function AldeaCentralPage() {
   const [loading, setLoading] = useState(true)
   const [filtro, setFiltro] = useState('todos')
   const [abierto, setAbierto] = useState<string | null>(null)
-  const [draft, setDraft] = useState<Record<string, { estado: string; items: Record<string, { a: string; p: string; d: string }> }>>({})
+  const [draft, setDraft] = useState<Record<string, { estado: string; cn: string; ct: string; he: string; items: Record<string, { a: string; p: string; d: string }> }>>({})
   const [guardando, setGuardando] = useState<string | null>(null)
   const [tab, setTab] = useState<'solicitudes' | 'incidencias' | 'usuarios'>('solicitudes')
   const [orgs, setOrgs] = useState<any[]>([]); const [usuarios, setUsuarios] = useState<any[]>([]); const [usrLoad, setUsrLoad] = useState(true)
@@ -86,7 +86,7 @@ export default function AldeaCentralPage() {
       p: it.cantidad_preparada != null ? String(it.cantidad_preparada) : '',
       d: it.cantidad_despachada != null ? String(it.cantidad_despachada) : '',
     }
-    setDraft(prev => ({ ...prev, [s.id]: { estado: s.estado, items } }))
+    setDraft(prev => ({ ...prev, [s.id]: { estado: s.estado, cn: s.chofer_nombre || '', ct: s.chofer_telefono || '', he: s.hora_estimada || '', items } }))
   }
 
   function setField(solId: string, itemId: string, campo: 'a' | 'p' | 'd', val: string) {
@@ -105,7 +105,7 @@ export default function AldeaCentralPage() {
     setGuardando(s.id)
     try {
       const items = s.items.map(it => ({ id: it.id, cantidad_aprobada: d.items[it.id]?.a ?? '', cantidad_preparada: d.items[it.id]?.p ?? '', cantidad_despachada: d.items[it.id]?.d ?? '' }))
-      const r = await fetch(`/api/central/aldea/solicitudes/${s.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ estado: d.estado, items }) })
+      const r = await fetch(`/api/central/aldea/solicitudes/${s.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ estado: d.estado, chofer_nombre: d.cn, chofer_telefono: d.ct, hora_estimada: d.he, items }) })
       if (!r.ok) { const e = await r.json(); alert(e.error || 'No se pudo guardar.'); setGuardando(null); return }
       await cargar()
     } catch { alert('Error de conexión.') }
@@ -188,6 +188,11 @@ export default function AldeaCentralPage() {
                           ))}
                         </tbody>
                       </table>
+                    </div>
+                    <div className="grid sm:grid-cols-3 gap-2 mb-3">
+                      <div><label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Chofer</label><input value={d.cn} onChange={ev => setDraft(p => ({ ...p, [s.id]: { ...p[s.id], cn: ev.target.value } }))} className="noma-input !py-1.5 text-sm" placeholder="Nombre" /></div>
+                      <div><label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Teléfono chofer</label><input value={d.ct} onChange={ev => setDraft(p => ({ ...p, [s.id]: { ...p[s.id], ct: ev.target.value } }))} className="noma-input !py-1.5 text-sm" placeholder="+56 9…" /></div>
+                      <div><label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Hora estimada</label><input value={d.he} onChange={ev => setDraft(p => ({ ...p, [s.id]: { ...p[s.id], he: ev.target.value } }))} className="noma-input !py-1.5 text-sm" placeholder="Ej: 14:30" /></div>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
                       <button onClick={() => aprobarTodo(s)} className="text-xs font-semibold border border-gray-200 rounded-lg px-3 py-1.5 text-gray-600 hover:border-[#c9a24e]">Aprobar todo (= solicitado)</button>

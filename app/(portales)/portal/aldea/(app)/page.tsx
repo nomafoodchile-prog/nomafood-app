@@ -12,7 +12,7 @@ interface Sesion {
   sucursales: { id: string; nombre: string }[]
 }
 interface StockItem { product_id: string; nombre: string; sku: string; unidad: string; imagen_url: string | null; stock_actual: number; stock_min: number; stock_ideal: number; por_recibir: number; estado: string }
-interface Pedido { id: string; folio: string; estado: string; prioridad: string; fecha_requerida: string | null; observaciones: string | null; created_at: string; items: any[]; n_items: number; con_diferencia: boolean }
+interface Pedido { id: string; folio: string; estado: string; prioridad: string; fecha_requerida: string | null; observaciones: string | null; chofer_nombre: string | null; chofer_telefono: string | null; hora_estimada: string | null; created_at: string; items: any[]; n_items: number; con_diferencia: boolean }
 
 const MODULOS = [
   { k: 'stock', label: 'Mi Stock', icon: Package, desc: 'Inventario del local', on: true },
@@ -293,6 +293,41 @@ export default function AldeaDashboard() {
                   </button>
                   {open && (
                     <div className="px-4 pb-4">
+                      {['listo_despacho', 'en_ruta'].includes(p.estado) && (
+                        <div className="mb-3 rounded-2xl border border-gray-100 overflow-hidden">
+                          <div className="p-3 bg-[#f7f4ec]">
+                            <div className="flex items-center justify-between gap-2 mb-2">
+                              <span className="text-xs font-bold text-[#16233f]">🚚 Seguimiento del despacho</span>
+                              {p.hora_estimada && <span className="text-[11px] font-semibold text-[#c9a24e]">Llega ~{p.hora_estimada}</span>}
+                            </div>
+                            <div className="flex items-center gap-1 mb-1">
+                              {['Preparando', 'En ruta', 'Próximo', 'Entregado'].map((st, i) => {
+                                const idx = p.estado === 'en_ruta' ? 1 : 0
+                                const done = i <= idx
+                                return <div key={st} className="flex-1 flex flex-col items-center gap-1">
+                                  <div className={`h-1.5 w-full rounded-full ${done ? 'bg-[#c9a24e]' : 'bg-gray-200'}`} />
+                                  <span className={`text-[9px] ${done ? 'text-[#16233f] font-semibold' : 'text-gray-400'}`}>{st}</span>
+                                </div>
+                              })}
+                            </div>
+                            {(p.chofer_nombre || p.chofer_telefono) && (
+                              <div className="flex items-center justify-between mt-2 text-xs">
+                                <span className="text-gray-600">Chofer: <b className="text-[#16233f]">{p.chofer_nombre || '—'}</b></span>
+                                {p.chofer_telefono && <a href={`tel:${p.chofer_telefono}`} className="font-semibold text-[#c9a24e]">📞 {p.chofer_telefono}</a>}
+                              </div>
+                            )}
+                          </div>
+                          {p.estado === 'en_ruta' && (
+                            <div className="relative h-40 bg-[#dfe6ec]">
+                              <svg viewBox="0 0 390 160" preserveAspectRatio="none" className="absolute inset-0 w-full h-full"><g stroke="rgba(255,255,255,.7)" strokeWidth="6" fill="none"><path d="M-10 45 H400" /><path d="M-10 110 H400" /><path d="M120 -10 V170" /><path d="M270 -10 V170" /></g><path d="M120 110 L120 45 L270 45" stroke="#c9a24e" strokeWidth="3.5" strokeDasharray="6 5" fill="none" /></svg>
+                              <div className="absolute" style={{ left: '30%', top: '62%', fontSize: 20 }}>🚚</div>
+                              <div className="absolute" style={{ right: '28%', top: '22%', fontSize: 22 }}>📍</div>
+                              <div className="absolute left-2 bottom-2 bg-white/90 rounded-lg px-2.5 py-1 text-[10px] text-gray-600">Tu local</div>
+                            </div>
+                          )}
+                          <p className="text-[10px] text-gray-400 px-3 py-2 flex items-center gap-1.5"><Clock size={11} /> La ubicación en vivo del chofer se activa durante la ruta (se conecta con el chofer real).</p>
+                        </div>
+                      )}
                       <div className="overflow-x-auto rounded-xl border border-gray-100">
                         <table className="w-full text-xs" style={{ minWidth: 420 }}>
                           <thead className="bg-gray-50/60"><tr>

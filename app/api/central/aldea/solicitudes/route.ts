@@ -20,7 +20,7 @@ export async function GET() {
   const db = createServerClient()
 
   const { data: sols } = await db.from('aldea_solicitudes')
-    .select('id, folio, mayorista_id, estado, prioridad, fecha_requerida, observaciones, created_at')
+    .select('id, folio, mayorista_id, estado, prioridad, fecha_requerida, observaciones, chofer_nombre, chofer_telefono, hora_estimada, created_at')
     .order('created_at', { ascending: false }).limit(200)
 
   const solIds = (sols || []).map(s => s.id)
