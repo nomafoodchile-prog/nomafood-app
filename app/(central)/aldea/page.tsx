@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Loader2, Sprout, ChevronDown, Check, Store, MessageCircle, ClipboardList } from 'lucide-react'
+import { Loader2, Sprout, ChevronDown, Check, Store, MessageCircle, ClipboardList, Users, UserPlus, Copy } from 'lucide-react'
 
 interface Item { id: string; producto_nombre: string; unidad: string; cantidad_solicitada: number; cantidad_aprobada: number | null; cantidad_preparada: number | null; cantidad_despachada: number | null; cantidad_recibida: number | null }
 interface Sol { id: string; folio: string; sucursal: string; estado: string; prioridad: string; fecha_requerida: string | null; observaciones: string | null; created_at: string; items: Item[] }
@@ -26,7 +26,31 @@ export default function AldeaCentralPage() {
   const [abierto, setAbierto] = useState<string | null>(null)
   const [draft, setDraft] = useState<Record<string, { estado: string; items: Record<string, { a: string; p: string; d: string }> }>>({})
   const [guardando, setGuardando] = useState<string | null>(null)
-  const [tab, setTab] = useState<'solicitudes' | 'incidencias'>('solicitudes')
+  const [tab, setTab] = useState<'solicitudes' | 'incidencias' | 'usuarios'>('solicitudes')
+  const [orgs, setOrgs] = useState<any[]>([]); const [usuarios, setUsuarios] = useState<any[]>([]); const [usrLoad, setUsrLoad] = useState(true)
+  const [uForm, setUForm] = useState({ nombre: '', email: '', rol: 'encargado_local', mayorista_id: '', password: '', organizacion_id: '' })
+  const [creandoU, setCreandoU] = useState(false); const [okUser, setOkUser] = useState<{ email: string; password: string } | null>(null)
+
+  const cargarUsuarios = useCallback(async () => {
+    setUsrLoad(true)
+    try {
+      const r = await fetch('/api/central/aldea/usuarios'); const d = await r.json()
+      if (r.ok) { setOrgs(d.organizaciones || []); setUsuarios(d.usuarios || []); setUForm(f => ({ ...f, organizacion_id: f.organizacion_id || (d.organizaciones?.[0]?.id || '') })) }
+    } catch { /* nada */ }
+    setUsrLoad(false)
+  }, [])
+  async function crearUsuario(e: React.FormEvent) {
+    e.preventDefault(); setCreandoU(true); setOkUser(null)
+    try {
+      const r = await fetch('/api/central/aldea/usuarios', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(uForm) })
+      const d = await r.json()
+      if (!r.ok) { alert(d.error || 'No se pudo crear.'); setCreandoU(false); return }
+      setOkUser({ email: d.email, password: uForm.password })
+      setUForm(f => ({ ...f, nombre: '', email: '', password: '', mayorista_id: '' }))
+      cargarUsuarios()
+    } catch { alert('Error de conexión.') }
+    setCreandoU(false)
+  }
   const [incs, setIncs] = useState<any[]>([]); const [incLoad, setIncLoad] = useState(true); const [incAbiertas, setIncAbiertas] = useState(0)
   const [resp, setResp] = useState<Record<string, string>>({}); const [estInc, setEstInc] = useState<Record<string, string>>({}); const [guardInc, setGuardInc] = useState<string | null>(null)
 
@@ -51,7 +75,7 @@ export default function AldeaCentralPage() {
     catch { setSols([]) }
     setLoading(false)
   }, [])
-  useEffect(() => { cargar(); cargarIncs() }, [cargar, cargarIncs])
+  useEffect(() => { cargar(); cargarIncs(); cargarUsuarios() }, [cargar, cargarIncs, cargarUsuarios])
 
   function abrir(s: Sol) {
     if (abierto === s.id) { setAbierto(null); return }
@@ -102,6 +126,7 @@ export default function AldeaCentralPage() {
       <div className="inline-flex items-center gap-1 bg-gray-100 rounded-lg p-1">
         <button onClick={() => setTab('solicitudes')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 ${tab === 'solicitudes' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><ClipboardList size={14} /> Solicitudes{nuevas ? ` · ${nuevas}` : ''}</button>
         <button onClick={() => setTab('incidencias')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 ${tab === 'incidencias' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><MessageCircle size={14} /> Incidencias{incAbiertas ? ` · ${incAbiertas}` : ''}</button>
+        <button onClick={() => setTab('usuarios')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 ${tab === 'usuarios' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><Users size={14} /> Usuarios</button>
       </div>
 
       {tab === 'solicitudes' && (<>
@@ -210,6 +235,59 @@ export default function AldeaCentralPage() {
                 </button>
               </div>
             </div>)})}
+        </div>
+      )}
+
+      {tab === 'usuarios' && (
+        <div className="grid lg:grid-cols-2 gap-4 items-start">
+          {/* Crear usuario */}
+          <form onSubmit={crearUsuario} className="noma-card space-y-3">
+            <h3 className="font-bold text-[#1a1a1a] flex items-center gap-2"><UserPlus size={16} className="text-[#c9a24e]" /> Crear usuario Aldea</h3>
+            {okUser && (
+              <div className="bg-green-50 border border-green-100 rounded-xl p-3 text-sm">
+                <p className="text-green-700 font-semibold mb-1">✓ Usuario listo</p>
+                <div className="bg-white rounded-lg p-2 text-xs font-mono text-[#1a1a1a] space-y-0.5">
+                  <div>Correo: {okUser.email}</div><div>Clave: {okUser.password}</div><div>Portal: nommafood.cl/portal/aldea/login</div>
+                </div>
+                <button type="button" onClick={() => navigator.clipboard?.writeText(`Portal Aldea Vegetal: https://nommafood.cl/portal/aldea/login\nCorreo: ${okUser.email}\nContraseña: ${okUser.password}`)} className="mt-2 text-xs font-semibold text-[#c9a24e] flex items-center gap-1"><Copy size={12} /> Copiar datos</button>
+              </div>
+            )}
+            <div className="grid grid-cols-2 gap-3">
+              <div><label className="block text-xs font-semibold text-gray-600 mb-1">Nombre</label><input value={uForm.nombre} onChange={e => setUForm(f => ({ ...f, nombre: e.target.value }))} className="noma-input !py-2 text-sm" placeholder="Nombre del encargado" /></div>
+              <div><label className="block text-xs font-semibold text-gray-600 mb-1">Correo *</label><input type="email" value={uForm.email} onChange={e => setUForm(f => ({ ...f, email: e.target.value }))} className="noma-input !py-2 text-sm" placeholder="correo@…" required /></div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div><label className="block text-xs font-semibold text-gray-600 mb-1">Rol</label>
+                <select value={uForm.rol} onChange={e => setUForm(f => ({ ...f, rol: e.target.value }))} className="noma-input !py-2 text-sm">
+                  <option value="encargado_local">Encargado de Local</option><option value="admin_general">Administrador General</option>
+                </select></div>
+              <div><label className="block text-xs font-semibold text-gray-600 mb-1">Contraseña *</label><input type="text" value={uForm.password} onChange={e => setUForm(f => ({ ...f, password: e.target.value }))} className="noma-input !py-2 text-sm font-mono" placeholder="mín. 6" required /></div>
+            </div>
+            {uForm.rol === 'encargado_local' && (
+              <div><label className="block text-xs font-semibold text-gray-600 mb-1">Sucursal *</label>
+                <select value={uForm.mayorista_id} onChange={e => setUForm(f => ({ ...f, mayorista_id: e.target.value }))} className="noma-input !py-2 text-sm" required>
+                  <option value="">Elige la cafetería…</option>
+                  {(orgs.find(o => o.id === uForm.organizacion_id)?.sucursales || []).map((s: any) => <option key={s.id} value={s.id}>{s.nombre}</option>)}
+                </select></div>
+            )}
+            <button type="submit" disabled={creandoU} className="noma-btn-primary w-full disabled:opacity-60">{creandoU ? 'Creando…' : 'Crear usuario'}</button>
+            <p className="text-[11px] text-gray-400">El usuario entra en nommafood.cl/portal/aldea/login con su correo y contraseña.</p>
+          </form>
+
+          {/* Lista de usuarios */}
+          <div className="noma-card !p-0 overflow-hidden">
+            <div className="p-4 border-b border-gray-100"><h3 className="font-bold text-[#1a1a1a] text-sm">Usuarios de Aldea</h3></div>
+            {usrLoad ? <div className="py-10 text-center"><Loader2 className="w-5 h-5 text-[#1b2a4a] animate-spin mx-auto" /></div>
+              : usuarios.length === 0 ? <p className="p-4 text-sm text-gray-400">Aún no hay usuarios.</p>
+              : <div className="divide-y divide-gray-50">
+                {usuarios.map(u => (
+                  <div key={u.id} className="flex items-center justify-between gap-3 px-4 py-3">
+                    <div><p className="text-sm font-medium text-[#1a1a1a]">{u.nombre || u.email}</p><p className="text-xs text-gray-400">{u.email}</p></div>
+                    <div className="text-right"><span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${u.rol === 'admin_general' ? 'bg-[#f5f0e8] text-[#7a5c1e]' : 'bg-blue-50 text-blue-700'}`}>{u.rol === 'admin_general' ? 'Admin General' : 'Encargado'}</span><p className="text-[11px] text-gray-400 mt-0.5">{u.sucursal}</p></div>
+                  </div>
+                ))}
+              </div>}
+          </div>
         </div>
       )}
     </div>
