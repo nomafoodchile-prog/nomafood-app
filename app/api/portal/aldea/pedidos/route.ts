@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
   const itemsBySol = new Map<string, any[]>()
   if (ids.length) {
     const { data: items } = await db.from('aldea_solicitud_items')
-      .select('solicitud_id, producto_nombre, unidad, cantidad_solicitada, cantidad_aprobada, cantidad_preparada, cantidad_despachada, cantidad_recibida')
+      .select('id, solicitud_id, producto_nombre, unidad, cantidad_solicitada, cantidad_aprobada, cantidad_preparada, cantidad_despachada, cantidad_recibida')
       .in('solicitud_id', ids)
     for (const it of items || []) {
       const arr = itemsBySol.get(it.solicitud_id) || []; arr.push(it); itemsBySol.set(it.solicitud_id, arr)

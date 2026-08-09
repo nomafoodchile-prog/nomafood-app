@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { Sprout, LogOut, Loader2, ChevronDown, ArrowLeft, Package, PlusCircle, Truck, Receipt, AlertTriangle, MessageCircle, Search, Clock, Minus, Plus, Check } from 'lucide-react'
+import { Sprout, LogOut, Loader2, ChevronDown, ArrowLeft, Package, PlusCircle, Truck, Receipt, AlertTriangle, MessageCircle, Search, Clock, Minus, Plus, Check, PackageCheck } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 
 interface Sesion {
@@ -44,7 +44,7 @@ export default function AldeaDashboard() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [sucursal, setSucursal] = useState('')
-  const [vista, setVista] = useState<'inicio' | 'stock' | 'pedir' | 'pedidos'>('inicio')
+  const [vista, setVista] = useState<'inicio' | 'stock' | 'pedir' | 'pedidos' | 'recepcion'>('inicio')
 
   const [stock, setStock] = useState<StockItem[]>([])
   const [stockLoading, setStockLoading] = useState(false)
@@ -55,6 +55,7 @@ export default function AldeaDashboard() {
   const [enviando, setEnviando] = useState(false); const [okMsg, setOkMsg] = useState<string | null>(null)
 
   const [pedidos, setPedidos] = useState<Pedido[]>([]); const [pedLoading, setPedLoading] = useState(false); const [abierto, setAbierto] = useState<string | null>(null)
+  const [recSol, setRecSol] = useState<Pedido | null>(null); const [recib, setRecib] = useState<Record<string, string>>({}); const [notasRec, setNotasRec] = useState(''); const [confirmando, setConfirmando] = useState(false)
 
   useEffect(() => {
     fetch('/api/portal/aldea/session').then(async r => {
@@ -103,6 +104,26 @@ export default function AldeaDashboard() {
     setEnviando(false)
   }
 
+  const RECIBIBLE = ['aprobada', 'en_preparacion', 'en_picking', 'listo_despacho', 'en_ruta']
+  function abrirRecepcion(p: Pedido) {
+    const r: Record<string, string> = {}
+    for (const it of p.items) r[it.id] = String(it.cantidad_despachada ?? it.cantidad_solicitada ?? 0)
+    setRecSol(p); setRecib(r); setNotasRec(''); setVista('recepcion')
+  }
+  async function confirmarRecepcion() {
+    if (!recSol) return
+    setConfirmando(true)
+    try {
+      const items = recSol.items.map((it: any) => ({ id: it.id, cantidad_recibida: Number(recib[it.id] || 0) }))
+      const r = await fetch('/api/portal/aldea/recepcion', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ solicitud_id: recSol.id, items, notas: notasRec }) })
+      const d = await r.json()
+      if (!r.ok) { alert(d.error || 'No se pudo confirmar.'); setConfirmando(false); return }
+      setRecSol(null); setVista('pedidos'); cargarPedidos(sucursal)
+      if (sucursal) cargarStock(sucursal)
+    } catch { alert('Sin conexión.') }
+    setConfirmando(false)
+  }
+
   async function salir() { await supabase.auth.signOut(); router.replace('/portal/aldea/login') }
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-6 h-6 text-[#1b2a4a] animate-spin" /></div>
@@ -121,7 +142,7 @@ export default function AldeaDashboard() {
   const sucNombre = ses?.sucursales.find(s => s.id === sucursal)?.nombre || '—'
   const visibles = stock.filter(i => (filtro === 'todos' || i.estado === filtro) && (!q || i.nombre.toLowerCase().includes(q.toLowerCase()) || i.sku.toLowerCase().includes(q.toLowerCase())))
   const cartCount = Object.values(cart).reduce((a, b) => a + b, 0)
-  const TITULO: Record<string, string> = { stock: 'Mi Stock', pedir: 'Nueva solicitud', pedidos: 'Pedidos' }
+  const TITULO: Record<string, string> = { stock: 'Mi Stock', pedir: 'Nueva solicitud', pedidos: 'Pedidos', recepcion: 'Confirmar recepción' }
 
   return (
     <div className="max-w-md mx-auto pb-24">
@@ -129,7 +150,7 @@ export default function AldeaDashboard() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             {vista !== 'inicio'
-              ? <button onClick={() => setVista('inicio')} className="w-9 h-9 rounded-lg bg-white/10 grid place-items-center"><ArrowLeft size={17} /></button>
+              ? <button onClick={() => setVista(vista === 'recepcion' ? 'pedidos' : 'inicio')} className="w-9 h-9 rounded-lg bg-white/10 grid place-items-center"><ArrowLeft size={17} /></button>
               : <div className="w-9 h-9 rounded-lg bg-[#c9a24e] text-[#16233f] grid place-items-center font-bold" style={{ fontFamily: 'Georgia, serif' }}>A</div>}
             <div>
               <p className="font-bold text-sm leading-tight">{vista === 'inicio' ? (ses?.organizacion?.nombre || 'Aldea Vegetal') : TITULO[vista]}</p>
@@ -276,11 +297,46 @@ export default function AldeaDashboard() {
                         </table>
                       </div>
                       {p.observaciones && <p className="text-[11px] text-gray-500 mt-2">📝 {p.observaciones}</p>}
-                      <p className="text-[11px] text-gray-400 mt-2">La Central irá completando aprobado, preparado y despachado. Al recibir, tú confirmas lo recibido.</p>
+                      {RECIBIBLE.includes(p.estado)
+                        ? <button onClick={() => abrirRecepcion(p)} className="mt-3 w-full bg-[#16233f] hover:bg-[#1b2a4a] text-white font-semibold py-2.5 rounded-xl text-sm flex items-center justify-center gap-2"><PackageCheck size={16} /> Confirmar recepción</button>
+                        : <p className="text-[11px] text-gray-400 mt-2">La Central irá completando aprobado, preparado y despachado. Al recibir, tú confirmas lo recibido.</p>}
                     </div>
                   )}
                 </div>)})}
             </div>}
+        </div>
+      )}
+
+      {/* CONFIRMAR RECEPCIÓN */}
+      {vista === 'recepcion' && recSol && (
+        <div className="px-5 pt-4">
+          <div className="bg-[#faf7ef] border border-[#e7d4a6] rounded-xl p-3 text-sm text-[#5a4a24] mb-3">
+            Pedido <b>{recSol.folio}</b>. Ingresa lo que <b>realmente recibiste</b> por producto. El stock del local sube por lo recibido.
+          </div>
+          <div className="bg-white rounded-2xl border border-gray-100 px-4 shadow-sm mb-3">
+            {recSol.items.map((it: any) => {
+              const desp = it.cantidad_despachada ?? it.cantidad_solicitada ?? 0
+              const val = Number(recib[it.id] || 0)
+              const dif = it.cantidad_despachada != null && val !== Number(it.cantidad_despachada)
+              return (
+                <div key={it.id} className="py-3 border-t border-gray-50 first:border-0">
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 min-w-0"><p className="font-semibold text-sm text-[#1a1a1a] truncate">{it.producto_nombre || 'Producto'}</p><p className="text-[11px] text-gray-400">Despachado: {desp} {it.unidad}</p></div>
+                    <input type="number" inputMode="numeric" min={0} value={recib[it.id] ?? ''} onChange={e => setRecib(r => ({ ...r, [it.id]: e.target.value.replace(/[^0-9]/g, '') }))}
+                      className="w-16 text-center font-bold border border-gray-200 rounded-lg py-2 tabular-nums [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none" />
+                  </div>
+                  {dif && <p className="text-[11px] text-red-600 font-semibold mt-1">Diferencia {val - Number(it.cantidad_despachada) > 0 ? '+' : ''}{val - Number(it.cantidad_despachada)} → generará incidencia</p>}
+                </div>
+              )
+            })}
+          </div>
+          <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm mb-3">
+            <label className="block text-xs font-semibold text-gray-600 mb-1">Comentario / problema (opcional)</label>
+            <textarea value={notasRec} onChange={e => setNotasRec(e.target.value)} rows={2} placeholder="Ej: llegó 1 caja con envase roto" className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm" />
+          </div>
+          <button onClick={confirmarRecepcion} disabled={confirmando} className="w-full bg-[#16233f] hover:bg-[#1b2a4a] text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 disabled:opacity-60">
+            {confirmando ? <Loader2 size={18} className="animate-spin" /> : <PackageCheck size={18} />} Confirmar recepción · sube al stock
+          </button>
         </div>
       )}
     </div>
