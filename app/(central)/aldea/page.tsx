@@ -50,7 +50,6 @@ export default function AldeaCentralPage() {
   async function marcarFactura(id: string, estado: string) {
     try { await fetch('/api/central/aldea/facturas', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, estado }) }); cargarFacts() } catch { alert('Error') }
   }
-  const sucursalesFlat = orgs.flatMap((o: any) => o.sucursales || [])
   const [orgs, setOrgs] = useState<any[]>([]); const [usuarios, setUsuarios] = useState<any[]>([]); const [usrLoad, setUsrLoad] = useState(true)
   const [uForm, setUForm] = useState({ nombre: '', email: '', rol: 'encargado_local', mayorista_id: '', password: '', organizacion_id: '' })
   const [creandoU, setCreandoU] = useState(false); const [okUser, setOkUser] = useState<{ email: string; password: string } | null>(null)
@@ -138,6 +137,7 @@ export default function AldeaCentralPage() {
 
   const vis = sols.filter(s => filtro === 'todos' || s.estado === filtro)
   const nuevas = sols.filter(s => s.estado === 'solicitud_enviada').length
+  const sucursalesFlat = orgs.flatMap((o: any) => o.sucursales || [])
 
   return (
     <div className="space-y-6">
