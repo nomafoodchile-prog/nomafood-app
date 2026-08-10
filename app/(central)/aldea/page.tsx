@@ -28,8 +28,15 @@ export default function AldeaCentralPage() {
   const [abierto, setAbierto] = useState<string | null>(null)
   const [draft, setDraft] = useState<Record<string, { estado: string; cn: string; ct: string; he: string; items: Record<string, { a: string; p: string; d: string }> }>>({})
   const [guardando, setGuardando] = useState<string | null>(null)
-  const [tab, setTab] = useState<'solicitudes' | 'incidencias' | 'usuarios' | 'facturas'>('solicitudes')
+  const [tab, setTab] = useState<'resumen' | 'solicitudes' | 'incidencias' | 'usuarios' | 'facturas'>('resumen')
+  const [res, setRes] = useState<any>({ locales: [], consolidado: {} }); const [resLoad, setResLoad] = useState(true)
   const [facts, setFacts] = useState<any[]>([]); const [factLoad, setFactLoad] = useState(true)
+
+  const cargarResumen = useCallback(async () => {
+    setResLoad(true)
+    try { const r = await fetch('/api/central/aldea/resumen'); const d = await r.json(); if (r.ok) setRes(d) } catch { /* nada */ }
+    setResLoad(false)
+  }, [])
   const [fForm, setFForm] = useState({ mayorista_id: '', numero: '', monto: '', fecha_emision: '', fecha_vencimiento: '' }); const [creandoF, setCreandoF] = useState(false)
 
   const cargarFacts = useCallback(async () => {
@@ -98,7 +105,7 @@ export default function AldeaCentralPage() {
     catch { setSols([]) }
     setLoading(false)
   }, [])
-  useEffect(() => { cargar(); cargarIncs(); cargarUsuarios(); cargarFacts() }, [cargar, cargarIncs, cargarUsuarios, cargarFacts])
+  useEffect(() => { cargarResumen(); cargar(); cargarIncs(); cargarUsuarios(); cargarFacts() }, [cargarResumen, cargar, cargarIncs, cargarUsuarios, cargarFacts])
 
   function abrir(s: Sol) {
     if (abierto === s.id) { setAbierto(null); return }
@@ -146,13 +153,52 @@ export default function AldeaCentralPage() {
         <p className="text-sm text-gray-500 mt-0.5">Solicitudes e incidencias de las cafeterías.</p>
       </div>
 
-      {/* Pestañas Solicitudes / Incidencias */}
-      <div className="inline-flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-        <button onClick={() => setTab('solicitudes')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 ${tab === 'solicitudes' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><ClipboardList size={14} /> Solicitudes{nuevas ? ` · ${nuevas}` : ''}</button>
+      {/* Pestañas */}
+      <div className="inline-flex items-center gap-1 bg-gray-100 rounded-lg p-1 overflow-x-auto max-w-full">
+        <button onClick={() => setTab('resumen')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap ${tab === 'resumen' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><Store size={14} /> Resumen</button>
+        <button onClick={() => setTab('solicitudes')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap ${tab === 'solicitudes' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><ClipboardList size={14} /> Solicitudes{nuevas ? ` · ${nuevas}` : ''}</button>
         <button onClick={() => setTab('incidencias')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 ${tab === 'incidencias' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><MessageCircle size={14} /> Incidencias{incAbiertas ? ` · ${incAbiertas}` : ''}</button>
         <button onClick={() => setTab('usuarios')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 ${tab === 'usuarios' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><Users size={14} /> Usuarios</button>
         <button onClick={() => setTab('facturas')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 ${tab === 'facturas' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><Receipt size={14} /> Facturación</button>
       </div>
+
+      {tab === 'resumen' && (
+        resLoad ? <div className="py-16 text-center"><Loader2 className="w-6 h-6 text-[#1b2a4a] animate-spin mx-auto" /></div>
+        : <div className="space-y-4">
+          {/* Consolidado */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            {[
+              { l: 'Solicitudes abiertas', v: res.consolidado?.solicitudes_abiertas ?? 0, c: 'text-[#1b2a4a]' },
+              { l: 'Pedidos (total)', v: res.consolidado?.pedidos_total ?? 0, c: 'text-[#1b2a4a]' },
+              { l: 'Con diferencias', v: res.consolidado?.diferencias ?? 0, c: 'text-amber-600' },
+              { l: 'Incidencias abiertas', v: res.consolidado?.incidencias_abiertas ?? 0, c: 'text-red-600' },
+              { l: 'Stock crítico', v: res.consolidado?.stock_critico ?? 0, c: 'text-red-600' },
+              { l: 'Por cobrar', v: clp(res.consolidado?.facturas_por_pagar ?? 0), c: 'text-[#c9a24e]', small: true },
+            ].map((k, i) => (
+              <div key={i} className="noma-card !p-3.5">
+                <p className="text-[10px] uppercase font-bold text-gray-400">{k.l}</p>
+                <p className={`font-bold ${k.small ? 'text-lg' : 'text-2xl'} ${k.c}`} style={{ fontFamily: 'Georgia, serif' }}>{k.v}</p>
+              </div>
+            ))}
+          </div>
+          {/* Por sucursal */}
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {(res.locales || []).map((l: any) => (
+              <div key={l.id} className="noma-card !p-0 overflow-hidden">
+                <div className="bg-[#1b2a4a] text-white px-4 py-3 flex items-center gap-2"><Store size={15} className="text-[#c9a24e]" /><span className="font-bold text-sm">{l.nombre}</span></div>
+                <div className="p-4 space-y-2.5 text-sm">
+                  <div className="flex items-center justify-between"><span className="text-gray-500">Stock crítico</span><span className={`font-bold ${l.stock_critico > 0 ? 'text-red-600' : 'text-green-600'}`}>{l.stock_critico}</span></div>
+                  <div className="flex items-center justify-between"><span className="text-gray-500">Pedido actual</span>{l.ultimo_pedido ? <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${(EST[l.ultimo_pedido.estado]?.c) || 'bg-gray-100 text-gray-600'}`}>{EST[l.ultimo_pedido.estado]?.l || l.ultimo_pedido.estado}</span> : <span className="text-gray-400 text-xs">—</span>}</div>
+                  <div className="flex items-center justify-between"><span className="text-gray-500">Incidencias</span><span className={`font-bold ${l.incidencias_abiertas > 0 ? 'text-amber-600' : 'text-gray-500'}`}>{l.incidencias_abiertas}</span></div>
+                  <div className="flex items-center justify-between"><span className="text-gray-500">Por cobrar</span><span className="font-semibold text-[#1a1a1a]">{clp(l.facturas_por_pagar)}</span></div>
+                  <div className="flex items-center justify-between"><span className="text-gray-500">Última entrega</span><span className="text-gray-500 text-xs">{l.ultima_entrega ? fFecha(l.ultima_entrega) : '—'}</span></div>
+                </div>
+              </div>
+            ))}
+          </div>
+          {(res.locales || []).length === 0 && <div className="noma-card text-center py-14 text-gray-400 text-sm">Aún no hay sucursales cargadas.</div>}
+        </div>
+      )}
 
       {tab === 'solicitudes' && (<>
       <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1 w-fit overflow-x-auto max-w-full">
