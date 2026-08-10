@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Loader2, Sprout, ChevronDown, Check, Store, MessageCircle, ClipboardList, Users, UserPlus, Copy } from 'lucide-react'
+import { Loader2, Sprout, ChevronDown, Check, Store, MessageCircle, ClipboardList, Users, UserPlus, Copy, Receipt } from 'lucide-react'
 
 interface Item { id: string; producto_nombre: string; unidad: string; cantidad_solicitada: number; cantidad_aprobada: number | null; cantidad_preparada: number | null; cantidad_despachada: number | null; cantidad_recibida: number | null }
 interface Sol { id: string; folio: string; sucursal: string; estado: string; prioridad: string; fecha_requerida: string | null; observaciones: string | null; chofer_nombre: string | null; chofer_telefono: string | null; hora_estimada: string | null; created_at: string; items: Item[] }
@@ -18,6 +18,8 @@ const fFecha = (s: string | null) => s ? new Date(s + (s.length <= 10 ? 'T00:00:
 const TIPO_INC: Record<string, string> = { diferencia_recepcion: 'Diferencia de recepción', pedido_incompleto: 'Pedido incompleto', producto_danado: 'Producto dañado', producto_incorrecto: 'Producto incorrecto', cantidad: 'Cantidad incorrecta', calidad: 'Calidad', temperatura: 'Temperatura', atraso: 'Atraso', chofer: 'Chofer', falta_stock: 'Falta de stock', consulta: 'Consulta', otro: 'Otro' }
 const EST_INC: Record<string, { l: string; c: string }> = { nueva: { l: 'Nueva', c: 'bg-blue-100 text-blue-700' }, en_revision: { l: 'En revisión', c: 'bg-amber-100 text-amber-700' }, en_solucion: { l: 'En solución', c: 'bg-amber-100 text-amber-700' }, resuelta: { l: 'Resuelta', c: 'bg-green-100 text-green-700' }, cerrada: { l: 'Cerrada', c: 'bg-gray-100 text-gray-500' } }
 const EST_INC_SEL = ['nueva', 'en_revision', 'en_solucion', 'resuelta', 'cerrada']
+const clp = (n: number) => new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(n || 0)
+const EST_FACT: Record<string, { l: string; c: string }> = { por_pagar: { l: 'Por pagar', c: 'bg-amber-100 text-amber-700' }, vencida: { l: 'Vencida', c: 'bg-red-100 text-red-700' }, pagada: { l: 'Pagada', c: 'bg-green-100 text-green-700' } }
 
 export default function AldeaCentralPage() {
   const [sols, setSols] = useState<Sol[]>([])
@@ -26,7 +28,29 @@ export default function AldeaCentralPage() {
   const [abierto, setAbierto] = useState<string | null>(null)
   const [draft, setDraft] = useState<Record<string, { estado: string; cn: string; ct: string; he: string; items: Record<string, { a: string; p: string; d: string }> }>>({})
   const [guardando, setGuardando] = useState<string | null>(null)
-  const [tab, setTab] = useState<'solicitudes' | 'incidencias' | 'usuarios'>('solicitudes')
+  const [tab, setTab] = useState<'solicitudes' | 'incidencias' | 'usuarios' | 'facturas'>('solicitudes')
+  const [facts, setFacts] = useState<any[]>([]); const [factLoad, setFactLoad] = useState(true)
+  const [fForm, setFForm] = useState({ mayorista_id: '', numero: '', monto: '', fecha_emision: '', fecha_vencimiento: '' }); const [creandoF, setCreandoF] = useState(false)
+
+  const cargarFacts = useCallback(async () => {
+    setFactLoad(true)
+    try { const r = await fetch('/api/central/aldea/facturas'); const d = await r.json(); setFacts(r.ok ? (d.facturas || []) : []) } catch { setFacts([]) }
+    setFactLoad(false)
+  }, [])
+  async function crearFactura(e: React.FormEvent) {
+    e.preventDefault(); setCreandoF(true)
+    try {
+      const r = await fetch('/api/central/aldea/facturas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(fForm) })
+      const d = await r.json()
+      if (!r.ok) { alert(d.error || 'No se pudo registrar.'); setCreandoF(false); return }
+      setFForm(f => ({ ...f, numero: '', monto: '', fecha_emision: '', fecha_vencimiento: '' })); cargarFacts()
+    } catch { alert('Error de conexión.') }
+    setCreandoF(false)
+  }
+  async function marcarFactura(id: string, estado: string) {
+    try { await fetch('/api/central/aldea/facturas', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, estado }) }); cargarFacts() } catch { alert('Error') }
+  }
+  const sucursalesFlat = orgs.flatMap((o: any) => o.sucursales || [])
   const [orgs, setOrgs] = useState<any[]>([]); const [usuarios, setUsuarios] = useState<any[]>([]); const [usrLoad, setUsrLoad] = useState(true)
   const [uForm, setUForm] = useState({ nombre: '', email: '', rol: 'encargado_local', mayorista_id: '', password: '', organizacion_id: '' })
   const [creandoU, setCreandoU] = useState(false); const [okUser, setOkUser] = useState<{ email: string; password: string } | null>(null)
@@ -75,7 +99,7 @@ export default function AldeaCentralPage() {
     catch { setSols([]) }
     setLoading(false)
   }, [])
-  useEffect(() => { cargar(); cargarIncs(); cargarUsuarios() }, [cargar, cargarIncs, cargarUsuarios])
+  useEffect(() => { cargar(); cargarIncs(); cargarUsuarios(); cargarFacts() }, [cargar, cargarIncs, cargarUsuarios, cargarFacts])
 
   function abrir(s: Sol) {
     if (abierto === s.id) { setAbierto(null); return }
@@ -127,6 +151,7 @@ export default function AldeaCentralPage() {
         <button onClick={() => setTab('solicitudes')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 ${tab === 'solicitudes' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><ClipboardList size={14} /> Solicitudes{nuevas ? ` · ${nuevas}` : ''}</button>
         <button onClick={() => setTab('incidencias')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 ${tab === 'incidencias' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><MessageCircle size={14} /> Incidencias{incAbiertas ? ` · ${incAbiertas}` : ''}</button>
         <button onClick={() => setTab('usuarios')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 ${tab === 'usuarios' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><Users size={14} /> Usuarios</button>
+        <button onClick={() => setTab('facturas')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 ${tab === 'facturas' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><Receipt size={14} /> Facturación</button>
       </div>
 
       {tab === 'solicitudes' && (<>
@@ -291,6 +316,46 @@ export default function AldeaCentralPage() {
                     <div className="text-right"><span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${u.rol === 'admin_general' ? 'bg-[#f5f0e8] text-[#7a5c1e]' : 'bg-blue-50 text-blue-700'}`}>{u.rol === 'admin_general' ? 'Admin General' : 'Encargado'}</span><p className="text-[11px] text-gray-400 mt-0.5">{u.sucursal}</p></div>
                   </div>
                 ))}
+              </div>}
+          </div>
+        </div>
+      )}
+
+      {tab === 'facturas' && (
+        <div className="grid lg:grid-cols-2 gap-4 items-start">
+          <form onSubmit={crearFactura} className="noma-card space-y-3">
+            <h3 className="font-bold text-[#1a1a1a] flex items-center gap-2"><Receipt size={16} className="text-[#c9a24e]" /> Registrar factura</h3>
+            <div><label className="block text-xs font-semibold text-gray-600 mb-1">Sucursal *</label>
+              <select value={fForm.mayorista_id} onChange={e => setFForm(f => ({ ...f, mayorista_id: e.target.value }))} className="noma-input !py-2 text-sm" required>
+                <option value="">Elige la cafetería…</option>
+                {sucursalesFlat.map((s: any) => <option key={s.id} value={s.id}>{s.nombre}</option>)}
+              </select></div>
+            <div className="grid grid-cols-2 gap-3">
+              <div><label className="block text-xs font-semibold text-gray-600 mb-1">N° factura</label><input value={fForm.numero} onChange={e => setFForm(f => ({ ...f, numero: e.target.value }))} className="noma-input !py-2 text-sm" placeholder="1052" /></div>
+              <div><label className="block text-xs font-semibold text-gray-600 mb-1">Monto *</label><input type="number" min="0" value={fForm.monto} onChange={e => setFForm(f => ({ ...f, monto: e.target.value }))} className="noma-input !py-2 text-sm" placeholder="0" required /></div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div><label className="block text-xs font-semibold text-gray-600 mb-1">Emisión</label><input type="date" value={fForm.fecha_emision} onChange={e => setFForm(f => ({ ...f, fecha_emision: e.target.value }))} className="noma-input !py-2 text-sm" /></div>
+              <div><label className="block text-xs font-semibold text-gray-600 mb-1">Vencimiento</label><input type="date" value={fForm.fecha_vencimiento} onChange={e => setFForm(f => ({ ...f, fecha_vencimiento: e.target.value }))} className="noma-input !py-2 text-sm" /></div>
+            </div>
+            <button type="submit" disabled={creandoF} className="noma-btn-primary w-full disabled:opacity-60">{creandoF ? 'Registrando…' : 'Registrar factura'}</button>
+          </form>
+
+          <div className="noma-card !p-0 overflow-hidden">
+            <div className="p-4 border-b border-gray-100"><h3 className="font-bold text-[#1a1a1a] text-sm">Facturas de Aldea</h3></div>
+            {factLoad ? <div className="py-10 text-center"><Loader2 className="w-5 h-5 text-[#1b2a4a] animate-spin mx-auto" /></div>
+              : facts.length === 0 ? <p className="p-4 text-sm text-gray-400">Aún no hay facturas.</p>
+              : <div className="divide-y divide-gray-50">
+                {facts.map(f => { const e = EST_FACT[f.estado_real] || EST_FACT.por_pagar; return (
+                  <div key={f.id} className="flex items-center justify-between gap-3 px-4 py-3">
+                    <div><p className="text-sm font-medium text-[#1a1a1a]">{f.sucursal} · N° {f.numero || 's/n'}</p><p className="text-xs text-gray-400">{f.fecha_vencimiento ? `Vence ${fFecha(f.fecha_vencimiento)}` : 'Sin vencimiento'}</p></div>
+                    <div className="flex items-center gap-3">
+                      <div className="text-right"><p className="font-bold text-sm text-[#1a1a1a]">{clp(f.monto)}</p><span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${e.c}`}>{e.l}</span></div>
+                      {f.estado === 'pagada'
+                        ? <button onClick={() => marcarFactura(f.id, 'por_pagar')} className="text-[11px] font-semibold text-gray-400 hover:text-gray-600">Reabrir</button>
+                        : <button onClick={() => marcarFactura(f.id, 'pagada')} className="text-[11px] font-semibold text-green-700 hover:underline whitespace-nowrap">Marcar pagada</button>}
+                    </div>
+                  </div>)})}
               </div>}
           </div>
         </div>

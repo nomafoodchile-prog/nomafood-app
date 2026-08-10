@@ -19,7 +19,7 @@ const MODULOS = [
   { k: 'pedir', label: 'Nueva solicitud', icon: PlusCircle, desc: 'Pedir reposición', on: true },
   { k: 'pedidos', label: 'Pedidos', icon: Truck, desc: 'Seguimiento y trazabilidad', on: true },
   { k: 'incidencias', label: 'Incidencias', icon: AlertTriangle, desc: 'Reportes y consultas', on: true },
-  { k: 'facturas', label: 'Facturación', icon: Receipt, desc: 'Facturas por pagar', on: false },
+  { k: 'facturas', label: 'Facturación', icon: Receipt, desc: 'Facturas por pagar', on: true },
   { k: 'consultas', label: 'Consultas', icon: MessageCircle, desc: 'Preguntas a NOMMA', on: false },
 ]
 const EST_STOCK: Record<string, { l: string; c: string }> = {
@@ -40,6 +40,8 @@ const EST_INC: Record<string, { l: string; c: string }> = { nueva: { l: 'Nueva',
 const TIPO_OPCIONES = ['consulta', 'pedido_incompleto', 'producto_danado', 'producto_incorrecto', 'cantidad', 'calidad', 'temperatura', 'atraso', 'chofer', 'falta_stock', 'otro']
 const fFecha = (s: string | null) => s ? new Date(s + (s.length <= 10 ? 'T00:00:00' : '')).toLocaleDateString('es-CL') : '—'
 const nn = (v: any) => v == null ? '—' : String(v)
+const clp = (n: number) => new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(n || 0)
+const EST_FACT: Record<string, { l: string; c: string }> = { por_pagar: { l: 'Por pagar', c: 'bg-amber-100 text-amber-700' }, vencida: { l: 'Vencida', c: 'bg-red-100 text-red-700' }, pagada: { l: 'Pagada', c: 'bg-green-100 text-green-700' } }
 
 export default function AldeaDashboard() {
   const router = useRouter()
@@ -47,7 +49,7 @@ export default function AldeaDashboard() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [sucursal, setSucursal] = useState('')
-  const [vista, setVista] = useState<'inicio' | 'stock' | 'pedir' | 'pedidos' | 'recepcion' | 'incidencias'>('inicio')
+  const [vista, setVista] = useState<'inicio' | 'stock' | 'pedir' | 'pedidos' | 'recepcion' | 'incidencias' | 'facturas'>('inicio')
 
   const [stock, setStock] = useState<StockItem[]>([])
   const [stockLoading, setStockLoading] = useState(false)
@@ -60,6 +62,7 @@ export default function AldeaDashboard() {
   const [pedidos, setPedidos] = useState<Pedido[]>([]); const [pedLoading, setPedLoading] = useState(false); const [abierto, setAbierto] = useState<string | null>(null)
   const [recSol, setRecSol] = useState<Pedido | null>(null); const [recib, setRecib] = useState<Record<string, string>>({}); const [notasRec, setNotasRec] = useState(''); const [confirmando, setConfirmando] = useState(false)
   const [incs, setIncs] = useState<any[]>([]); const [incLoading, setIncLoading] = useState(false); const [repOpen, setRepOpen] = useState(false); const [repTipo, setRepTipo] = useState('consulta'); const [repDesc, setRepDesc] = useState(''); const [reportando, setReportando] = useState(false)
+  const [facts, setFacts] = useState<any[]>([]); const [factLoad, setFactLoad] = useState(false); const [factRes, setFactRes] = useState<any>({}); const [factFiltro, setFactFiltro] = useState('todas')
 
   useEffect(() => {
     fetch('/api/portal/aldea/session').then(async r => {
@@ -99,6 +102,12 @@ export default function AldeaDashboard() {
   useEffect(() => { if ((vista === 'stock' || vista === 'pedir') && sucursal) cargarStock(sucursal) }, [vista, sucursal, cargarStock])
   useEffect(() => { if (vista === 'pedidos' && sucursal) cargarPedidos(sucursal) }, [vista, sucursal, cargarPedidos])
   useEffect(() => { if (vista === 'incidencias' && sucursal) cargarIncs(sucursal) }, [vista, sucursal, cargarIncs])
+  const cargarFacts = useCallback(async (suc: string) => {
+    if (!suc) return; setFactLoad(true)
+    try { const r = await fetch(`/api/portal/aldea/facturas?sucursal=${suc}`); const d = await r.json(); setFacts(r.ok ? (d.facturas || []) : []); setFactRes(r.ok ? (d.resumen || {}) : {}) } catch { setFacts([]) }
+    setFactLoad(false)
+  }, [])
+  useEffect(() => { if (vista === 'facturas' && sucursal) cargarFacts(sucursal) }, [vista, sucursal, cargarFacts])
   useEffect(() => { setCart({}); setOkMsg(null) }, [sucursal])
 
   function setQty(pid: string, delta: number) {
@@ -163,7 +172,8 @@ export default function AldeaDashboard() {
   const sucNombre = ses?.sucursales.find(s => s.id === sucursal)?.nombre || '—'
   const visibles = stock.filter(i => (filtro === 'todos' || i.estado === filtro) && (!q || i.nombre.toLowerCase().includes(q.toLowerCase()) || i.sku.toLowerCase().includes(q.toLowerCase())))
   const cartCount = Object.values(cart).reduce((a, b) => a + b, 0)
-  const TITULO: Record<string, string> = { stock: 'Mi Stock', pedir: 'Nueva solicitud', pedidos: 'Pedidos', recepcion: 'Confirmar recepción', incidencias: 'Incidencias y consultas' }
+  const TITULO: Record<string, string> = { stock: 'Mi Stock', pedir: 'Nueva solicitud', pedidos: 'Pedidos', recepcion: 'Confirmar recepción', incidencias: 'Incidencias y consultas', facturas: 'Facturación' }
+  const factVis = facts.filter((f: any) => factFiltro === 'todas' || (factFiltro === 'pagada' ? f.estado_real === 'pagada' : factFiltro === 'vencida' ? f.estado_real === 'vencida' : f.estado_real === 'por_pagar'))
 
   return (
     <div className="max-w-md mx-auto pb-24">
@@ -426,6 +436,32 @@ export default function AldeaDashboard() {
                   {i.respuesta_central && <div className="mt-2 bg-[#faf7ef] border border-[#e7d4a6] rounded-lg p-2.5 text-xs text-[#5a4a24]"><b>NOMMA respondió:</b> {i.respuesta_central}</div>}
                 </div>)})}
             </div>}
+        </div>
+      )}
+
+      {/* FACTURACIÓN */}
+      {vista === 'facturas' && (
+        <div className="px-5 pt-4">
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            <div className="bg-white rounded-2xl border border-gray-100 p-3.5 shadow-sm"><p className="text-[11px] uppercase font-bold text-gray-400">Por pagar</p><p className="font-bold text-xl text-[#16233f]" style={{ fontFamily: 'Georgia, serif' }}>{clp(factRes.por_pagar || 0)}</p></div>
+            <div className="bg-white rounded-2xl border border-gray-100 p-3.5 shadow-sm"><p className="text-[11px] uppercase font-bold text-gray-400">Vencidas</p><p className="font-bold text-xl text-red-600" style={{ fontFamily: 'Georgia, serif' }}>{clp(factRes.vencidas || 0)}</p><p className="text-[11px] text-gray-400">{factRes.n_vencidas || 0} factura{(factRes.n_vencidas || 0) !== 1 ? 's' : ''}</p></div>
+          </div>
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            {[['todas', 'Todas'], ['por_pagar', 'Por pagar'], ['vencida', 'Vencidas'], ['pagada', 'Pagadas']].map(([k, l]) => (
+              <button key={k} onClick={() => setFactFiltro(k)} className={`text-xs font-semibold whitespace-nowrap px-3 py-1.5 rounded-full border ${factFiltro === k ? 'bg-[#16233f] text-white border-[#16233f]' : 'bg-white text-gray-500 border-gray-200'}`}>{l}</button>
+            ))}
+          </div>
+          {factLoad ? <div className="py-12 text-center"><Loader2 className="w-5 h-5 text-[#1b2a4a] animate-spin mx-auto" /></div>
+            : factVis.length === 0 ? <div className="bg-white rounded-2xl border border-gray-100 py-12 text-center text-gray-400 text-sm"><Receipt className="w-8 h-8 text-gray-200 mx-auto mb-2" />Sin facturas.</div>
+            : <div className="bg-white rounded-2xl border border-gray-100 px-4 shadow-sm">
+              {factVis.map((f: any) => { const e = EST_FACT[f.estado_real] || EST_FACT.por_pagar; return (
+                <div key={f.id} className="flex items-center gap-3 py-3 border-t border-gray-50 first:border-0">
+                  <div className="w-10 h-10 rounded-xl bg-[#f5f0e8] grid place-items-center flex-none"><Receipt size={17} className="text-[#c9a24e]" /></div>
+                  <div className="flex-1 min-w-0"><p className="font-semibold text-sm text-[#1a1a1a]">Factura {f.numero || 's/n'}</p><p className="text-[11px] text-gray-400">{f.fecha_vencimiento ? `Vence ${fFecha(f.fecha_vencimiento)}` : 'Sin vencimiento'}</p></div>
+                  <div className="text-right flex-none"><p className="font-bold text-sm text-[#1a1a1a]">{clp(f.monto)}</p><span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${e.c}`}>{e.l}</span></div>
+                </div>)})}
+            </div>}
+          <p className="text-[11px] text-gray-400 mt-3">Facturas emitidas por NOMMA FOOD. El pago se coordina con la Central.</p>
         </div>
       )}
     </div>
