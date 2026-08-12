@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Loader2, Sprout, ChevronDown, Check, Store, MessageCircle, ClipboardList, Users, UserPlus, Copy, Receipt } from 'lucide-react'
+import { Loader2, Sprout, ChevronDown, Check, Store, MessageCircle, ClipboardList, Users, UserPlus, Copy, Receipt, ShieldCheck } from 'lucide-react'
 
 interface Item { id: string; producto_nombre: string; unidad: string; cantidad_solicitada: number; cantidad_aprobada: number | null; cantidad_preparada: number | null; cantidad_despachada: number | null; cantidad_recibida: number | null }
 interface Sol { id: string; folio: string; sucursal: string; estado: string; prioridad: string; fecha_requerida: string | null; observaciones: string | null; chofer_nombre: string | null; chofer_telefono: string | null; hora_estimada: string | null; created_at: string; items: Item[] }
@@ -20,6 +20,7 @@ const EST_INC: Record<string, { l: string; c: string }> = { nueva: { l: 'Nueva',
 const EST_INC_SEL = ['nueva', 'en_revision', 'en_solucion', 'resuelta', 'cerrada']
 const clp = (n: number) => new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(n || 0)
 const EST_FACT: Record<string, { l: string; c: string }> = { por_pagar: { l: 'Por pagar', c: 'bg-amber-100 text-amber-700' }, vencida: { l: 'Vencida', c: 'bg-red-100 text-red-700' }, pagada: { l: 'Pagada', c: 'bg-green-100 text-green-700' } }
+const EST_RSV: Record<string, { l: string; c: string; bar: string }> = { normal: { l: 'Normal', c: 'bg-green-100 text-green-700', bar: '#2f7a54' }, reponer: { l: 'Reponer pronto', c: 'bg-amber-100 text-amber-700', bar: '#b0801f' }, critico: { l: 'Crítico', c: 'bg-red-100 text-red-700', bar: '#b23b3b' } }
 
 export default function AldeaCentralPage() {
   const [sols, setSols] = useState<Sol[]>([])
@@ -28,7 +29,34 @@ export default function AldeaCentralPage() {
   const [abierto, setAbierto] = useState<string | null>(null)
   const [draft, setDraft] = useState<Record<string, { estado: string; cn: string; ct: string; he: string; items: Record<string, { a: string; p: string; d: string }> }>>({})
   const [guardando, setGuardando] = useState<string | null>(null)
-  const [tab, setTab] = useState<'resumen' | 'solicitudes' | 'incidencias' | 'usuarios' | 'facturas'>('resumen')
+  const [tab, setTab] = useState<'resumen' | 'solicitudes' | 'reserva' | 'incidencias' | 'usuarios' | 'facturas'>('resumen')
+  const [rsv, setRsv] = useState<any>({ items: [], organizacion_id: null, alertas: 0 }); const [rsvLoad, setRsvLoad] = useState(true)
+  const [rDraft, setRDraft] = useState<Record<string, any>>({}); const [guardR, setGuardR] = useState<string | null>(null)
+
+  const cargarReserva = useCallback(async () => {
+    setRsvLoad(true)
+    try {
+      const r = await fetch('/api/central/aldea/reserva'); const d = await r.json()
+      if (r.ok) {
+        setRsv(d)
+        const dr: Record<string, any> = {}
+        for (const it of d.items || []) dr[it.product_id] = { objetivo: String(it.objetivo), minimo: String(it.minimo), critico: String(it.critico), fisico: String(it.fisico), comprometido: String(it.comprometido) }
+        setRDraft(dr)
+      }
+    } catch { /* nada */ }
+    setRsvLoad(false)
+  }, [])
+  function setRField(pid: string, campo: string, val: string) { setRDraft(p => ({ ...p, [pid]: { ...p[pid], [campo]: val.replace(/[^0-9]/g, '') } })) }
+  async function guardarReserva(it: any) {
+    const d = rDraft[it.product_id]; if (!d) return
+    setGuardR(it.product_id)
+    try {
+      const r = await fetch('/api/central/aldea/reserva', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ product_id: it.product_id, organizacion_id: rsv.organizacion_id, ...d }) })
+      if (!r.ok) { alert('No se pudo guardar.'); setGuardR(null); return }
+      await cargarReserva()
+    } catch { alert('Error de conexión.') }
+    setGuardR(null)
+  }
   const [res, setRes] = useState<any>({ locales: [], consolidado: {} }); const [resLoad, setResLoad] = useState(true)
   const [facts, setFacts] = useState<any[]>([]); const [factLoad, setFactLoad] = useState(true)
 
@@ -105,7 +133,7 @@ export default function AldeaCentralPage() {
     catch { setSols([]) }
     setLoading(false)
   }, [])
-  useEffect(() => { cargarResumen(); cargar(); cargarIncs(); cargarUsuarios(); cargarFacts() }, [cargarResumen, cargar, cargarIncs, cargarUsuarios, cargarFacts])
+  useEffect(() => { cargarResumen(); cargar(); cargarIncs(); cargarUsuarios(); cargarFacts(); cargarReserva() }, [cargarResumen, cargar, cargarIncs, cargarUsuarios, cargarFacts, cargarReserva])
 
   function abrir(s: Sol) {
     if (abierto === s.id) { setAbierto(null); return }
@@ -157,6 +185,7 @@ export default function AldeaCentralPage() {
       <div className="inline-flex items-center gap-1 bg-gray-100 rounded-lg p-1 overflow-x-auto max-w-full">
         <button onClick={() => setTab('resumen')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap ${tab === 'resumen' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><Store size={14} /> Resumen</button>
         <button onClick={() => setTab('solicitudes')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap ${tab === 'solicitudes' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><ClipboardList size={14} /> Solicitudes{nuevas ? ` · ${nuevas}` : ''}</button>
+        <button onClick={() => setTab('reserva')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap ${tab === 'reserva' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><ShieldCheck size={14} /> Reserva{rsv.alertas ? ` · ${rsv.alertas}` : ''}</button>
         <button onClick={() => setTab('incidencias')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 ${tab === 'incidencias' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><MessageCircle size={14} /> Incidencias{incAbiertas ? ` · ${incAbiertas}` : ''}</button>
         <button onClick={() => setTab('usuarios')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 ${tab === 'usuarios' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><Users size={14} /> Usuarios</button>
         <button onClick={() => setTab('facturas')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 ${tab === 'facturas' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><Receipt size={14} /> Facturación</button>
@@ -311,6 +340,52 @@ export default function AldeaCentralPage() {
                 </button>
               </div>
             </div>)})}
+        </div>
+      )}
+
+      {tab === 'reserva' && (
+        rsvLoad ? <div className="py-16 text-center"><Loader2 className="w-6 h-6 text-[#1b2a4a] animate-spin mx-auto" /></div>
+        : <div className="space-y-4">
+          <div className="bg-[#faf7ef] border border-[#e7d4a6] rounded-xl px-4 py-3 text-sm text-[#5a4a24]">
+            <b>Reserva Aldea (interno).</b> Stock protegido por SKU. Regla: <b>Disponible = Físico − Comprometido</b> · <b>Reposición = Objetivo − Físico</b>. El cliente solo ve "Disponible".
+          </div>
+          {(rsv.items || []).map((it: any) => {
+            const e = EST_RSV[it.estado] || EST_RSV.normal
+            const d = rDraft[it.product_id] || {}
+            const pct = it.objetivo > 0 ? Math.min(100, Math.round((it.disponible / it.objetivo) * 100)) : 0
+            return (
+              <div key={it.product_id} className="noma-card">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <span className="font-semibold text-[#1a1a1a] flex items-center gap-2">
+                    <span className="w-8 h-8 rounded-lg bg-[#f5f0e8] grid place-items-center overflow-hidden">{it.imagen_url ? <img src={it.imagen_url} alt="" className="w-full h-full object-cover" /> : <ShieldCheck size={14} className="text-[#c9a24e]" />}</span>
+                    {it.nombre}
+                  </span>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${e.c}`}>{it.configurada ? e.l : 'Sin reserva'}</span>
+                </div>
+                {it.configurada && (
+                  <div className="mt-3">
+                    <div className="h-2 rounded-full bg-gray-100 overflow-hidden"><div className="h-full rounded-full" style={{ width: `${pct}%`, background: e.bar }} /></div>
+                    <div className="flex items-center gap-4 mt-2 text-xs">
+                      <span className="text-gray-500">Disponible: <b className="text-[#1a1a1a]">{it.disponible}</b></span>
+                      <span className="text-gray-500">Reposición sugerida: <b className="text-[#c9a24e]">{it.reposicion}</b></span>
+                    </div>
+                  </div>
+                )}
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-3">
+                  {([['objetivo', 'Objetivo'], ['minimo', 'Mínimo'], ['critico', 'Crítico'], ['fisico', 'Físico res.'], ['comprometido', 'Comprom.']] as const).map(([k, l]) => (
+                    <div key={k}><label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">{l}</label>
+                      <input value={d[k] ?? ''} onChange={ev => setRField(it.product_id, k, ev.target.value)} className="noma-input !py-1.5 text-sm text-center tabular-nums" placeholder="0" /></div>
+                  ))}
+                </div>
+                <div className="flex justify-end mt-3">
+                  <button onClick={() => guardarReserva(it)} disabled={guardR === it.product_id} className="text-xs font-semibold flex items-center gap-1.5 bg-green-600 text-white rounded-lg px-3 py-1.5 hover:bg-green-700 disabled:opacity-60">
+                    {guardR === it.product_id ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />} Guardar reserva
+                  </button>
+                </div>
+              </div>
+            )
+          })}
+          {(rsv.items || []).length === 0 && <div className="noma-card text-center py-14 text-gray-400 text-sm">No hay productos en el catálogo Aldea.</div>}
         </div>
       )}
 
