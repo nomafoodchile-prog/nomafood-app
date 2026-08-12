@@ -47,27 +47,41 @@ export async function GET(req: NextRequest) {
   const prodMap = new Map<string, any>()
   if (ids.length) {
     const { data: prods } = await db.from('products')
-      .select('id, nombre, sku, unidad, categoria, imagen_url').in('id', ids)
+      .select('id, nombre, sku, unidad, categoria, imagen_url, foto_oficial_url, precio, precio_venta, unidad_venta, cantidad_por_unidad_venta').in('id', ids)
     for (const p of prods || []) prodMap.set(p.id, p)
   }
+  // Precio/prioridad especial por catálogo de la sucursal
+  const catMap = new Map<string, any>()
+  const { data: cat } = await db.from('aldea_catalogo')
+    .select('product_id, precio_especial, prioridad_aldea, disponible').eq('mayorista_id', sucursal)
+  for (const c of cat || []) catMap.set(c.product_id, c)
 
   const items = (stock || []).map(s => {
     const p = prodMap.get(s.product_id) || {}
+    const c = catMap.get(s.product_id) || {}
     const est = estado(Number(s.stock_actual), Number(s.stock_min), Number(s.por_recibir))
+    const unxcaja = Number(p.cantidad_por_unidad_venta) > 0 ? Number(p.cantidad_por_unidad_venta) : 1
+    const precioCaja = c.precio_especial != null ? Number(c.precio_especial) : (p.precio != null ? Number(p.precio) : (p.precio_venta != null ? Number(p.precio_venta) : null))
     return {
       product_id: s.product_id,
       nombre: p.nombre || 'Producto',
       sku: p.sku || '',
       unidad: p.unidad || 'un',
+      unidad_venta: p.unidad_venta || 'unidad',
+      unidades_por_caja: unxcaja,
       categoria: p.categoria || '',
-      imagen_url: p.imagen_url || null,
+      imagen_url: p.imagen_url || p.foto_oficial_url || null,
+      precio_caja: precioCaja,                       // precio por unidad de venta (caja)
+      precio_unitario: precioCaja != null ? Math.round(precioCaja / unxcaja) : null,
+      prioridad: Number(c.prioridad_aldea || 0),
+      disponible: c.disponible !== false,
       stock_actual: Number(s.stock_actual),
       stock_min: Number(s.stock_min),
       stock_ideal: Number(s.stock_ideal),
       por_recibir: Number(s.por_recibir),
       estado: est,
     }
-  }).sort((a, b) => (ORDEN[a.estado] - ORDEN[b.estado]) || a.nombre.localeCompare(b.nombre))
+  }).sort((a, b) => (b.prioridad - a.prioridad) || (ORDEN[a.estado] - ORDEN[b.estado]) || a.nombre.localeCompare(b.nombre))
 
   const resumen = {
     total: items.length,

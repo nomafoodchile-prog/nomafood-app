@@ -29,6 +29,12 @@ export async function POST(req: NextRequest) {
     .select('id', { count: 'exact', head: true }).eq('organizacion_id', ctx.organizacion_id)
   const folio = `AV-${anio}-${String((count || 0) + 1).padStart(5, '0')}`
 
+  // Totales estimados (IVA 19% + despacho fijo RM, misma lógica que NOMMA)
+  const DESPACHO = 3500
+  const neto = items.reduce((s: number, i: any) => s + (Number(i.precio_caja) || 0) * Number(i.cantidad), 0)
+  const iva = Math.round(neto * 0.19)
+  const total = neto > 0 ? neto + iva + DESPACHO : 0
+
   const { data: sol, error } = await db.from('aldea_solicitudes').insert({
     folio,
     mayorista_id: sucursal,
@@ -38,18 +44,26 @@ export async function POST(req: NextRequest) {
     prioridad: ['baja', 'normal', 'alta'].includes(String(body.prioridad)) ? body.prioridad : 'normal',
     fecha_requerida: body.fecha_requerida || null,
     observaciones: body.observaciones ? String(body.observaciones).trim() : null,
+    neto: neto || null, iva: neto > 0 ? iva : null, despacho: neto > 0 ? DESPACHO : null, total: total || null,
   }).select('id, folio').single()
 
   if (error || !sol) return NextResponse.json({ error: 'No se pudo crear la solicitud.' }, { status: 500 })
 
-  const lineas = items.map((i: any) => ({
-    solicitud_id: sol.id,
-    product_id: i.product_id,
-    producto_nombre: i.producto_nombre || null,
-    unidad: i.unidad || 'un',
-    cantidad_solicitada: Number(i.cantidad),
-  }))
+  const lineas = items.map((i: any) => {
+    const precioCaja = Number(i.precio_caja) || null
+    return {
+      solicitud_id: sol.id,
+      product_id: i.product_id,
+      producto_nombre: i.producto_nombre || null,
+      unidad: i.unidad || 'un',
+      unidad_venta: i.unidad_venta || null,
+      unidades_por_caja: i.unidades_por_caja ? Number(i.unidades_por_caja) : null,
+      precio_unitario: precioCaja,
+      subtotal: precioCaja != null ? precioCaja * Number(i.cantidad) : null,
+      cantidad_solicitada: Number(i.cantidad),
+    }
+  })
   await db.from('aldea_solicitud_items').insert(lineas)
 
-  return NextResponse.json({ ok: true, id: sol.id, folio: sol.folio })
+  return NextResponse.json({ ok: true, id: sol.id, folio: sol.folio, total })
 }

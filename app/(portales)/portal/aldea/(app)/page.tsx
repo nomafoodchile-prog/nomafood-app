@@ -11,8 +11,8 @@ interface Sesion {
   usuario: { nombre: string; email: string }
   sucursales: { id: string; nombre: string }[]
 }
-interface StockItem { product_id: string; nombre: string; sku: string; unidad: string; imagen_url: string | null; stock_actual: number; stock_min: number; stock_ideal: number; por_recibir: number; estado: string }
-interface Pedido { id: string; folio: string; estado: string; prioridad: string; fecha_requerida: string | null; observaciones: string | null; chofer_nombre: string | null; chofer_telefono: string | null; hora_estimada: string | null; created_at: string; items: any[]; n_items: number; con_diferencia: boolean }
+interface StockItem { product_id: string; nombre: string; sku: string; unidad: string; unidad_venta: string; unidades_por_caja: number; categoria: string; imagen_url: string | null; precio_caja: number | null; precio_unitario: number | null; disponible: boolean; stock_actual: number; stock_min: number; stock_ideal: number; por_recibir: number; estado: string }
+interface Pedido { id: string; folio: string; estado: string; prioridad: string; fecha_requerida: string | null; observaciones: string | null; chofer_nombre: string | null; chofer_telefono: string | null; hora_estimada: string | null; neto: number | null; total: number | null; created_at: string; items: any[]; n_items: number; con_diferencia: boolean }
 
 const MODULOS = [
   { k: 'stock', label: 'Mi Stock', icon: Package, desc: 'Inventario del local', on: true },
@@ -124,7 +124,7 @@ export default function AldeaDashboard() {
     setCart(c => { const nc = { ...c }; if (!n) delete nc[pid]; else nc[pid] = n; return nc })
   }
   async function enviarSolicitud() {
-    const items = stock.filter(s => (cart[s.product_id] || 0) > 0).map(s => ({ product_id: s.product_id, cantidad: cart[s.product_id], producto_nombre: s.nombre, unidad: s.unidad }))
+    const items = stock.filter(s => (cart[s.product_id] || 0) > 0).map(s => ({ product_id: s.product_id, cantidad: cart[s.product_id], producto_nombre: s.nombre, unidad: s.unidad, unidad_venta: s.unidad_venta, unidades_por_caja: s.unidades_por_caja, precio_caja: s.precio_caja }))
     if (items.length === 0) { setOkMsg('Agrega al menos un producto.'); return }
     setEnviando(true)
     try {
@@ -178,6 +178,11 @@ export default function AldeaDashboard() {
   const sucNombre = ses?.sucursales.find(s => s.id === sucursal)?.nombre || '—'
   const visibles = stock.filter(i => (filtro === 'todos' || i.estado === filtro) && (!q || i.nombre.toLowerCase().includes(q.toLowerCase()) || i.sku.toLowerCase().includes(q.toLowerCase())))
   const cartCount = Object.values(cart).reduce((a, b) => a + b, 0)
+  const cartUnid = stock.reduce((s, i) => s + (cart[i.product_id] || 0) * (i.unidades_por_caja || 1), 0)
+  const cartNeto = stock.reduce((s, i) => s + (Number(i.precio_caja) || 0) * (cart[i.product_id] || 0), 0)
+  const cartIva = Math.round(cartNeto * 0.19)
+  const cartTotal = cartNeto > 0 ? cartNeto + cartIva + 3500 : 0
+  const pedible = (i: StockItem) => i.disponible && !['sin_stock', 'reposicion'].includes(i.estado)
   const TITULO: Record<string, string> = { stock: 'Mi Stock', pedir: 'Nueva solicitud', pedidos: 'Pedidos', recepcion: 'Confirmar recepción', incidencias: 'Incidencias y consultas', facturas: 'Facturación' }
   const factVis = facts.filter((f: any) => factFiltro === 'todas' || (factFiltro === 'pagada' ? f.estado_real === 'pagada' : factFiltro === 'vencida' ? f.estado_real === 'vencida' : f.estado_real === 'por_pagar'))
 
@@ -256,27 +261,56 @@ export default function AldeaDashboard() {
         </div>
       )}
 
-      {/* NUEVA SOLICITUD */}
+      {/* PRODUCTOS / NUEVA SOLICITUD */}
       {vista === 'pedir' && (
         <div className="px-5 pt-4">
-          <p className="text-sm text-gray-500 mb-3">Elige los productos y cantidades que necesitas reponer.</p>
+          <p className="text-sm text-gray-500 mb-3">Catálogo autorizado para Aldea. Elige cuántas cajas necesitas.</p>
           {stockLoading ? <div className="py-12 text-center"><Loader2 className="w-5 h-5 text-[#1b2a4a] animate-spin mx-auto" /></div>
             : stock.length === 0 ? <div className="bg-white rounded-2xl border border-gray-100 py-12 text-center text-gray-400 text-sm">Sin catálogo autorizado para esta sucursal.</div>
             : <div className="bg-white rounded-2xl border border-gray-100 px-4 shadow-sm mb-4">
-              {stock.map(i => (
-                <div key={i.product_id} className="flex items-center gap-3 py-3 border-t border-gray-50 first:border-0">
-                  <div className="w-11 h-11 rounded-xl bg-[#f5f0e8] grid place-items-center overflow-hidden flex-none">{i.imagen_url ? <img src={i.imagen_url} alt="" className="w-full h-full object-cover" /> : <Package size={18} className="text-[#c9a24e]" />}</div>
-                  <div className="flex-1 min-w-0"><p className="font-semibold text-sm text-[#1a1a1a] truncate">{i.nombre}</p><p className="text-[11px] text-gray-400">{i.unidad} · tienes {i.stock_actual} / ideal {i.stock_ideal}</p></div>
-                  <div className="inline-flex items-center gap-1.5 border border-gray-200 rounded-lg px-1.5 py-1 flex-none">
-                    <button onClick={() => setQty(i.product_id, -1)} className="w-7 h-7 rounded-md bg-gray-50 text-[#16233f] grid place-items-center"><Minus size={14} /></button>
-                    <input type="number" inputMode="numeric" min={0} value={cart[i.product_id] ?? ''} placeholder="0"
-                      onChange={e => setQtyDirect(i.product_id, e.target.value)}
-                      className="w-11 text-center text-sm font-bold tabular-nums border-0 outline-none bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
-                    <button onClick={() => setQty(i.product_id, 1)} className="w-7 h-7 rounded-md bg-[#c9a24e] text-white grid place-items-center"><Plus size={14} /></button>
+              {stock.map(i => {
+                const e = EST_STOCK[i.estado] || EST_STOCK.ok
+                const puede = pedible(i)
+                const cajas = cart[i.product_id] || 0
+                const porcaja = i.unidades_por_caja || 1
+                return (
+                <div key={i.product_id} className="py-3 border-t border-gray-50 first:border-0">
+                  <div className="flex items-center gap-3">
+                    <div className="w-14 h-14 rounded-xl bg-[#f5f0e8] grid place-items-center overflow-hidden flex-none">{i.imagen_url ? <img src={i.imagen_url} alt="" className="w-full h-full object-cover" /> : <Package size={18} className="text-[#c9a24e]" />}</div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm text-[#1a1a1a] leading-tight">{i.nombre}</p>
+                      <p className="text-[11px] text-gray-400 mt-0.5">{i.categoria ? i.categoria + ' · ' : ''}{i.unidad_venta === 'caja' ? `Caja × ${porcaja}` : i.unidad_venta}</p>
+                      {i.precio_caja != null
+                        ? <p className="text-[13px] font-bold text-[#16233f] mt-0.5">{clp(i.precio_caja)} <span className="font-medium text-gray-400 text-[10px]">/ {i.unidad_venta}{i.precio_unitario != null && porcaja > 1 ? ` · ${clp(i.precio_unitario)} un.` : ''}</span></p>
+                        : <p className="text-[11px] text-amber-600 mt-0.5">Precio pendiente de configurar</p>}
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between mt-2.5 gap-2">
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${e.c}`}>{e.l}{puede && i.stock_actual > 0 ? ` · ${i.stock_actual} un.` : ''}</span>
+                    {puede ? (
+                      <div className="inline-flex items-center gap-1.5 border border-gray-200 rounded-lg px-1.5 py-1 flex-none">
+                        <button onClick={() => setQty(i.product_id, -1)} className="w-7 h-7 rounded-md bg-gray-50 text-[#16233f] grid place-items-center"><Minus size={14} /></button>
+                        <div className="text-center min-w-[54px] leading-none">
+                          <input type="number" inputMode="numeric" min={0} value={cart[i.product_id] ?? ''} placeholder="0" onChange={ev => setQtyDirect(i.product_id, ev.target.value)}
+                            className="w-full text-center text-sm font-bold tabular-nums border-0 outline-none bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                          <small className="block text-[9px] text-gray-400 font-semibold">{cajas > 0 ? `${cajas} caja${cajas !== 1 ? 's' : ''} · ${cajas * porcaja} un.` : 'cajas'}</small>
+                        </div>
+                        <button onClick={() => setQty(i.product_id, 1)} className="w-7 h-7 rounded-md bg-[#c9a24e] text-white grid place-items-center"><Plus size={14} /></button>
+                      </div>
+                    ) : <span className="text-[11px] text-gray-400 font-medium">No disponible</span>}
                   </div>
                 </div>
-              ))}
+              )})}
             </div>}
+          {cartCount > 0 && (
+            <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm mb-4">
+              <p className="text-[11px] font-bold uppercase text-gray-400 mb-2">Total estimado</p>
+              <div className="flex justify-between text-sm py-0.5"><span className="text-gray-500">Neto ({cartCount} caja{cartCount !== 1 ? 's' : ''} · {cartUnid} un.)</span><span>{clp(cartNeto)}</span></div>
+              <div className="flex justify-between text-sm py-0.5"><span className="text-gray-500">IVA 19%</span><span>{clp(cartIva)}</span></div>
+              <div className="flex justify-between text-sm py-0.5"><span className="text-gray-500">Despacho (RM)</span><span>{clp(3500)}</span></div>
+              <div className="flex justify-between text-base font-bold text-[#16233f] border-t border-gray-100 mt-1.5 pt-2"><span>Total estimado</span><span>{clp(cartTotal)}</span></div>
+            </div>
+          )}
           <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm space-y-3 mb-4">
             <div className="grid grid-cols-2 gap-3">
               <div><label className="block text-xs font-semibold text-gray-600 mb-1">Fecha requerida</label><input type="date" value={fechaReq} onChange={e => setFechaReq(e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm" /></div>
@@ -287,7 +321,7 @@ export default function AldeaDashboard() {
           </div>
           {okMsg && <p className="text-sm text-red-600 mb-2">{okMsg}</p>}
           <button onClick={enviarSolicitud} disabled={enviando || cartCount === 0} className="w-full bg-[#c9a24e] hover:bg-[#b8923f] text-[#16233f] font-bold py-3 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50">
-            {enviando ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />} Enviar solicitud{cartCount > 0 ? ` · ${cartCount} un.` : ''}
+            {enviando ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />} Enviar pedido{cartTotal > 0 ? ` · ${clp(cartTotal)}` : ''}
           </button>
         </div>
       )}
@@ -306,6 +340,7 @@ export default function AldeaDashboard() {
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${e.c}`}>{e.l}</span>
                     </div>
                     <p className="text-[11px] text-gray-400 mt-1">{fFecha(p.created_at)} · {p.n_items} producto{p.n_items !== 1 ? 's' : ''}{p.fecha_requerida ? ` · entrega: ${fFecha(p.fecha_requerida)}` : ''}{p.prioridad === 'alta' ? ' · ⚡ alta' : ''}</p>
+                    {p.total != null && <p className="text-sm font-bold text-[#16233f] mt-1">{clp(p.total)} <span className="text-[10px] font-medium text-gray-400">estimado</span></p>}
                   </button>
                   {open && (
                     <div className="px-4 pb-4">
