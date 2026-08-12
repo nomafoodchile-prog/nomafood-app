@@ -19,9 +19,13 @@ export async function GET(req: NextRequest) {
   const sucursal = req.nextUrl.searchParams.get('sucursal') || [...ctx.sucursales][0]
   if (!sucursal || !ctx.sucursales.has(sucursal)) return NextResponse.json({ error: 'No puedes ver esta sucursal' }, { status: 403 })
 
-  const { data: sols } = await db.from('aldea_solicitudes')
-    .select('id, folio, estado, prioridad, fecha_requerida, observaciones, chofer_nombre, chofer_telefono, hora_estimada, neto, total, created_at')
-    .eq('mayorista_id', sucursal).order('created_at', { ascending: false }).limit(50)
+  const COLS_FULL = 'id, folio, estado, prioridad, fecha_requerida, observaciones, chofer_nombre, chofer_telefono, hora_estimada, neto, total, created_at'
+  const COLS_BASE = 'id, folio, estado, prioridad, fecha_requerida, observaciones, created_at'
+  const q = (cols: string) => db.from('aldea_solicitudes')
+    .select(cols).eq('mayorista_id', sucursal).order('created_at', { ascending: false }).limit(50)
+  // Degradación: si falta alguna columna nueva (SQL no corrido), no dejamos la lista vacía.
+  let { data: sols, error: solErr } = await q(COLS_FULL)
+  if (solErr) { const r = await q(COLS_BASE); sols = r.data }
 
   const ids = (sols || []).map(s => s.id)
   const itemsBySol = new Map<string, any[]>()

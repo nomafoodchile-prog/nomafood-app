@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
   const iva = Math.round(neto * 0.19)
   const total = neto > 0 ? neto + iva + DESPACHO : 0
 
-  const { data: sol, error } = await db.from('aldea_solicitudes').insert({
+  const baseSol: any = {
     folio,
     mayorista_id: sucursal,
     organizacion_id: ctx.organizacion_id,
@@ -44,26 +44,37 @@ export async function POST(req: NextRequest) {
     prioridad: ['baja', 'normal', 'alta'].includes(String(body.prioridad)) ? body.prioridad : 'normal',
     fecha_requerida: body.fecha_requerida || null,
     observaciones: body.observaciones ? String(body.observaciones).trim() : null,
-    neto: neto || null, iva: neto > 0 ? iva : null, despacho: neto > 0 ? DESPACHO : null, total: total || null,
-  }).select('id, folio').single()
+  }
+  const totalesSol = { neto: neto || null, iva: neto > 0 ? iva : null, despacho: neto > 0 ? DESPACHO : null, total: total || null }
 
-  if (error || !sol) return NextResponse.json({ error: 'No se pudo crear la solicitud.' }, { status: 500 })
+  // Intenta con totales; si faltan esas columnas (SQL no corrido), reintenta sin ellas.
+  let { data: sol, error } = await db.from('aldea_solicitudes').insert({ ...baseSol, ...totalesSol }).select('id, folio').single()
+  if (error) {
+    const retry = await db.from('aldea_solicitudes').insert(baseSol).select('id, folio').single()
+    sol = retry.data; error = retry.error
+  }
+  if (error || !sol) return NextResponse.json({ error: 'No se pudo crear la solicitud.', detail: error?.message || null }, { status: 500 })
 
-  const lineas = items.map((i: any) => {
+  const baseLineas = items.map((i: any) => ({
+    solicitud_id: sol!.id,
+    product_id: i.product_id,
+    producto_nombre: i.producto_nombre || null,
+    unidad: i.unidad || 'un',
+    cantidad_solicitada: Number(i.cantidad),
+  }))
+  const extraLineas = items.map((i: any) => {
     const precioCaja = Number(i.precio_caja) || null
     return {
-      solicitud_id: sol.id,
-      product_id: i.product_id,
-      producto_nombre: i.producto_nombre || null,
-      unidad: i.unidad || 'un',
       unidad_venta: i.unidad_venta || null,
       unidades_por_caja: i.unidades_por_caja ? Number(i.unidades_por_caja) : null,
       precio_unitario: precioCaja,
       subtotal: precioCaja != null ? precioCaja * Number(i.cantidad) : null,
-      cantidad_solicitada: Number(i.cantidad),
     }
   })
-  await db.from('aldea_solicitud_items').insert(lineas)
+  // Intenta con columnas nuevas; si faltan, reintenta solo con las base. La solicitud ya existe igual.
+  const full = baseLineas.map((l, idx) => ({ ...l, ...extraLineas[idx] }))
+  const ins = await db.from('aldea_solicitud_items').insert(full)
+  if (ins.error) await db.from('aldea_solicitud_items').insert(baseLineas)
 
   return NextResponse.json({ ok: true, id: sol.id, folio: sol.folio, total })
 }
