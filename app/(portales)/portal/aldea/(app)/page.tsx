@@ -20,7 +20,7 @@ const MODULOS = [
   { k: 'pedidos', label: 'Pedidos', icon: Truck, desc: 'Seguimiento y trazabilidad', on: true },
   { k: 'incidencias', label: 'Incidencias', icon: AlertTriangle, desc: 'Reportes y consultas', on: true },
   { k: 'facturas', label: 'Facturación', icon: Receipt, desc: 'Facturas por pagar', on: true },
-  { k: 'consultas', label: 'Consultas', icon: MessageCircle, desc: 'Preguntas a NOMMA', on: false },
+  { k: 'consultas', label: 'Consultas', icon: MessageCircle, desc: 'Preguntas a NOMMA', on: true },
 ]
 const EST_STOCK: Record<string, { l: string; c: string }> = {
   ok: { l: 'Stock OK', c: 'bg-green-100 text-green-700' }, bajo: { l: 'Bajo', c: 'bg-amber-100 text-amber-700' },
@@ -61,7 +61,13 @@ export default function AldeaDashboard() {
 
   const [pedidos, setPedidos] = useState<Pedido[]>([]); const [pedLoading, setPedLoading] = useState(false); const [abierto, setAbierto] = useState<string | null>(null)
   const [recSol, setRecSol] = useState<Pedido | null>(null); const [recib, setRecib] = useState<Record<string, string>>({}); const [notasRec, setNotasRec] = useState(''); const [confirmando, setConfirmando] = useState(false)
-  const [incs, setIncs] = useState<any[]>([]); const [incLoading, setIncLoading] = useState(false); const [repOpen, setRepOpen] = useState(false); const [repTipo, setRepTipo] = useState('consulta'); const [repDesc, setRepDesc] = useState(''); const [reportando, setReportando] = useState(false)
+  const [incs, setIncs] = useState<any[]>([]); const [incLoading, setIncLoading] = useState(false); const [repOpen, setRepOpen] = useState(false); const [repTipo, setRepTipo] = useState('consulta'); const [repDesc, setRepDesc] = useState(''); const [reportando, setReportando] = useState(false); const [incFiltro, setIncFiltro] = useState<'todas' | 'incidencia' | 'consulta'>('todas')
+
+  function abrirModulo(k: string) {
+    if (k === 'consultas') { setIncFiltro('consulta'); setRepTipo('consulta'); setVista('incidencias'); return }
+    if (k === 'incidencias') { setIncFiltro('todas'); setRepTipo('consulta') }
+    setVista(k as any)
+  }
   const [facts, setFacts] = useState<any[]>([]); const [factLoad, setFactLoad] = useState(false); const [factRes, setFactRes] = useState<any>({}); const [factFiltro, setFactFiltro] = useState('todas')
 
   useEffect(() => {
@@ -214,7 +220,7 @@ export default function AldeaDashboard() {
           <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400 mb-2">Módulos</p>
           <div className="grid grid-cols-2 gap-3">
             {MODULOS.map(m => (
-              <button key={m.k} onClick={() => m.on && setVista(m.k as any)}
+              <button key={m.k} onClick={() => m.on && abrirModulo(m.k)}
                 className={`text-left bg-white rounded-2xl border border-gray-100 p-4 shadow-sm ${m.on ? 'hover:border-[#c9a24e] cursor-pointer' : 'opacity-70 cursor-default'}`}>
                 <div className={`w-9 h-9 rounded-xl grid place-items-center mb-2 ${m.on ? 'bg-[#c9a24e] text-white' : 'bg-[#f5f0e8] text-[#c9a24e]'}`}><m.icon size={18} /></div>
                 <p className="font-semibold text-sm text-[#1a1a1a]">{m.label}</p>
@@ -422,10 +428,16 @@ export default function AldeaDashboard() {
                 <button onClick={enviarIncidencia} disabled={reportando || !repDesc.trim()} className="w-full bg-[#16233f] text-white font-semibold py-2.5 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50">{reportando ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />} Enviar</button>
               </div>}
 
-          {incLoading ? <div className="py-12 text-center"><Loader2 className="w-5 h-5 text-[#1b2a4a] animate-spin mx-auto" /></div>
-            : incs.length === 0 ? <div className="bg-white rounded-2xl border border-gray-100 py-12 text-center text-gray-400 text-sm"><MessageCircle className="w-8 h-8 text-gray-200 mx-auto mb-2" />Sin incidencias ni consultas.</div>
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            {([['todas', 'Todas'], ['incidencia', 'Incidencias'], ['consulta', 'Consultas']] as const).map(([k, l]) => (
+              <button key={k} onClick={() => setIncFiltro(k)} className={`text-xs font-semibold whitespace-nowrap px-3 py-1.5 rounded-full border ${incFiltro === k ? 'bg-[#16233f] text-white border-[#16233f]' : 'bg-white text-gray-500 border-gray-200'}`}>{l}</button>
+            ))}
+          </div>
+          {(() => { const incVis = incs.filter(i => incFiltro === 'todas' ? true : incFiltro === 'consulta' ? i.tipo === 'consulta' : i.tipo !== 'consulta'); return (
+          incLoading ? <div className="py-12 text-center"><Loader2 className="w-5 h-5 text-[#1b2a4a] animate-spin mx-auto" /></div>
+            : incVis.length === 0 ? <div className="bg-white rounded-2xl border border-gray-100 py-12 text-center text-gray-400 text-sm"><MessageCircle className="w-8 h-8 text-gray-200 mx-auto mb-2" />{incFiltro === 'consulta' ? 'Sin consultas.' : incFiltro === 'incidencia' ? 'Sin incidencias.' : 'Sin incidencias ni consultas.'}</div>
             : <div className="space-y-3">
-              {incs.map(i => { const e = EST_INC[i.estado] || { l: i.estado, c: 'bg-gray-100 text-gray-600' }; return (
+              {incVis.map(i => { const e = EST_INC[i.estado] || { l: i.estado, c: 'bg-gray-100 text-gray-600' }; return (
                 <div key={i.id} className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
                   <div className="flex items-center justify-between gap-2 mb-1">
                     <span className="font-semibold text-sm text-[#16233f]">{TIPO_INC[i.tipo] || i.tipo}</span>
@@ -435,7 +447,7 @@ export default function AldeaDashboard() {
                   <p className="text-[10px] text-gray-400 mt-1">{fFecha(i.created_at)}</p>
                   {i.respuesta_central && <div className="mt-2 bg-[#faf7ef] border border-[#e7d4a6] rounded-lg p-2.5 text-xs text-[#5a4a24]"><b>NOMMA respondió:</b> {i.respuesta_central}</div>}
                 </div>)})}
-            </div>}
+            </div>) })()}
         </div>
       )}
 
