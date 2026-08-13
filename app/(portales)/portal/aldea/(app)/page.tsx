@@ -187,7 +187,9 @@ export default function AldeaDashboard() {
   const cartNeto = stock.reduce((s, i) => s + (Number(i.precio_caja) || 0) * (cart[i.product_id] || 0), 0)
   const cartIva = Math.round(cartNeto * 0.19)
   const cartTotal = cartNeto > 0 ? cartNeto + cartIva + 3500 : 0
-  const pedible = (i: StockItem) => i.disponible && !['sin_stock', 'reposicion'].includes(i.estado)
+  // Pedible = el catálogo lo marca disponible (independiente del stock local; el local pide para reponer).
+  // "Próximamente" (disponible=false) → visible pero NO pedible.
+  const pedible = (i: StockItem) => i.disponible
   const TITULO: Record<string, string> = { stock: 'Mi Stock', pedir: 'Nueva solicitud', pedidos: 'Pedidos', recepcion: 'Confirmar recepción', incidencias: 'Incidencias y consultas', facturas: 'Facturación' }
   const factVis = facts.filter((f: any) => factFiltro === 'todas' || (factFiltro === 'pagada' ? f.estado_real === 'pagada' : factFiltro === 'vencida' ? f.estado_real === 'vencida' : f.estado_real === 'por_pagar'))
   // Inicio: derivados para el seguimiento y los contadores
@@ -335,41 +337,44 @@ export default function AldeaDashboard() {
           <p className="text-sm text-gray-500 mb-3">Catálogo autorizado para Aldea. Elige cuántas cajas necesitas.</p>
           {stockLoading ? <div className="py-12 text-center"><Loader2 className="w-5 h-5 text-[#1b2a4a] animate-spin mx-auto" /></div>
             : stock.length === 0 ? <div className="bg-white rounded-2xl border border-gray-100 py-12 text-center text-gray-400 text-sm">Sin catálogo autorizado para esta sucursal.</div>
-            : <div className="bg-white rounded-2xl border border-gray-100 px-4 shadow-sm mb-4">
-              {stock.map(i => {
-                const e = EST_STOCK[i.estado] || EST_STOCK.ok
-                const puede = pedible(i)
-                const cajas = cart[i.product_id] || 0
-                const porcaja = i.unidades_por_caja || 1
-                return (
-                <div key={i.product_id} className="py-3 border-t border-gray-50 first:border-0">
-                  <div className="flex items-center gap-3">
-                    <div className="w-14 h-14 rounded-xl bg-[#f5f0e8] grid place-items-center overflow-hidden flex-none">{i.imagen_url ? <img src={i.imagen_url} alt="" className="w-full h-full object-cover" /> : <Package size={18} className="text-[#c9a24e]" />}</div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm text-[#1a1a1a] leading-tight">{i.nombre}</p>
-                      <p className="text-[11px] text-gray-400 mt-0.5">{i.categoria ? i.categoria + ' · ' : ''}{i.unidad_venta === 'caja' ? `Caja × ${porcaja}` : i.unidad_venta}</p>
-                      {i.precio_caja != null
-                        ? <p className="text-[13px] font-bold text-[#16233f] mt-0.5">{clp(i.precio_caja)} <span className="font-medium text-gray-400 text-[10px]">/ {i.unidad_venta}{i.precio_unitario != null && porcaja > 1 ? ` · ${clp(i.precio_unitario)} un.` : ''}</span></p>
-                        : <p className="text-[11px] text-amber-600 mt-0.5">Precio pendiente de configurar</p>}
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between mt-2.5 gap-2">
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${e.c}`}>{e.l}{puede && i.stock_actual > 0 ? ` · ${i.stock_actual} un.` : ''}</span>
-                    {puede ? (
-                      <div className="inline-flex items-center gap-1.5 border border-gray-200 rounded-lg px-1.5 py-1 flex-none">
-                        <button onClick={() => setQty(i.product_id, -1)} className="w-7 h-7 rounded-md bg-gray-50 text-[#16233f] grid place-items-center"><Minus size={14} /></button>
-                        <div className="text-center min-w-[54px] leading-none">
-                          <input type="number" inputMode="numeric" min={0} value={cart[i.product_id] ?? ''} placeholder="0" onChange={ev => setQtyDirect(i.product_id, ev.target.value)}
-                            className="w-full text-center text-sm font-bold tabular-nums border-0 outline-none bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
-                          <small className="block text-[9px] text-gray-400 font-semibold">{cajas > 0 ? `${cajas} caja${cajas !== 1 ? 's' : ''} · ${cajas * porcaja} un.` : 'cajas'}</small>
+            : [...new Set(stock.map(i => i.categoria || 'Otros'))].map(categoria => (
+              <div key={categoria} className="mb-4">
+                <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400 mb-2 px-1">{categoria}</p>
+                <div className="bg-white rounded-2xl border border-gray-100 px-4 shadow-sm">
+                  {stock.filter(i => (i.categoria || 'Otros') === categoria).map(i => {
+                    const puede = pedible(i)
+                    const cajas = cart[i.product_id] || 0
+                    const porcaja = i.unidades_por_caja || 1
+                    return (
+                    <div key={i.product_id} className={`py-3 border-t border-gray-50 first:border-0 ${puede ? '' : 'opacity-70'}`}>
+                      <div className="flex items-center gap-3">
+                        <div className="w-14 h-14 rounded-xl bg-[#f5f0e8] grid place-items-center overflow-hidden flex-none">{i.imagen_url ? <img src={i.imagen_url} alt="" className="w-full h-full object-cover" /> : <Package size={18} className="text-[#c9a24e]" />}</div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-sm text-[#1a1a1a] leading-tight">{i.nombre}</p>
+                          <p className="text-[11px] text-gray-400 mt-0.5">{i.unidad_venta === 'caja' ? `Caja × ${porcaja}` : i.unidad_venta}</p>
+                          {i.precio_caja != null
+                            ? <p className="text-[13px] font-bold text-[#16233f] mt-0.5">{clp(i.precio_caja)} <span className="font-medium text-gray-400 text-[10px]">/ {i.unidad_venta}{i.precio_unitario != null && porcaja > 1 ? ` · ${clp(i.precio_unitario)} un.` : ''}</span></p>
+                            : <p className="text-[11px] text-amber-600 mt-0.5">Precio pendiente</p>}
                         </div>
-                        <button onClick={() => setQty(i.product_id, 1)} className="w-7 h-7 rounded-md bg-[#c9a24e] text-white grid place-items-center"><Plus size={14} /></button>
                       </div>
-                    ) : <span className="text-[11px] text-gray-400 font-medium">No disponible</span>}
-                  </div>
+                      <div className="flex items-center justify-end mt-2.5">
+                        {puede ? (
+                          <div className="inline-flex items-center gap-1.5 border border-gray-200 rounded-lg px-1.5 py-1 flex-none">
+                            <button onClick={() => setQty(i.product_id, -1)} className="w-7 h-7 rounded-md bg-gray-50 text-[#16233f] grid place-items-center"><Minus size={14} /></button>
+                            <div className="text-center min-w-[54px] leading-none">
+                              <input type="number" inputMode="numeric" min={0} value={cart[i.product_id] ?? ''} placeholder="0" onChange={ev => setQtyDirect(i.product_id, ev.target.value)}
+                                className="w-full text-center text-sm font-bold tabular-nums border-0 outline-none bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                              <small className="block text-[9px] text-gray-400 font-semibold">{cajas > 0 ? `${cajas} caja${cajas !== 1 ? 's' : ''} · ${cajas * porcaja} un.` : 'cajas'}</small>
+                            </div>
+                            <button onClick={() => setQty(i.product_id, 1)} className="w-7 h-7 rounded-md bg-[#c9a24e] text-white grid place-items-center"><Plus size={14} /></button>
+                          </div>
+                        ) : <span className="text-[11px] font-bold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full">Próximamente</span>}
+                      </div>
+                    </div>
+                  )})}
                 </div>
-              )})}
-            </div>}
+              </div>
+            ))}
           {cartCount > 0 && (
             <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm mb-4">
               <p className="text-[11px] font-bold uppercase text-gray-400 mb-2">Total estimado</p>

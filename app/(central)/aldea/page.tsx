@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Loader2, Sprout, ChevronDown, Check, Store, MessageCircle, ClipboardList, Users, UserPlus, Copy, Receipt, ShieldCheck } from 'lucide-react'
+import { Loader2, Sprout, ChevronDown, Check, Store, MessageCircle, ClipboardList, Users, UserPlus, Copy, Receipt, ShieldCheck, Package, Plus, Trash2 } from 'lucide-react'
 
 interface Item { id: string; producto_nombre: string; unidad: string; cantidad_solicitada: number; cantidad_aprobada: number | null; cantidad_preparada: number | null; cantidad_despachada: number | null; cantidad_recibida: number | null }
 interface Sol { id: string; folio: string; sucursal: string; estado: string; prioridad: string; fecha_requerida: string | null; observaciones: string | null; chofer_nombre: string | null; chofer_telefono: string | null; hora_estimada: string | null; created_at: string; items: Item[] }
@@ -29,7 +29,7 @@ export default function AldeaCentralPage() {
   const [abierto, setAbierto] = useState<string | null>(null)
   const [draft, setDraft] = useState<Record<string, { estado: string; cn: string; ct: string; he: string; items: Record<string, { a: string; p: string; d: string }> }>>({})
   const [guardando, setGuardando] = useState<string | null>(null)
-  const [tab, setTab] = useState<'resumen' | 'solicitudes' | 'reserva' | 'incidencias' | 'usuarios' | 'facturas'>('resumen')
+  const [tab, setTab] = useState<'resumen' | 'solicitudes' | 'reserva' | 'catalogo' | 'incidencias' | 'usuarios' | 'facturas'>('resumen')
   const [rsv, setRsv] = useState<any>({ items: [], organizacion_id: null, alertas: 0 }); const [rsvLoad, setRsvLoad] = useState(true)
   const [rDraft, setRDraft] = useState<Record<string, any>>({}); const [guardR, setGuardR] = useState<string | null>(null)
 
@@ -56,6 +56,44 @@ export default function AldeaCentralPage() {
       await cargarReserva()
     } catch { alert('Error de conexión.') }
     setGuardR(null)
+  }
+  // Catálogo Aldea
+  const [cat, setCat] = useState<{ productos: any[]; categorias: string[] }>({ productos: [], categorias: [] })
+  const [catLoad, setCatLoad] = useState(true)
+  const UNIDADES_VENTA = ['unidad', 'caja', 'bandeja', 'bolsa', 'pack', 'kilo', 'litro', 'docena']
+  const [nuevo, setNuevo] = useState({ categoria: '', nombre: '', precio: '', unidad_venta: 'unidad', unidades_por_caja: '' })
+  const [creando, setCreando] = useState(false)
+  const cargarCatalogo = useCallback(async () => {
+    setCatLoad(true)
+    try { const r = await fetch('/api/central/aldea/catalogo'); const d = await r.json(); if (r.ok) setCat({ productos: d.productos || [], categorias: d.categorias || [] }) } catch { /* nada */ }
+    setCatLoad(false)
+  }, [])
+  async function crearProducto() {
+    if (!nuevo.categoria.trim() || !nuevo.nombre.trim()) { alert('Completa al menos categoría y nombre.'); return }
+    setCreando(true)
+    try {
+      const r = await fetch('/api/central/aldea/catalogo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...nuevo, precio: nuevo.precio ? Number(nuevo.precio) : null, unidades_por_caja: Number(nuevo.unidades_por_caja) || 1 }) })
+      const d = await r.json()
+      if (!r.ok) { alert(d.error || 'No se pudo crear.'); setCreando(false); return }
+      setNuevo(n => ({ categoria: n.categoria, nombre: '', precio: '', unidad_venta: n.unidad_venta, unidades_por_caja: '' }))
+      await cargarCatalogo()
+    } catch { alert('Error de conexión.') }
+    setCreando(false)
+  }
+  async function editarProducto(product_id: string, campos: any) {
+    try {
+      const r = await fetch('/api/central/aldea/catalogo', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ product_id, ...campos }) })
+      if (!r.ok) { alert('No se pudo guardar.'); return }
+      await cargarCatalogo()
+    } catch { alert('Error de conexión.') }
+  }
+  async function quitarProducto(product_id: string, nombre: string) {
+    if (!confirm(`¿Quitar "${nombre}" del catálogo de Aldea? (no borra el producto maestro)`)) return
+    try {
+      const r = await fetch(`/api/central/aldea/catalogo?product_id=${product_id}`, { method: 'DELETE' })
+      if (!r.ok) { alert('No se pudo quitar.'); return }
+      await cargarCatalogo()
+    } catch { alert('Error de conexión.') }
   }
   const [res, setRes] = useState<any>({ locales: [], consolidado: {} }); const [resLoad, setResLoad] = useState(true)
   const [facts, setFacts] = useState<any[]>([]); const [factLoad, setFactLoad] = useState(true)
@@ -133,7 +171,7 @@ export default function AldeaCentralPage() {
     catch { setSols([]) }
     setLoading(false)
   }, [])
-  useEffect(() => { cargarResumen(); cargar(); cargarIncs(); cargarUsuarios(); cargarFacts(); cargarReserva() }, [cargarResumen, cargar, cargarIncs, cargarUsuarios, cargarFacts, cargarReserva])
+  useEffect(() => { cargarResumen(); cargar(); cargarIncs(); cargarUsuarios(); cargarFacts(); cargarReserva(); cargarCatalogo() }, [cargarResumen, cargar, cargarIncs, cargarUsuarios, cargarFacts, cargarReserva, cargarCatalogo])
 
   function abrir(s: Sol) {
     if (abierto === s.id) { setAbierto(null); return }
@@ -186,6 +224,7 @@ export default function AldeaCentralPage() {
         <button onClick={() => setTab('resumen')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap ${tab === 'resumen' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><Store size={14} /> Resumen</button>
         <button onClick={() => setTab('solicitudes')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap ${tab === 'solicitudes' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><ClipboardList size={14} /> Solicitudes{nuevas ? ` · ${nuevas}` : ''}</button>
         <button onClick={() => setTab('reserva')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap ${tab === 'reserva' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><ShieldCheck size={14} /> Reserva{rsv.alertas ? ` · ${rsv.alertas}` : ''}</button>
+        <button onClick={() => setTab('catalogo')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap ${tab === 'catalogo' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><Package size={14} /> Catálogo{cat.productos.length ? ` · ${cat.productos.length}` : ''}</button>
         <button onClick={() => setTab('incidencias')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 ${tab === 'incidencias' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><MessageCircle size={14} /> Incidencias{incAbiertas ? ` · ${incAbiertas}` : ''}</button>
         <button onClick={() => setTab('usuarios')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 ${tab === 'usuarios' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><Users size={14} /> Usuarios</button>
         <button onClick={() => setTab('facturas')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 ${tab === 'facturas' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><Receipt size={14} /> Facturación</button>
@@ -386,6 +425,71 @@ export default function AldeaCentralPage() {
             )
           })}
           {(rsv.items || []).length === 0 && <div className="noma-card text-center py-14 text-gray-400 text-sm">No hay productos en el catálogo Aldea.</div>}
+        </div>
+      )}
+
+      {tab === 'catalogo' && (
+        catLoad ? <div className="py-16 text-center"><Loader2 className="w-6 h-6 text-[#1b2a4a] animate-spin mx-auto" /></div>
+        : <div className="space-y-4">
+          <div className="bg-[#faf7ef] border border-[#e7d4a6] rounded-xl px-4 py-3 text-sm text-[#5a4a24]">
+            <b>Catálogo exclusivo de Aldea.</b> Estos productos solo los ven las cafeterías Aldea (no el canal mayorista). <b>Disponible</b> = pueden pedir · <b>Próximamente</b> = lo ven pero no pueden pedir.
+          </div>
+
+          {/* Agregar producto */}
+          <div className="noma-card">
+            <h3 className="font-bold text-[#1a1a1a] flex items-center gap-2 mb-3"><Plus size={16} className="text-[#c9a24e]" /> Agregar producto</h3>
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-semibold text-gray-500">Categoría</label>
+                <input list="cats-aldea" value={nuevo.categoria} onChange={e => setNuevo(n => ({ ...n, categoria: e.target.value }))} placeholder="Pastelería, Salado…" className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#c9a24e]" />
+                <datalist id="cats-aldea">{cat.categorias.map(c => <option key={c} value={c} />)}</datalist>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-gray-500">Nombre</label>
+                <input value={nuevo.nombre} onChange={e => setNuevo(n => ({ ...n, nombre: e.target.value }))} placeholder="Ej: Napolitana chocolate" className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#c9a24e]" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-gray-500">Precio (por unidad de venta)</label>
+                <input type="number" value={nuevo.precio} onChange={e => setNuevo(n => ({ ...n, precio: e.target.value }))} placeholder="0" className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#c9a24e]" />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs font-semibold text-gray-500">Unidad de venta</label>
+                  <select value={nuevo.unidad_venta} onChange={e => setNuevo(n => ({ ...n, unidad_venta: e.target.value }))} className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white outline-none focus:ring-2 focus:ring-[#c9a24e]">
+                    {UNIDADES_VENTA.map(u => <option key={u} value={u}>{u}</option>)}
+                  </select>
+                </div>
+                {nuevo.unidad_venta === 'caja' && (
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500">Un. por caja</label>
+                    <input type="number" value={nuevo.unidades_por_caja} onChange={e => setNuevo(n => ({ ...n, unidades_por_caja: e.target.value }))} placeholder="1" className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#c9a24e]" />
+                  </div>
+                )}
+              </div>
+            </div>
+            <button onClick={crearProducto} disabled={creando} className="mt-3 bg-[#c9a24e] hover:bg-[#b8923f] text-[#16233f] font-bold text-sm px-4 py-2 rounded-xl disabled:opacity-50">{creando ? 'Agregando…' : 'Agregar al catálogo'}</button>
+          </div>
+
+          {/* Lista por categoría */}
+          {cat.productos.length === 0 ? <div className="noma-card text-center py-14 text-gray-400 text-sm">Aún no hay productos en el catálogo Aldea. Agrega el primero arriba.</div>
+          : cat.categorias.map(c => (
+            <div key={c}>
+              <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400 mb-2 mt-3">{c}</p>
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-50">
+                {cat.productos.filter(p => p.categoria === c).map(p => (
+                  <div key={p.product_id} className="flex items-center gap-2 px-4 py-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm text-[#1a1a1a] truncate">{p.nombre}</p>
+                      <p className="text-[11px] text-gray-400">{p.unidad_venta === 'caja' ? `Caja × ${p.unidades_por_caja}` : p.unidad_venta}</p>
+                    </div>
+                    <input type="number" defaultValue={p.precio ?? ''} onBlur={e => { const v = Number(e.target.value); if (v > 0 && v !== p.precio) editarProducto(p.product_id, { precio: v }) }} placeholder="precio" className="w-24 border border-gray-200 rounded-lg px-2 py-1 text-sm text-right outline-none focus:ring-2 focus:ring-[#c9a24e]" />
+                    <button onClick={() => editarProducto(p.product_id, { disponible: !p.disponible })} className={`text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap ${p.disponible ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>{p.disponible ? 'Disponible' : 'Próximamente'}</button>
+                    <button onClick={() => quitarProducto(p.product_id, p.nombre)} className="text-gray-300 hover:text-red-500" title="Quitar de Aldea"><Trash2 size={16} /></button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
