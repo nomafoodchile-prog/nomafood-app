@@ -61,7 +61,8 @@ export async function GET(req: NextRequest) {
     const c = catMap.get(s.product_id) || {}
     const est = estado(Number(s.stock_actual), Number(s.stock_min), Number(s.por_recibir))
     const unxcaja = Number(p.cantidad_por_unidad_venta) > 0 ? Number(p.cantidad_por_unidad_venta) : 1
-    const precioCaja = c.precio_especial != null ? Number(c.precio_especial) : (p.precio != null ? Number(p.precio) : (p.precio_venta != null ? Number(p.precio_venta) : null))
+    const precioRaw = c.precio_especial != null ? c.precio_especial : (p.precio != null ? p.precio : p.precio_venta)
+    const precioCaja = (precioRaw != null && Number(precioRaw) > 0) ? Number(precioRaw) : null  // 0 o null = precio pendiente
     return {
       product_id: s.product_id,
       nombre: p.nombre || 'Producto',

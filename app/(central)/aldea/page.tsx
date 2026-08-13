@@ -482,7 +482,7 @@ export default function AldeaCentralPage() {
                       <p className="font-semibold text-sm text-[#1a1a1a] truncate">{p.nombre}</p>
                       <p className="text-[11px] text-gray-400">{p.unidad_venta === 'caja' ? `Caja × ${p.unidades_por_caja}` : p.unidad_venta}</p>
                     </div>
-                    <input type="number" defaultValue={p.precio ?? ''} onBlur={e => { const v = Number(e.target.value); if (v > 0 && v !== p.precio) editarProducto(p.product_id, { precio: v }) }} placeholder="precio" className="w-24 border border-gray-200 rounded-lg px-2 py-1 text-sm text-right outline-none focus:ring-2 focus:ring-[#c9a24e]" />
+                    <input type="number" defaultValue={p.precio && p.precio > 0 ? p.precio : ''} onBlur={e => { const v = Number(e.target.value); if (v > 0 && v !== p.precio) editarProducto(p.product_id, { precio: v }) }} placeholder="precio" className={`w-24 border rounded-lg px-2 py-1 text-sm text-right outline-none focus:ring-2 focus:ring-[#c9a24e] ${p.precio && p.precio > 0 ? 'border-gray-200' : 'border-amber-300 bg-amber-50'}`} />
                     <button onClick={() => editarProducto(p.product_id, { disponible: !p.disponible })} className={`text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap ${p.disponible ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>{p.disponible ? 'Disponible' : 'Próximamente'}</button>
                     <button onClick={() => quitarProducto(p.product_id, p.nombre)} className="text-gray-300 hover:text-red-500" title="Quitar de Aldea"><Trash2 size={16} /></button>
                   </div>

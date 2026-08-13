@@ -187,9 +187,9 @@ export default function AldeaDashboard() {
   const cartNeto = stock.reduce((s, i) => s + (Number(i.precio_caja) || 0) * (cart[i.product_id] || 0), 0)
   const cartIva = Math.round(cartNeto * 0.19)
   const cartTotal = cartNeto > 0 ? cartNeto + cartIva + 3500 : 0
-  // Pedible = el catálogo lo marca disponible (independiente del stock local; el local pide para reponer).
-  // "Próximamente" (disponible=false) → visible pero NO pedible.
-  const pedible = (i: StockItem) => i.disponible
+  // Pedible = disponible en el catálogo Y con precio configurado (el local pide para reponer, sin depender del stock local).
+  // "Próximamente" (disponible=false) o "Precio pendiente" (sin precio) → visible pero NO pedible.
+  const pedible = (i: StockItem) => i.disponible && i.precio_caja != null
   const TITULO: Record<string, string> = { stock: 'Mi Stock', pedir: 'Nueva solicitud', pedidos: 'Pedidos', recepcion: 'Confirmar recepción', incidencias: 'Incidencias y consultas', facturas: 'Facturación' }
   const factVis = facts.filter((f: any) => factFiltro === 'todas' || (factFiltro === 'pagada' ? f.estado_real === 'pagada' : factFiltro === 'vencida' ? f.estado_real === 'vencida' : f.estado_real === 'por_pagar'))
   // Inicio: derivados para el seguimiento y los contadores
@@ -368,7 +368,9 @@ export default function AldeaDashboard() {
                             </div>
                             <button onClick={() => setQty(i.product_id, 1)} className="w-7 h-7 rounded-md bg-[#c9a24e] text-white grid place-items-center"><Plus size={14} /></button>
                           </div>
-                        ) : <span className="text-[11px] font-bold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full">Próximamente</span>}
+                        ) : i.disponible
+                          ? <span className="text-[11px] font-bold text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full">Precio pendiente</span>
+                          : <span className="text-[11px] font-bold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full">Próximamente</span>}
                       </div>
                     </div>
                   )})}
