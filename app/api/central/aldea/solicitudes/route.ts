@@ -19,9 +19,13 @@ export async function GET() {
   if (!await esAdmin()) return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
   const db = createServerClient()
 
-  const { data: sols } = await db.from('aldea_solicitudes')
-    .select('id, folio, mayorista_id, estado, prioridad, fecha_requerida, observaciones, chofer_nombre, chofer_telefono, hora_estimada, created_at')
-    .order('created_at', { ascending: false }).limit(200)
+  const COLS_FULL = 'id, folio, mayorista_id, estado, prioridad, fecha_requerida, observaciones, chofer_nombre, chofer_telefono, hora_estimada, created_at'
+  const COLS_BASE = 'id, folio, mayorista_id, estado, prioridad, fecha_requerida, observaciones, created_at'
+  const q = (cols: string) => db.from('aldea_solicitudes')
+    .select(cols).order('created_at', { ascending: false }).limit(200)
+  // Degradación: si falta alguna columna nueva (SQL no corrido), no dejamos la lista vacía.
+  let { data: sols, error: solErr } = await q(COLS_FULL)
+  if (solErr) { const r = await q(COLS_BASE); sols = r.data }
 
   const solIds = (sols || []).map(s => s.id)
   const sucIds = [...new Set((sols || []).map(s => s.mayorista_id))]
