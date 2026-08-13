@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
     }
   })
   // Intenta con columnas nuevas; si faltan, reintenta solo con las base. La solicitud ya existe igual.
-  const full = baseLineas.map((l, idx) => ({ ...l, ...extraLineas[idx] }))
+  const full = baseLineas.map((l: any, idx: number) => ({ ...l, ...extraLineas[idx] }))
   const ins = await db.from('aldea_solicitud_items').insert(full)
   if (ins.error) await db.from('aldea_solicitud_items').insert(baseLineas)
 

@@ -24,16 +24,9 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'No puedes ver esta sucursal' }, { status: 403 })
   }
 
-  const COLS_FULL = 'id, folio, estado, prioridad, fecha_requerida, observaciones, chofer_nombre, chofer_telefono, hora_estimada, neto, total, created_at'
-  const COLS_BASE = 'id, folio, estado, prioridad, fecha_requerida, observaciones, created_at'
-  // Nota: .select() con string dinámico pierde el tipo de fila → anotamos any para el build.
-  const q = (cols: string): any => db.from('aldea_solicitudes')
-    .select(cols).eq('mayorista_id', sucursal).order('created_at', { ascending: false }).limit(50)
-  // Degradación: si falta alguna columna nueva (SQL no corrido), no dejamos la lista vacía.
-  let res = await q(COLS_FULL)
-  if (res.error) res = await q(COLS_BASE)
-  const sols: any[] = res.data || []
-  const solErr: any = res.error
+  const { data: sols, error: solErr } = await db.from('aldea_solicitudes')
+    .select('id, folio, estado, prioridad, fecha_requerida, observaciones, chofer_nombre, chofer_telefono, hora_estimada, neto, total, created_at')
+    .eq('mayorista_id', sucursal).order('created_at', { ascending: false }).limit(50)
 
   const ids = (sols || []).map(s => s.id)
   const itemsBySol = new Map<string, any[]>()

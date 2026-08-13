@@ -19,15 +19,9 @@ export async function GET() {
   if (!await esAdmin()) return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
   const db = createServerClient()
 
-  const COLS_FULL = 'id, folio, mayorista_id, estado, prioridad, fecha_requerida, observaciones, chofer_nombre, chofer_telefono, hora_estimada, created_at'
-  const COLS_BASE = 'id, folio, mayorista_id, estado, prioridad, fecha_requerida, observaciones, created_at'
-  // Nota: .select() con string dinámico pierde el tipo de fila → anotamos any para el build.
-  const q = (cols: string): any => db.from('aldea_solicitudes')
-    .select(cols).order('created_at', { ascending: false }).limit(200)
-  // Degradación: si falta alguna columna nueva (SQL no corrido), no dejamos la lista vacía.
-  let res = await q(COLS_FULL)
-  if (res.error) res = await q(COLS_BASE)
-  const sols: any[] = res.data || []
+  const { data: sols } = await db.from('aldea_solicitudes')
+    .select('id, folio, mayorista_id, estado, prioridad, fecha_requerida, observaciones, chofer_nombre, chofer_telefono, hora_estimada, created_at')
+    .order('created_at', { ascending: false }).limit(200)
 
   const solIds = (sols || []).map(s => s.id)
   const sucIds = [...new Set((sols || []).map(s => s.mayorista_id))]
