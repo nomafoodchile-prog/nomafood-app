@@ -34,6 +34,9 @@ const EST_PED: Record<string, { l: string; c: string }> = {
   en_ruta: { l: 'En ruta', c: 'bg-blue-100 text-blue-700' }, entregada: { l: 'Entregada', c: 'bg-green-100 text-green-700' },
   entregada_diferencias: { l: 'Con diferencias', c: 'bg-red-100 text-red-700' }, cancelada: { l: 'Cancelada', c: 'bg-gray-200 text-gray-600' },
 }
+// Seguimiento del pedido: 4 etapas visibles para el local. Mapea los estados internos.
+const STAGE_OF: Record<string, number> = { solicitud_enviada: 0, en_revision: 0, aprobada: 0, en_preparacion: 1, en_picking: 1, listo_despacho: 2, en_ruta: 2, entregada: 3, entregada_diferencias: 3 }
+const STAGES = [{ k: 'Confirmado', icon: Check }, { k: 'Preparación', icon: Package }, { k: 'Despacho', icon: Truck }, { k: 'Entregado', icon: PackageCheck }]
 const FILTROS = [['todos', 'Todos'], ['bajo', 'Bajo'], ['critico', 'Crítico'], ['sin_stock', 'Sin stock'], ['reposicion', 'Reposición']] as const
 const TIPO_INC: Record<string, string> = { pedido_incompleto: 'Pedido incompleto', producto_danado: 'Producto dañado', producto_incorrecto: 'Producto incorrecto', cantidad: 'Cantidad incorrecta', calidad: 'Calidad', temperatura: 'Temperatura', atraso: 'Atraso de despacho', chofer: 'Chofer', falta_stock: 'Falta de stock', diferencia_recepcion: 'Diferencia de recepción', consulta: 'Consulta', otro: 'Otro' }
 const EST_INC: Record<string, { l: string; c: string }> = { nueva: { l: 'Nueva', c: 'bg-blue-100 text-blue-700' }, en_revision: { l: 'En revisión', c: 'bg-amber-100 text-amber-700' }, en_solucion: { l: 'En solución', c: 'bg-amber-100 text-amber-700' }, resuelta: { l: 'Resuelta', c: 'bg-green-100 text-green-700' }, cerrada: { l: 'Cerrada', c: 'bg-gray-100 text-gray-500' } }
@@ -114,6 +117,8 @@ export default function AldeaDashboard() {
     setFactLoad(false)
   }, [])
   useEffect(() => { if (vista === 'facturas' && sucursal) cargarFacts(sucursal) }, [vista, sucursal, cargarFacts])
+  // Inicio: precarga pedidos + incidencias + facturas para el seguimiento y los contadores.
+  useEffect(() => { if (vista === 'inicio' && sucursal) { cargarPedidos(sucursal); cargarIncs(sucursal); cargarFacts(sucursal) } }, [vista, sucursal, cargarPedidos, cargarIncs, cargarFacts])
   useEffect(() => { setCart({}); setOkMsg(null) }, [sucursal])
 
   function setQty(pid: string, delta: number) {
@@ -185,6 +190,12 @@ export default function AldeaDashboard() {
   const pedible = (i: StockItem) => i.disponible && !['sin_stock', 'reposicion'].includes(i.estado)
   const TITULO: Record<string, string> = { stock: 'Mi Stock', pedir: 'Nueva solicitud', pedidos: 'Pedidos', recepcion: 'Confirmar recepción', incidencias: 'Incidencias y consultas', facturas: 'Facturación' }
   const factVis = facts.filter((f: any) => factFiltro === 'todas' || (factFiltro === 'pagada' ? f.estado_real === 'pagada' : factFiltro === 'vencida' ? f.estado_real === 'vencida' : f.estado_real === 'por_pagar'))
+  // Inicio: derivados para el seguimiento y los contadores
+  const ACTIVO_PED = (e: string) => !['entregada', 'entregada_diferencias', 'cancelada'].includes(e)
+  const pedidosActivos = pedidos.filter(p => ACTIVO_PED(p.estado)).length
+  const proximoPedido = pedidos.find(p => ACTIVO_PED(p.estado)) || pedidos[0] || null
+  const incAbiertas = incs.filter((i: any) => !['resuelta', 'cerrada'].includes(i.estado)).length
+  const factPend = facts.filter((f: any) => f.estado_real !== 'pagada').length
 
   return (
     <div className="max-w-md mx-auto pb-24">
@@ -218,21 +229,78 @@ export default function AldeaDashboard() {
 
       {/* INICIO */}
       {vista === 'inicio' && (
-        <div className="px-5 pt-4">
-          <div className="bg-[#faf7ef] border border-[#e7d4a6] rounded-xl p-3.5 text-sm text-[#5a4a24] mb-4">
-            <b>Portal en construcción.</b> Ya puedes ver tu stock, <b>pedir reposición</b> y seguir tus pedidos. El resto se irá activando.
+        <div className="px-5 pt-4 space-y-4">
+          {/* Pedido en curso + seguimiento */}
+          {proximoPedido && ACTIVO_PED(proximoPedido.estado) ? (() => {
+            const stage = STAGE_OF[proximoPedido.estado] ?? 0
+            const est = EST_PED[proximoPedido.estado] || { l: proximoPedido.estado, c: 'bg-gray-100 text-gray-600' }
+            return (
+              <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <p className="text-[11px] uppercase font-bold tracking-wide text-gray-400">Pedido en curso</p>
+                    <p className="font-bold text-[#16233f]">{proximoPedido.folio}</p>
+                  </div>
+                  <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${est.c}`}>{est.l}</span>
+                </div>
+                <div className="flex">
+                  {STAGES.map((st, idx) => (
+                    <div key={st.k} className="flex-1 flex flex-col items-center">
+                      <div className="flex items-center w-full">
+                        <div className={`h-0.5 flex-1 ${idx === 0 ? 'bg-transparent' : idx <= stage ? 'bg-[#c9a24e]' : 'bg-gray-200'}`} />
+                        <div className={`w-7 h-7 rounded-full grid place-items-center shrink-0 ${idx <= stage ? 'bg-[#c9a24e] text-white' : 'bg-gray-100 text-gray-300'}`}><st.icon size={14} /></div>
+                        <div className={`h-0.5 flex-1 ${idx === STAGES.length - 1 ? 'bg-transparent' : idx < stage ? 'bg-[#c9a24e]' : 'bg-gray-200'}`} />
+                      </div>
+                      <span className={`mt-1.5 text-[10px] font-semibold text-center ${idx <= stage ? 'text-[#16233f]' : 'text-gray-400'}`}>{st.k}</span>
+                    </div>
+                  ))}
+                </div>
+                {proximoPedido.estado === 'en_ruta' && proximoPedido.chofer_nombre && (
+                  <p className="mt-3 text-xs text-gray-500 flex items-center gap-1.5"><Truck size={13} className="text-[#c9a24e]" /> En ruta con {proximoPedido.chofer_nombre}{proximoPedido.hora_estimada ? ` · llega ~${proximoPedido.hora_estimada}` : ''}</p>
+                )}
+                <button onClick={() => { setAbierto(proximoPedido.id); setVista('pedidos') }} className="mt-3 w-full text-center text-xs font-bold text-[#c9a24e] py-2">Ver detalle del pedido →</button>
+              </div>
+            )
+          })() : (
+            <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm text-center">
+              <Truck className="w-8 h-8 text-gray-200 mx-auto mb-2" />
+              <p className="text-sm text-gray-500">No tienes pedidos en curso.</p>
+              <button onClick={() => setVista('pedir')} className="mt-3 inline-flex items-center gap-1.5 bg-[#c9a24e] hover:bg-[#b8923f] text-[#16233f] font-bold text-xs px-4 py-2 rounded-xl"><PlusCircle size={14} /> Nueva solicitud</button>
+            </div>
+          )}
+
+          {/* Contadores */}
+          <div className="grid grid-cols-3 gap-3">
+            <button onClick={() => setVista('pedidos')} className="bg-white rounded-2xl border border-gray-100 p-3.5 shadow-sm text-left hover:border-[#c9a24e]">
+              <Truck size={16} className="text-[#c9a24e] mb-1.5" />
+              <p className="text-2xl font-bold text-[#16233f] leading-none" style={{ fontFamily: 'Georgia, serif' }}>{pedidosActivos}</p>
+              <p className="text-[11px] text-gray-400 mt-1 leading-tight">Pedidos activos</p>
+            </button>
+            <button onClick={() => setVista('facturas')} className="bg-white rounded-2xl border border-gray-100 p-3.5 shadow-sm text-left hover:border-[#c9a24e]">
+              <Receipt size={16} className="text-[#c9a24e] mb-1.5" />
+              <p className="text-2xl font-bold text-[#16233f] leading-none" style={{ fontFamily: 'Georgia, serif' }}>{factPend}</p>
+              <p className="text-[11px] text-gray-400 mt-1 leading-tight">Facturas pend.</p>
+            </button>
+            <button onClick={() => { setIncFiltro('todas'); setVista('incidencias') }} className="bg-white rounded-2xl border border-gray-100 p-3.5 shadow-sm text-left hover:border-[#c9a24e]">
+              <AlertTriangle size={16} className="text-[#c9a24e] mb-1.5" />
+              <p className="text-2xl font-bold text-[#16233f] leading-none" style={{ fontFamily: 'Georgia, serif' }}>{incAbiertas}</p>
+              <p className="text-[11px] text-gray-400 mt-1 leading-tight">Incidencias</p>
+            </button>
           </div>
-          <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400 mb-2">Módulos</p>
-          <div className="grid grid-cols-2 gap-3">
-            {MODULOS.map(m => (
-              <button key={m.k} onClick={() => m.on && abrirModulo(m.k)}
-                className={`text-left bg-white rounded-2xl border border-gray-100 p-4 shadow-sm ${m.on ? 'hover:border-[#c9a24e] cursor-pointer' : 'opacity-70 cursor-default'}`}>
-                <div className={`w-9 h-9 rounded-xl grid place-items-center mb-2 ${m.on ? 'bg-[#c9a24e] text-white' : 'bg-[#f5f0e8] text-[#c9a24e]'}`}><m.icon size={18} /></div>
-                <p className="font-semibold text-sm text-[#1a1a1a]">{m.label}</p>
-                <p className="text-[11px] text-gray-400">{m.desc}</p>
-                <span className={`inline-block mt-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${m.on ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>{m.on ? 'Activo' : 'Próximamente'}</span>
-              </button>
-            ))}
+
+          {/* Accesos */}
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400 mb-2">Accesos</p>
+            <div className="grid grid-cols-2 gap-3">
+              {MODULOS.map(m => (
+                <button key={m.k} onClick={() => m.on && abrirModulo(m.k)}
+                  className={`text-left bg-white rounded-2xl border border-gray-100 p-4 shadow-sm ${m.on ? 'hover:border-[#c9a24e] cursor-pointer' : 'opacity-70 cursor-default'}`}>
+                  <div className={`w-9 h-9 rounded-xl grid place-items-center mb-2 ${m.on ? 'bg-[#c9a24e] text-white' : 'bg-[#f5f0e8] text-[#c9a24e]'}`}><m.icon size={18} /></div>
+                  <p className="font-semibold text-sm text-[#1a1a1a]">{m.label}</p>
+                  <p className="text-[11px] text-gray-400">{m.desc}</p>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       )}
