@@ -21,7 +21,8 @@ export async function GET() {
 
   const COLS_FULL = 'id, folio, mayorista_id, estado, prioridad, fecha_requerida, observaciones, chofer_nombre, chofer_telefono, hora_estimada, created_at'
   const COLS_BASE = 'id, folio, mayorista_id, estado, prioridad, fecha_requerida, observaciones, created_at'
-  const q = (cols: string) => db.from('aldea_solicitudes')
+  // Nota: .select() con string dinámico pierde el tipo de fila → anotamos any para el build.
+  const q = (cols: string): any => db.from('aldea_solicitudes')
     .select(cols).order('created_at', { ascending: false }).limit(200)
   // Degradación: si falta alguna columna nueva (SQL no corrido), no dejamos la lista vacía.
   let { data: sols, error: solErr } = await q(COLS_FULL)
