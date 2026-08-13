@@ -30,8 +30,10 @@ export async function GET(req: NextRequest) {
   const q = (cols: string): any => db.from('aldea_solicitudes')
     .select(cols).eq('mayorista_id', sucursal).order('created_at', { ascending: false }).limit(50)
   // Degradación: si falta alguna columna nueva (SQL no corrido), no dejamos la lista vacía.
-  let { data: sols, error: solErr } = await q(COLS_FULL)
-  if (solErr) { const r = await q(COLS_BASE); sols = r.data }
+  let res = await q(COLS_FULL)
+  if (res.error) res = await q(COLS_BASE)
+  const sols: any[] = res.data || []
+  const solErr: any = res.error
 
   const ids = (sols || []).map(s => s.id)
   const itemsBySol = new Map<string, any[]>()

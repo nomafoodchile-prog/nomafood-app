@@ -25,8 +25,9 @@ export async function GET() {
   const q = (cols: string): any => db.from('aldea_solicitudes')
     .select(cols).order('created_at', { ascending: false }).limit(200)
   // Degradación: si falta alguna columna nueva (SQL no corrido), no dejamos la lista vacía.
-  let { data: sols, error: solErr } = await q(COLS_FULL)
-  if (solErr) { const r = await q(COLS_BASE); sols = r.data }
+  let res = await q(COLS_FULL)
+  if (res.error) res = await q(COLS_BASE)
+  const sols: any[] = res.data || []
 
   const solIds = (sols || []).map(s => s.id)
   const sucIds = [...new Set((sols || []).map(s => s.mayorista_id))]
