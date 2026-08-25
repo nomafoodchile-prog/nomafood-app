@@ -50,9 +50,9 @@ function ProductCard({ p }: { p: Row }) {
   const activa = fotos[idx]?.url
   return (
     <div className="nf-card" style={{ background: '#fff', borderRadius: 16, overflow: 'hidden', border: `1px solid ${LINE}`, display: 'flex', flexDirection: 'column' }}>
-      <div style={{ height: 158, background: '#f0eee6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ height: 210, background: '#f0eee6', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 10 }}>
         {activa
-          ? <img src={activa} alt={S(p.nombre)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ? <img src={activa} alt={S(p.nombre)} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
           : <Sprout size={38} color={GOLD} />}
       </div>
       {fotos.length > 1 && (
