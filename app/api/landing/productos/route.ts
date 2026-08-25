@@ -7,11 +7,13 @@ export const revalidate = 60
 // Catálogo público para la landing: solo productos visibles y campos públicos.
 export async function GET() {
   const db = createServerClient()
-  const { data } = await db.from('products')
-    .select('id, nombre, categoria, subcategoria, descripcion, descripcion_publica, foto_oficial_url, precio, precio_venta, unidad_venta, tipo_producto')
-    .eq('visible_catalogo', true)
-    .order('categoria', { ascending: true })
-    .order('nombre', { ascending: true })
+  const BASE = 'id, nombre, categoria, subcategoria, descripcion, descripcion_publica, foto_oficial_url, precio, precio_venta, unidad_venta, tipo_producto'
+  // Resiliente: intenta con la 2a foto (empaque); si la columna aun no existe, cae a la base.
+  let q: any = await db.from('products').select(BASE + ', foto_empaque_url')
+    .eq('visible_catalogo', true).order('categoria', { ascending: true }).order('nombre', { ascending: true })
+  if (q.error) q = await db.from('products').select(BASE)
+    .eq('visible_catalogo', true).order('categoria', { ascending: true }).order('nombre', { ascending: true })
+  const data = q.data
 
   // Excluye tipos internos (insumos/materia prima) por si quedaran "visibles".
   const TIPOS_INTERNOS = ['materia_prima', 'envase_insumo', 'preelaboracion']
@@ -27,6 +29,7 @@ export async function GET() {
     subcategoria: p.subcategoria,
     descripcion_publica: p.descripcion_publica || p.descripcion || null,
     foto_oficial_url: p.foto_oficial_url || null,
+    foto_empaque_url: p.foto_empaque_url || null,
     precio_venta: p.precio_venta ?? p.precio ?? null,
     unidad_venta: p.unidad_venta || null,
   }))

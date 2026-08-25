@@ -41,6 +41,43 @@ const NAV = [
   { t: 'Trabajemos juntos', h: '#solicitud-mayorista', icon: Handshake },
 ]
 
+function ProductCard({ p }: { p: Row }) {
+  const fotos = [
+    { url: S(p.foto_oficial_url), label: 'Producto' },
+    { url: S(p.foto_empaque_url), label: 'Empaque' },
+  ].filter(x => x.url)
+  const [idx, setIdx] = useState(0)
+  const activa = fotos[idx]?.url
+  return (
+    <div className="nf-card" style={{ background: '#fff', borderRadius: 16, overflow: 'hidden', border: `1px solid ${LINE}`, display: 'flex', flexDirection: 'column' }}>
+      <div style={{ height: 158, background: '#f0eee6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {activa
+          ? <img src={activa} alt={S(p.nombre)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          : <Sprout size={38} color={GOLD} />}
+      </div>
+      {fotos.length > 1 && (
+        <div style={{ display: 'flex', gap: 6, padding: '8px 10px 0' }}>
+          {fotos.map((ph, i) => (
+            <button key={ph.label} type="button" onClick={() => setIdx(i)} aria-label={ph.label}
+              style={{ flex: 1, cursor: 'pointer', border: `1.5px solid ${i === idx ? GOLD : LINE}`, borderRadius: 8, overflow: 'hidden', background: '#fff', padding: 0, position: 'relative', height: 46 }}>
+              <img src={ph.url} alt={ph.label} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: i === idx ? 1 : .55, display: 'block' }} />
+              <span style={{ position: 'absolute', left: 0, right: 0, bottom: 0, fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.04em', color: '#fff', background: 'rgba(22,35,63,.6)', padding: '1px 0', textAlign: 'center' }}>{ph.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
+      <div style={{ padding: 16, flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <div style={{ fontWeight: 700, marginBottom: 5 }}>{S(p.nombre)}</div>
+        <div style={{ fontSize: 13, color: MUTED, lineHeight: 1.5, flex: 1 }}>{S(p.descripcion_publica)}</div>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 14 }}>
+          <span style={{ fontWeight: 800, color: GOLD, fontSize: 18 }}>{clp(p.precio_venta)}</span>
+          {p.unidad_venta ? <span style={{ fontSize: 12, color: '#a5a29a' }}>/ {S(p.unidad_venta)}</span> : null}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function LandingPage() {
   const [prods, setProds] = useState<Row[]>([])
   const [loading, setLoading] = useState(true)
@@ -289,21 +326,7 @@ export default function LandingPage() {
                   <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 18, paddingBottom: 10, borderBottom: `2px solid ${GOLD_SOFT}`, display: 'inline-block', paddingRight: 30 }}>{cat}</h3>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(238px, 1fr))', gap: 20 }}>
                     {prods.filter(p => (S(p.categoria) || 'Otros') === cat).map(p => (
-                      <div key={S(p.id)} className="nf-card" style={{ background: '#fff', borderRadius: 16, overflow: 'hidden', border: `1px solid ${LINE}`, display: 'flex', flexDirection: 'column' }}>
-                        <div style={{ height: 158, background: '#f0eee6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          {p.foto_oficial_url
-                            ? <img src={S(p.foto_oficial_url)} alt={S(p.nombre)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                            : <Sprout size={38} color={GOLD} />}
-                        </div>
-                        <div style={{ padding: 16, flex: 1, display: 'flex', flexDirection: 'column' }}>
-                          <div style={{ fontWeight: 700, marginBottom: 5 }}>{S(p.nombre)}</div>
-                          <div style={{ fontSize: 13, color: MUTED, lineHeight: 1.5, flex: 1 }}>{S(p.descripcion_publica)}</div>
-                          <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 14 }}>
-                            <span style={{ fontWeight: 800, color: GOLD, fontSize: 18 }}>{clp(p.precio_venta)}</span>
-                            {p.unidad_venta ? <span style={{ fontSize: 12, color: '#a5a29a' }}>/ {S(p.unidad_venta)}</span> : null}
-                          </div>
-                        </div>
-                      </div>
+                      <ProductCard key={S(p.id)} p={p} />
                     ))}
                   </div>
                 </div>
