@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
     // (MP puede reenviar el mismo webhook varias veces).
     const { data: prev } = await supabase
       .from('mayorista_pedidos')
-      .select('estado, numero, total, mayorista_id')
+      .select('estado, numero_pedido, total, mayorista_id')
       .eq('id', pedidoId)
       .maybeSingle()
 
@@ -111,7 +111,7 @@ export async function POST(req: NextRequest) {
           await enviarPedidoRecibido({
             to: String(cli.email),
             nombre: cli.nombre,
-            numero: prev.numero,
+            numero: prev.numero_pedido,
             total: prev.total,
           })
         }

@@ -94,7 +94,14 @@ export default function ChoferDashboard() {
 
   useEffect(() => { const t = setInterval(() => setTick(x => x + 1), 20000); return () => clearInterval(t) }, [])
 
-  async function iniciarRuta() { setActing(true); setErr(null); const { error } = await supabase.rpc('iniciar_ruta'); if (error) setErr(error.message); await cargar(); setActing(false) }
+  async function iniciarRuta() {
+    setActing(true); setErr(null)
+    const { data: routeId, error } = await supabase.rpc('iniciar_ruta')
+    if (error) setErr(error.message)
+    // Aviso "va en camino" a los clientes (best-effort, no bloquea la ruta)
+    else if (routeId) fetch('/api/portal/chofer/notificar-en-ruta', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ route_id: routeId }) }).catch(() => {})
+    await cargar(); setActing(false)
+  }
   async function finalizarRuta() {
     if (!ruta) return
     setActing(true); setErr(null)
