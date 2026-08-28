@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { createServerClient } from '@/lib/supabase/server'
+import { enviarPedidoRecibido } from '@/lib/pedido-emails'
 
 export const runtime = 'nodejs'
 
@@ -79,6 +80,14 @@ export async function POST(req: NextRequest) {
     }
     const nuevoEstado = estadoMap[payment.status] || 'pendiente_pago'
 
+    // Estado previo: para enviar el correo de confirmación una sola vez
+    // (MP puede reenviar el mismo webhook varias veces).
+    const { data: prev } = await supabase
+      .from('mayorista_pedidos')
+      .select('estado, numero, total, mayorista_id')
+      .eq('id', pedidoId)
+      .maybeSingle()
+
     await supabase
       .from('mayorista_pedidos')
       .update({
@@ -89,6 +98,28 @@ export async function POST(req: NextRequest) {
       .eq('id', pedidoId)
 
     console.log(`[mayoristas/webhook] Pedido ${pedidoId} → ${nuevoEstado} (MP: ${payment.status})`)
+
+    // Correo "recibido con éxito" solo en la transición a pagado (primera vez).
+    if (nuevoEstado === 'pagado' && prev && prev.estado !== 'pagado') {
+      try {
+        const { data: cli } = await supabase
+          .from('mayoristas')
+          .select('email, nombre')
+          .eq('id', prev.mayorista_id)
+          .maybeSingle()
+        if (cli?.email) {
+          await enviarPedidoRecibido({
+            to: String(cli.email),
+            nombre: cli.nombre,
+            numero: prev.numero,
+            total: prev.total,
+          })
+        }
+      } catch (mailErr) {
+        console.error('[mayoristas/webhook] correo recibido falló:', mailErr)
+      }
+    }
+
     return NextResponse.json({ ok: true })
   } catch (e) {
     console.error('[mayoristas/webhook] error:', e)
