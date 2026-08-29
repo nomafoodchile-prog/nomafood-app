@@ -90,9 +90,11 @@ export async function GET(
       .eq('activo', true)
       .order('created_at', { ascending: false })
 
-    // Interruptor global de pedidos (marcha blanca). Por defecto BLOQUEADO.
+    // Interruptor de pedidos POR MARCA (marcha blanca). Por defecto BLOQUEADO.
+    // Brotes usa 'pedidos_habilitados_brotes', NOMMA 'pedidos_habilitados'.
+    const claveSwitch = marcaCliente === 'Brotes Asiáticos' ? 'pedidos_habilitados_brotes' : 'pedidos_habilitados'
     const { data: cfgPed } = await supabase
-      .from('app_config').select('valor').eq('clave', 'pedidos_habilitados').maybeSingle()
+      .from('app_config').select('valor').eq('clave', claveSwitch).maybeSingle()
     const pedidos_habilitados = cfgPed?.valor === 'true'
 
     return NextResponse.json({

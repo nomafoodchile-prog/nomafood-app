@@ -26,10 +26,12 @@ export async function POST(
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
-    // Interruptor global de pedidos (marcha blanca). Por defecto BLOQUEADO:
-    // si la config no existe o no es 'true', no se permiten compras.
+    // Interruptor de pedidos POR MARCA (marcha blanca). Por defecto BLOQUEADO:
+    // Brotes usa 'pedidos_habilitados_brotes', NOMMA 'pedidos_habilitados'.
+    const claveSwitch = (mayorista as { marca?: string }).marca === 'Brotes Asiáticos'
+      ? 'pedidos_habilitados_brotes' : 'pedidos_habilitados'
     const { data: cfgPed } = await supabase
-      .from('app_config').select('valor').eq('clave', 'pedidos_habilitados').maybeSingle()
+      .from('app_config').select('valor').eq('clave', claveSwitch).maybeSingle()
     if (cfgPed?.valor !== 'true') {
       return NextResponse.json(
         { error: 'El portal aún no está habilitado para pedidos. ¡Muy pronto podrás comprar!' },
