@@ -103,6 +103,7 @@ export default function SolicitudesAcceso() {
     setBusy(true)
     const { data: may } = await supabase.from('mayoristas').insert({
       nombre: sel.nombre, empresa: sel.empresa, email: sel.email, telefono: sel.telefono, rut: sel.rut, activo: true,
+      marca: (sel.origen || '').toLowerCase().includes('brotes') ? 'Brotes Asiáticos' : 'NOMMA FOOD',
       notas: `Creado desde solicitud ${sel.numero}`,
     }).select('id, token').single()
     await supabase.from('access_requests').update({ estado: 'cuenta_creada', mayorista_id: may?.id }).eq('id', sel.id)

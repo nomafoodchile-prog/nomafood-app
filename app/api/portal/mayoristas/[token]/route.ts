@@ -18,7 +18,7 @@ export async function GET(
     // Validar mayorista
     const { data: mayorista, error: mErr } = await supabase
       .from('mayoristas')
-      .select('id, nombre, empresa, email, telefono, rut, descuento_pct, limite_credito')
+      .select('id, nombre, empresa, email, telefono, rut, descuento_pct, limite_credito, marca')
       .eq('token', params.token)
       .eq('activo', true)
       .single()
@@ -27,6 +27,9 @@ export async function GET(
       return NextResponse.json({ error: 'Token inválido o expirado' }, { status: 401 })
     }
 
+    // Cada cliente ve SOLO el catálogo de su marca (Brotes ve Brotes, NOMMA ve NOMMA).
+    const marcaCliente = (mayorista as { marca?: string }).marca || 'NOMMA FOOD'
+
     // Catálogo de productos activos con precio mayorista calculado.
     // Excluye tipos internos (insumos/materia prima) para que NO aparezcan en el portal.
     const TIPOS_INTERNOS = ['materia_prima', 'envase_insumo', 'preelaboracion']
@@ -34,6 +37,7 @@ export async function GET(
       .from('products')
       .select('id, nombre, sku, precio, unidad, categoria, stock_actual, imagen_url, descripcion, tipo_producto')
       .eq('activo', true)
+      .eq('marca', marcaCliente)
       .order('categoria')
       .order('nombre')
 
