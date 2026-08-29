@@ -16,7 +16,7 @@ export async function POST(
     // Validar mayorista
     const { data: mayorista } = await supabase
       .from('mayoristas')
-      .select('id, nombre, empresa, email, descuento_pct')
+      .select('id, nombre, empresa, email, descuento_pct, marca')
       .eq('token', params.token)
       .eq('activo', true)
       .single()
@@ -73,7 +73,9 @@ export async function POST(
     }))
 
     const IVA_PCT = 19
-    const MINIMO_NETO = 80000   // Pedido mínimo (neto de productos)
+    // Pedido mínimo por marca (neto de productos): Brotes $100.000, NOMMA $80.000
+    const esBrotes = (mayorista as { marca?: string }).marca === 'Brotes Asiáticos'
+    const MINIMO_NETO = esBrotes ? 100000 : 80000
     const DESPACHO    = 3500    // Costo de despacho RM (neto)
     const subtotal   = items.reduce((s: number, i: any) => s + i.precio_lista * i.cantidad, 0)
     const descuento  = items.reduce((s: number, i: any) => s + (i.precio_lista - i.precio_final) * i.cantidad, 0)
