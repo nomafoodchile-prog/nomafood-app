@@ -60,12 +60,14 @@ export async function POST(req: NextRequest) {
     // BROTES: creamos la cuenta y generamos el enlace SIN disparar el correo global de
     // Supabase (que es marca NOMMA). Enviamos NUESTRO propio correo con marca Brotes,
     // usando la cuenta Resend de Brotes. NOMMA no se ve afectado por esta rama.
+    // El enlace lleva ?marca=brotes para que la pagina de "crear contraseña" se vea Brotes.
+    const redirectBrotes = `${redirectTo}?marca=brotes`
     let actionLink: string | null = null
-    const gl = await db.auth.admin.generateLink({ type: 'invite', email, options: { redirectTo, data: { full_name: nombre } } })
+    const gl = await db.auth.admin.generateLink({ type: 'invite', email, options: { redirectTo: redirectBrotes, data: { full_name: nombre } } })
     if (gl.error) {
       // Ya tenía cuenta → enlace de recuperación (tampoco envía correo)
       yaExistia = true
-      const gr = await db.auth.admin.generateLink({ type: 'recovery', email, options: { redirectTo } })
+      const gr = await db.auth.admin.generateLink({ type: 'recovery', email, options: { redirectTo: redirectBrotes } })
       if (gr.error) return NextResponse.json({ error: 'No se pudo generar el acceso: ' + gr.error.message }, { status: 500 })
       actionLink = gr.data.properties?.action_link ?? null
       userId = gr.data.user?.id ?? null
