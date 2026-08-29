@@ -1,12 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createServerClient } from '@/lib/supabase/server'
+import { buildBienvenidaBrotes } from '@/lib/solicitud-emails'
 
 export const runtime = 'nodejs'
 
 // Cliente anon (para disparar el correo de recuperación por el SMTP de Supabase)
 function anonClient() {
   return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+}
+
+function real(v?: string) { return !!v && !/demo|no_enviar|xxx/i.test(v) }
+
+// Envío directo por Resend (para el correo propio de Brotes). No lanza.
+async function enviarEmail(from: string, to: string, subject: string, html: string, apiKey = process.env.RESEND_API_KEY) {
+  if (!real(apiKey) || !to) return false
+  try {
+    const r = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ from, to, subject, html }),
+    })
+    return r.ok
+  } catch {
+    return false
+  }
 }
 
 // Crea la cuenta del cliente mayorista en Supabase Auth y le ENVÍA la invitación
@@ -27,23 +45,55 @@ export async function POST(req: NextRequest) {
   const email = may.email.trim().toLowerCase()
   const nombre = may.nombre || may.empresa || email
 
+  // ¿El cliente viene de Brotes? (por el origen de su solicitud) → marca Brotes en el correo.
+  let esBrotes = false
+  if (body.request_id) {
+    const { data: ar } = await db.from('access_requests').select('origen').eq('id', body.request_id).maybeSingle()
+    esBrotes = !!ar?.origen && String(ar.origen).toLowerCase().includes('brotes')
+  }
+
   let userId: string | null = null
   let emailSent = false
   let yaExistia = false
 
-  // Invita al cliente: Supabase crea la cuenta y envía el correo por su SMTP (Resend)
-  const inv = await db.auth.admin.inviteUserByEmail(email, { redirectTo, data: { full_name: nombre } })
-  if (inv.error) {
-    // Ya tenía cuenta → enviamos correo de recuperación por el SMTP para que (re)cree su contraseña
-    yaExistia = true
-    const rp = await anonClient().auth.resetPasswordForEmail(email, { redirectTo })
-    if (!rp.error) emailSent = true
-    const rec = await db.auth.admin.generateLink({ type: 'recovery', email, options: { redirectTo } })
-    if (rec.error) return NextResponse.json({ error: 'No se pudo generar el acceso: ' + rec.error.message }, { status: 500 })
-    userId = rec.data.user?.id ?? null
+  if (esBrotes) {
+    // BROTES: creamos la cuenta y generamos el enlace SIN disparar el correo global de
+    // Supabase (que es marca NOMMA). Enviamos NUESTRO propio correo con marca Brotes,
+    // usando la cuenta Resend de Brotes. NOMMA no se ve afectado por esta rama.
+    let actionLink: string | null = null
+    const gl = await db.auth.admin.generateLink({ type: 'invite', email, options: { redirectTo, data: { full_name: nombre } } })
+    if (gl.error) {
+      // Ya tenía cuenta → enlace de recuperación (tampoco envía correo)
+      yaExistia = true
+      const gr = await db.auth.admin.generateLink({ type: 'recovery', email, options: { redirectTo } })
+      if (gr.error) return NextResponse.json({ error: 'No se pudo generar el acceso: ' + gr.error.message }, { status: 500 })
+      actionLink = gr.data.properties?.action_link ?? null
+      userId = gr.data.user?.id ?? null
+    } else {
+      actionLink = gl.data.properties?.action_link ?? null
+      userId = gl.data.user?.id ?? null
+    }
+    if (actionLink) {
+      const from = process.env.WHOLESALE_BROTES_FROM_EMAIL || 'Brotes Asiaticos <hola@brotesasiaticos.cl>'
+      const key = real(process.env.WHOLESALE_BROTES_RESEND_KEY) ? process.env.WHOLESALE_BROTES_RESEND_KEY : process.env.RESEND_API_KEY
+      const { subject, html } = buildBienvenidaBrotes(nombre, actionLink)
+      emailSent = await enviarEmail(from, email, subject, html, key)
+    }
   } else {
-    userId = inv.data.user?.id ?? null
-    emailSent = true // Supabase disparó el correo de invitación
+    // NOMMA: comportamiento original — Supabase crea la cuenta y envía el correo por su SMTP.
+    const inv = await db.auth.admin.inviteUserByEmail(email, { redirectTo, data: { full_name: nombre } })
+    if (inv.error) {
+      // Ya tenía cuenta → enviamos correo de recuperación por el SMTP para que (re)cree su contraseña
+      yaExistia = true
+      const rp = await anonClient().auth.resetPasswordForEmail(email, { redirectTo })
+      if (!rp.error) emailSent = true
+      const rec = await db.auth.admin.generateLink({ type: 'recovery', email, options: { redirectTo } })
+      if (rec.error) return NextResponse.json({ error: 'No se pudo generar el acceso: ' + rec.error.message }, { status: 500 })
+      userId = rec.data.user?.id ?? null
+    } else {
+      userId = inv.data.user?.id ?? null
+      emailSent = true // Supabase disparó el correo de invitación
+    }
   }
 
   // Enlace de respaldo (copiar / WhatsApp) por si el correo no llega
