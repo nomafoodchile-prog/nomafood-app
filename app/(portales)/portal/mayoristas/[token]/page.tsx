@@ -113,7 +113,6 @@ export default function PortalMayoristas({ params }: { params: { token: string }
   // Checkout
   const [showCheckout, setShowCheckout] = useState(false)
   const [checkoutNotas, setCheckoutNotas] = useState('')
-  const [checkoutFecha, setCheckoutFecha] = useState('')
   const [checkoutDir, setCheckoutDir]    = useState('')
   const [placing, setPlacing]         = useState(false)
   const [orderSuccess, setOrderSuccess] = useState<{ numero: string; total: number; init_point: string | null } | null>(null)
@@ -266,7 +265,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
             unidad:          i.unidad,
           })),
           notas:             checkoutNotas || null,
-          fecha_entrega_req: checkoutFecha || null,
+          fecha_entrega_req: null, // la fecha de despacho la define NOMMA, el cliente ya no la elige
           direccion_entrega: checkoutDir   || null,
         }),
       })
@@ -817,18 +816,6 @@ export default function PortalMayoristas({ params }: { params: { token: string }
             </div>
 
             <div className="space-y-4 mb-6">
-              <div className="bg-white rounded-2xl p-4 shadow-sm">
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                  Fecha de entrega solicitada (opcional)
-                </label>
-                <input
-                  type="date"
-                  value={checkoutFecha}
-                  onChange={e => setCheckoutFecha(e.target.value)}
-                  className="w-full p-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#c9a24e]"
-                />
-              </div>
-
               <div className="bg-white rounded-2xl p-4 shadow-sm">
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
                   Dirección de entrega (opcional)

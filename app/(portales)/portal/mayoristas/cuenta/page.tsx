@@ -87,7 +87,7 @@ export default function CuentaMayorista() {
                 const e = estadoCliente(p)
                 return (
                   <div key={p.id} className="bg-white rounded-2xl border border-gray-100 p-4 flex items-center justify-between">
-                    <div><p className="font-semibold text-[#16233f] text-sm">{p.numero_pedido}</p><p className="text-xs text-gray-400 flex items-center gap-1"><Clock size={11} /> Entrega {fecha(p.fecha_entrega_req)} · {clp(p.total)}</p></div>
+                    <div><p className="font-semibold text-[#16233f] text-sm">{p.numero_pedido}</p><p className="text-xs text-gray-400 flex items-center gap-1"><Clock size={11} /> {p.fecha_entrega_req ? `Entrega ${fecha(p.fecha_entrega_req)} · ` : ''}{clp(p.total)}</p></div>
                     <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${e.c}`}>{e.t}</span>
                   </div>
                 )
