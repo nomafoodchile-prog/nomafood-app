@@ -114,8 +114,9 @@ export default function PortalMayoristas({ params }: { params: { token: string }
   const [showCheckout, setShowCheckout] = useState(false)
   const [checkoutNotas, setCheckoutNotas] = useState('')
   const [checkoutDir, setCheckoutDir]    = useState('')
+  const [metodoPago, setMetodoPago]   = useState<'mercadopago' | 'transferencia'>('mercadopago')
   const [placing, setPlacing]         = useState(false)
-  const [orderSuccess, setOrderSuccess] = useState<{ numero: string; total: number; init_point: string | null } | null>(null)
+  const [orderSuccess, setOrderSuccess] = useState<{ numero: string; total: number; init_point: string | null; metodo?: string; transferencia?: { titular: string; rut: string; banco: string; tipo_cuenta: string; numero_cuenta: string; email_comprobante: string } | null } | null>(null)
   const [pagandoId, setPagandoId]     = useState<string | null>(null)
 
   // Ir a pagar un pedido pendiente: si ya tiene link lo abre; si no, lo genera al vuelo.
@@ -267,6 +268,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
           notas:             checkoutNotas || null,
           fecha_entrega_req: null, // la fecha de despacho la define NOMMA, el cliente ya no la elige
           direccion_entrega: checkoutDir   || null,
+          metodo_pago:       metodoPago,
         }),
       })
       const data = await res.json()
@@ -275,7 +277,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
       setCart([])
       setShowCart(false)
       setShowCheckout(false)
-      setOrderSuccess({ numero: data.numero, total: data.total, init_point: data.init_point })
+      setOrderSuccess({ numero: data.numero, total: data.total, init_point: data.init_point ?? null, metodo: data.metodo, transferencia: data.transferencia ?? null })
       loadData() // refrescar pedidos
     } catch (e: any) {
       showFeedback('Error: ' + (e.message || 'intente nuevamente'))
@@ -342,7 +344,24 @@ export default function PortalMayoristas({ params }: { params: { token: string }
           <p className="text-gray-500 text-sm mb-1">Pedido {orderSuccess.numero}</p>
           <p className="text-2xl font-bold text-[#c9a24e] mb-6">{fmt(orderSuccess.total)}</p>
 
-          {orderSuccess.init_point ? (
+          {orderSuccess.metodo === 'transferencia' && orderSuccess.transferencia ? (
+            <>
+              <p className="text-sm text-gray-600 mb-4">
+                Para confirmar tu pedido, realiza la <b>transferencia</b> por <b>{fmt(orderSuccess.total)}</b> a esta cuenta:
+              </p>
+              <div className="bg-[#f6f3ec] border border-[#e7ddc4] rounded-xl p-4 text-left text-sm mb-3 space-y-1.5">
+                <div className="flex justify-between gap-3"><span className="text-gray-500">Titular</span><span className="font-semibold text-[#16233f] text-right">{orderSuccess.transferencia.titular}</span></div>
+                <div className="flex justify-between gap-3"><span className="text-gray-500">RUT</span><span className="font-semibold text-[#16233f]">{orderSuccess.transferencia.rut}</span></div>
+                <div className="flex justify-between gap-3"><span className="text-gray-500">Banco</span><span className="font-semibold text-[#16233f]">{orderSuccess.transferencia.banco}</span></div>
+                <div className="flex justify-between gap-3"><span className="text-gray-500">Tipo de cuenta</span><span className="font-semibold text-[#16233f]">{orderSuccess.transferencia.tipo_cuenta}</span></div>
+                <div className="flex justify-between gap-3"><span className="text-gray-500">N° de cuenta</span><span className="font-semibold text-[#16233f]">{orderSuccess.transferencia.numero_cuenta}</span></div>
+                <div className="flex justify-between gap-3 pt-1.5 border-t border-[#e7ddc4]"><span className="text-gray-500">Enviar comprobante a</span><span className="font-semibold text-[#c9a24e] text-right break-all">{orderSuccess.transferencia.email_comprobante}</span></div>
+              </div>
+              <p className="text-xs text-gray-500 mb-3">
+                Indica el <b>N° de pedido {orderSuccess.numero}</b> al enviar el comprobante. Confirmaremos tu pedido apenas recibamos la transferencia.
+              </p>
+            </>
+          ) : orderSuccess.init_point ? (
             <>
               <p className="text-sm text-gray-600 mb-4">
                 Para confirmar tu pedido, <b>completa el pago con Mercado Pago</b>.
@@ -857,6 +876,34 @@ export default function PortalMayoristas({ params }: { params: { token: string }
                 />
               </div>
 
+              {/* Método de pago */}
+              <div className="bg-white rounded-2xl p-4 shadow-sm">
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                  Método de pago
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setMetodoPago('mercadopago')}
+                    className={`p-3 rounded-xl border text-sm font-semibold transition-colors flex items-center justify-center gap-1.5 ${metodoPago === 'mercadopago' ? 'border-[#c9a24e] bg-[#faf6ec] text-[#16233f]' : 'border-gray-200 text-gray-500'}`}
+                  >
+                    <CreditCard className="w-4 h-4" /> Mercado Pago
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMetodoPago('transferencia')}
+                    className={`p-3 rounded-xl border text-sm font-semibold transition-colors flex items-center justify-center gap-1.5 ${metodoPago === 'transferencia' ? 'border-[#c9a24e] bg-[#faf6ec] text-[#16233f]' : 'border-gray-200 text-gray-500'}`}
+                  >
+                    <span>🏦</span> Transferencia
+                  </button>
+                </div>
+                {metodoPago === 'transferencia' && (
+                  <p className="text-[11px] text-gray-400 mt-2">
+                    Al confirmar te mostramos los datos bancarios. El pedido se activa cuando recibamos la transferencia.
+                  </p>
+                )}
+              </div>
+
               {/* Resumen */}
               <div className="bg-[#16233f] rounded-2xl p-4 text-white">
                 <p className="text-xs text-gray-400 mb-3">
@@ -896,7 +943,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
               ) : (
                 <>
                   <CreditCard className="w-4 h-4" />
-                  Confirmar y pagar {fmt(cartTotalIva)}
+                  {metodoPago === 'transferencia' ? 'Confirmar pedido' : `Confirmar y pagar ${fmt(cartTotalIva)}`}
                 </>
               )}
             </button>

@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Search, Filter, Loader2, RefreshCw, PackageOpen, Trash2, List, CalendarDays, ChevronLeft, ChevronRight, CreditCard, Copy, X } from 'lucide-react'
+import { Search, Filter, Loader2, RefreshCw, PackageOpen, Trash2, List, CalendarDays, ChevronLeft, ChevronRight, CreditCard, Copy, X, CheckCircle2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 
 interface Pedido {
@@ -91,6 +91,19 @@ export default function PedidosPage() {
       setLinkModal({ numero, url: d.init_point })
     } catch { alert('Error de conexión.') }
     setGenerando(null)
+  }
+
+  const [confirmando, setConfirmando] = useState<string | null>(null)
+  async function confirmarPago(id: string, numero: string) {
+    if (!confirm(`¿Confirmar el pago del pedido ${numero}? Se marcará como pagado y se avisará al cliente por correo.`)) return
+    setConfirmando(id)
+    try {
+      const r = await fetch(`/api/central/pedidos/${id}/confirmar-pago`, { method: 'POST' })
+      const d = await r.json()
+      if (!r.ok || !d.ok) { alert(d.error || 'No se pudo confirmar el pago.'); setConfirmando(null); return }
+      await cargar()
+    } catch { alert('Error de conexión.') }
+    setConfirmando(null)
   }
 
   const [eliminando, setEliminando] = useState<string | null>(null)
@@ -309,9 +322,14 @@ export default function PedidosPage() {
                       <td className="py-3 px-4 text-right">
                         <div className="flex items-center justify-end gap-3">
                           {p.estado === 'pendiente_pago' && (
-                            <button onClick={() => generarLink(p.id, p.numero_pedido)} disabled={generando === p.id} className="text-xs font-semibold flex items-center gap-1 text-[#009ee3] hover:underline whitespace-nowrap disabled:opacity-50">
-                              {generando === p.id ? <Loader2 size={12} className="animate-spin" /> : <CreditCard size={12} />} Link de pago
-                            </button>
+                            <>
+                              <button onClick={() => confirmarPago(p.id, p.numero_pedido)} disabled={confirmando === p.id} title="Marcar como pagado (transferencia recibida)" className="text-xs font-semibold flex items-center gap-1 text-green-600 hover:underline whitespace-nowrap disabled:opacity-50">
+                                {confirmando === p.id ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle2 size={12} />} Confirmar pago
+                              </button>
+                              <button onClick={() => generarLink(p.id, p.numero_pedido)} disabled={generando === p.id} className="text-xs font-semibold flex items-center gap-1 text-[#009ee3] hover:underline whitespace-nowrap disabled:opacity-50">
+                                {generando === p.id ? <Loader2 size={12} className="animate-spin" /> : <CreditCard size={12} />} Link de pago
+                              </button>
+                            </>
                           )}
                           <a href={`/orden-compra/${p.id}`} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-[#c9a24e] hover:underline whitespace-nowrap">Orden compra ↗</a>
                           {!['pagado', 'en_preparacion', 'listo_para_despacho', 'asignado', 'entregado'].includes(p.estado) && (

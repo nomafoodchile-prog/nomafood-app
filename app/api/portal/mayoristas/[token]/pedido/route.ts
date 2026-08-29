@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
+import { DATOS_TRANSFERENCIA } from '@/lib/transferencia'
 
 // POST /api/portal/mayoristas/[token]/pedido
 // Crea un pedido y genera la preferencia de pago en Mercado Pago
@@ -92,23 +93,34 @@ export async function POST(
     const total      = Number((netoProd + iva + despacho).toFixed(2))  // + despacho = BRUTO a cobrar
 
     // Crear pedido en Supabase
-    const { data: pedido, error: pErr } = await supabase
+    // Método de pago elegido en el checkout ('transferencia' o 'mercadopago')
+    const metodoPago = body.metodo_pago === 'transferencia' ? 'transferencia' : 'mercadopago'
+
+    const pedidoBase = {
+      mayorista_id:       mayorista.id,
+      estado:             'pendiente_pago', // se confirma (pagado) al aprobar MP o al confirmar la transferencia
+      subtotal:           Number(subtotal.toFixed(2)),
+      descuento_monto:    Number(descuento.toFixed(2)),
+      neto:               Number(netoProd.toFixed(2)),
+      despacho:           despacho,
+      iva:                iva,
+      total:              total,
+      notas:              body.notas || null,
+      fecha_entrega_req:  body.fecha_entrega_req || null,
+      direccion_entrega:  body.direccion_entrega || null,
+    }
+
+    // Insert resiliente: si la columna metodo_pago aún no existe (SQL no corrido),
+    // reintenta sin ella para no bloquear la compra.
+    let { data: pedido, error: pErr } = await supabase
       .from('mayorista_pedidos')
-      .insert({
-        mayorista_id:       mayorista.id,
-        estado:             'pendiente_pago', // se confirma (pagado) recién cuando Mercado Pago aprueba el pago
-        subtotal:           Number(subtotal.toFixed(2)),
-        descuento_monto:    Number(descuento.toFixed(2)),
-        neto:               Number(netoProd.toFixed(2)),
-        despacho:           despacho,
-        iva:                iva,
-        total:              total,
-        notas:              body.notas || null,
-        fecha_entrega_req:  body.fecha_entrega_req || null,
-        direccion_entrega:  body.direccion_entrega || null,
-      })
+      .insert({ ...pedidoBase, metodo_pago: metodoPago })
       .select()
       .single()
+    if (pErr) {
+      const retry = await supabase.from('mayorista_pedidos').insert(pedidoBase).select().single()
+      pedido = retry.data; pErr = retry.error
+    }
 
     if (pErr || !pedido) throw pErr || new Error('Error al crear pedido')
 
@@ -125,6 +137,19 @@ export async function POST(
     }))
 
     await supabase.from('mayorista_pedido_items').insert(lineItems)
+
+    // Transferencia bancaria: no se crea preferencia MP. El pedido queda
+    // "pendiente_pago" hasta que NOMMA confirme la transferencia en el Central.
+    if (metodoPago === 'transferencia') {
+      return NextResponse.json({
+        ok:            true,
+        pedido_id:     pedido.id,
+        numero:        pedido.numero_pedido,
+        total:         pedido.total,
+        metodo:        'transferencia',
+        transferencia: DATOS_TRANSFERENCIA,
+      })
+    }
 
     // Crear preferencia Mercado Pago
     // Usamos el origen real de la petición para que el cliente vuelva al MISMO
