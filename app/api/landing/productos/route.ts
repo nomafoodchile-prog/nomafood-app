@@ -7,7 +7,7 @@ export const revalidate = 60
 // Catálogo público para la landing: solo productos visibles y campos públicos.
 export async function GET() {
   const db = createServerClient()
-  const BASE = 'id, nombre, categoria, subcategoria, descripcion, descripcion_publica, foto_oficial_url, precio, precio_venta, unidad_venta, tipo_producto'
+  const BASE = 'id, nombre, categoria, subcategoria, descripcion, descripcion_publica, foto_oficial_url, precio, precio_venta, unidad_venta, tipo_producto, marca'
   // Resiliente: intenta con la 2a foto (empaque); si la columna aun no existe, cae a la base.
   let q: any = await db.from('products').select(BASE + ', foto_empaque_url')
     .eq('visible_catalogo', true).order('categoria', { ascending: true }).order('nombre', { ascending: true })
@@ -22,6 +22,9 @@ export async function GET() {
   type P = Record<string, unknown>
   const productos = ((data as P[]) || [])
     .filter(p => !TIPOS_INTERNOS.includes(String(p.tipo_producto)))
+    // Marca: esta landing es de NOMMA FOOD. Nunca mostrar productos de otra
+    // marca (ej. Brotes Asiáticos). Filas sin marca se tratan como NOMMA.
+    .filter(p => String(p.marca || 'NOMMA FOOD') === 'NOMMA FOOD')
     .map(p => ({
     id: p.id,
     nombre: p.nombre,
