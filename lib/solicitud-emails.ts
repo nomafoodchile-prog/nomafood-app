@@ -129,3 +129,41 @@ export function buildConfirmacionCliente(s: SolicitudResumen) {
 
   return { subject, html }
 }
+
+// --- Bienvenida al APROBAR (crear contraseña) — marca Brotes ----------------
+// Se usa solo para clientes de Brotes: la Central genera el enlace de acceso
+// (sin disparar el correo global de Supabase, que es marca NOMMA) y enviamos
+// este correo con la cuenta Resend de Brotes.
+export function buildBienvenidaBrotes(nombre: string, link: string) {
+  const marca = 'Brotes Asiáticos'
+  const firstName = (nombre?.trim().split(/\s+/)[0]) || 'Hola'
+  const subject = '¡Bienvenido a Brotes Asiáticos! Crea tu contraseña de acceso'
+  const c = { head: '#0d0f0d', accent: '#4c9a45', soft: '#eef5e4', line: '#cfe0bd', text: '#2e6a3d', badge: '#4c9a45', badgeText: '#0d0f0d' }
+  const safeLink = escapeHtml(link)
+
+  const html = `<!doctype html><html lang="es"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /></head>
+  <body style="margin:0;background:#f4f7ef;font-family:Arial,Helvetica,sans-serif;color:#101828;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="padding:24px;"><tr><td align="center">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#fff;border:1px solid ${c.line};border-radius:16px;overflow:hidden;">
+        <tr><td style="background:${c.head};color:#fff;padding:26px;">
+          <div style="display:inline-block;background:${c.badge};color:${c.badgeText};font-weight:800;padding:7px 12px;border-radius:999px;font-size:12px;letter-spacing:.05em;">${escapeHtml(marca.toUpperCase())}</div>
+          <h1 style="margin:16px 0 6px;font-size:23px;line-height:1.25;">¡Tu solicitud fue aprobada!</h1>
+          <p style="margin:0;color:${c.accent};font-size:14px;">Bienvenido al canal mayorista</p>
+        </td></tr>
+        <tr><td style="padding:24px 26px;">
+          <p style="margin:0 0 16px;font-size:16px;line-height:1.6;">${escapeHtml(firstName)}, ¡qué bueno tenerte! Ya activamos tu acceso mayorista en <strong>${escapeHtml(marca)}</strong>. Crea tu contraseña con el botón de abajo y empieza a comprar con tus precios mayoristas.</p>
+          <table role="presentation" cellpadding="0" cellspacing="0" style="margin:6px 0 18px;"><tr><td style="border-radius:10px;background:${c.accent};">
+            <a href="${safeLink}" style="display:inline-block;padding:14px 26px;color:#fff;font-size:16px;font-weight:800;text-decoration:none;border-radius:10px;">Crear mi contraseña</a>
+          </td></tr></table>
+          <div style="padding:15px;background:${c.soft};border:1px solid ${c.line};border-radius:12px;">
+            <p style="margin:0;font-size:13px;line-height:1.6;color:${c.text};">Si el botón no funciona, copia y pega este enlace en tu navegador:<br /><span style="word-break:break-all;color:#101828;">${safeLink}</span></p>
+          </div>
+          <p style="margin:18px 0 0;font-size:13px;color:#667085;">Si no reconoces esta solicitud, puedes ignorar este correo.</p>
+          <p style="margin:20px 0 0;font-size:15px;">Un abrazo,<br /><strong>Equipo ${escapeHtml(marca)}</strong></p>
+        </td></tr>
+      </table>
+    </td></tr></table>
+  </body></html>`
+
+  return { subject, html }
+}
