@@ -617,7 +617,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
                 <p className="text-sm">No hay productos{busqueda ? ` para "${busqueda}"` : ''}</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-stretch">
                 {catalogoFiltrado.map(prod => {
                   const inCart = cart.find(i => i.producto_id === prod.id)
                   const isExpanded = expandedProduct === prod.id
@@ -626,11 +626,11 @@ export default function PortalMayoristas({ params }: { params: { token: string }
                   return (
                     <div
                       key={prod.id}
-                      className={`bg-white rounded-2xl overflow-hidden shadow-sm border ${
+                      className={`bg-white rounded-2xl overflow-hidden shadow-sm border h-full flex flex-col ${
                         sinStock ? 'opacity-60 border-gray-100' : 'border-transparent'
                       }`}
                     >
-                      <div className="p-4">
+                      <div className="p-4 flex flex-col flex-1">
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
@@ -673,7 +673,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
 
                         {/* Add to cart */}
                         {!sinStock && (
-                          <div className="mt-3 flex items-center gap-2">
+                          <div className="mt-auto pt-3 flex items-center gap-2">
                             {inCart ? (
                               <div className="flex items-center gap-2 flex-1">
                                 <button
