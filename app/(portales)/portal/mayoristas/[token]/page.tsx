@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, type CSSProperties } from 'react'
 import {
   ShoppingCart, Package, ChevronDown, ChevronUp, Trash2, Plus, Minus,
   CheckCircle2, AlertCircle, Clock, User, LogOut, RefreshCw,
@@ -10,9 +10,29 @@ import {
 /* ════════════════════════════════════════════════════════════
    TIPOS
 ════════════════════════════════════════════════════════════ */
+const TEMAS = {
+  nomma: {
+    name: 'NOMMA FOOD', card: 'NOMMA CARD',
+    vars: {
+      '--bx-primary': '#16233f', '--bx-primary-m': '#1f3355', '--bx-primary-d': '#101a31',
+      '--bx-accent': '#c9a24e', '--bx-accent-h': '#b8923f', '--bx-accent-l': '#e2ca8f', '--bx-accent-d': '#5a3e00',
+      '--bx-accent-soft': 'rgba(201,162,78,.20)', '--bx-accent-glow': 'rgba(201,162,78,.28)',
+    },
+  },
+  brotes: {
+    name: 'BROTES ASIÁTICOS', card: 'BROTES CARD',
+    vars: {
+      '--bx-primary': '#143021', '--bx-primary-m': '#1c4232', '--bx-primary-d': '#0d1f15',
+      '--bx-accent': '#F0BE48', '--bx-accent-h': '#d9a83a', '--bx-accent-l': '#f7d488', '--bx-accent-d': '#6b5300',
+      '--bx-accent-soft': 'rgba(240,190,72,.20)', '--bx-accent-glow': 'rgba(240,190,72,.30)',
+    },
+  },
+} as const
+
 interface Mayorista {
   id: string
   nombre: string
+  marca?: string
   empresa: string
   email: string
   descuento_pct: number
@@ -309,11 +329,14 @@ export default function PortalMayoristas({ params }: { params: { token: string }
   /* ════════════════════════════════════════════════════════════
      RENDER: LOADING / ERROR
   ════════════════════════════════════════════════════════════ */
+  const tema = (mayorista?.marca === 'Brotes Asiáticos') ? TEMAS.brotes : TEMAS.nomma
+  const temaVars = tema.vars as CSSProperties
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f6f3ec] flex items-center justify-center">
+      <div className="min-h-screen bg-[#f6f3ec] flex items-center justify-center" style={temaVars}>
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-[#c9a24e] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <div className="w-12 h-12 border-4 border-[var(--bx-accent)] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-gray-600 text-sm">Cargando portal mayorista...</p>
         </div>
       </div>
@@ -322,10 +345,10 @@ export default function PortalMayoristas({ params }: { params: { token: string }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-[#f6f3ec] flex items-center justify-center p-4">
+      <div className="min-h-screen bg-[#f6f3ec] flex items-center justify-center p-4" style={temaVars}>
         <div className="bg-white rounded-2xl p-8 text-center shadow-lg max-w-sm w-full">
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-lg font-semibold text-[#16233f] mb-2">Acceso denegado</h2>
+          <h2 className="text-lg font-semibold text-[var(--bx-primary)] mb-2">Acceso denegado</h2>
           <p className="text-gray-600 text-sm">{error}</p>
         </div>
       </div>
@@ -337,12 +360,12 @@ export default function PortalMayoristas({ params }: { params: { token: string }
   ════════════════════════════════════════════════════════════ */
   if (orderSuccess) {
     return (
-      <div className="min-h-screen bg-[#f6f3ec] flex items-center justify-center p-4">
+      <div className="min-h-screen bg-[#f6f3ec] flex items-center justify-center p-4" style={temaVars}>
         <div className="bg-white rounded-2xl p-8 text-center shadow-lg max-w-sm w-full">
           <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-[#16233f] mb-1">¡Pedido creado!</h2>
+          <h2 className="text-xl font-bold text-[var(--bx-primary)] mb-1">¡Pedido creado!</h2>
           <p className="text-gray-500 text-sm mb-1">Pedido {orderSuccess.numero}</p>
-          <p className="text-2xl font-bold text-[#c9a24e] mb-6">{fmt(orderSuccess.total)}</p>
+          <p className="text-2xl font-bold text-[var(--bx-accent)] mb-6">{fmt(orderSuccess.total)}</p>
 
           {orderSuccess.metodo === 'transferencia' && orderSuccess.transferencia ? (
             <>
@@ -350,12 +373,12 @@ export default function PortalMayoristas({ params }: { params: { token: string }
                 Para confirmar tu pedido, realiza la <b>transferencia</b> por <b>{fmt(orderSuccess.total)}</b> a esta cuenta:
               </p>
               <div className="bg-[#f6f3ec] border border-[#e7ddc4] rounded-xl p-4 text-left text-sm mb-3 space-y-1.5">
-                <div className="flex justify-between gap-3"><span className="text-gray-500">Titular</span><span className="font-semibold text-[#16233f] text-right">{orderSuccess.transferencia.titular}</span></div>
-                <div className="flex justify-between gap-3"><span className="text-gray-500">RUT</span><span className="font-semibold text-[#16233f]">{orderSuccess.transferencia.rut}</span></div>
-                <div className="flex justify-between gap-3"><span className="text-gray-500">Banco</span><span className="font-semibold text-[#16233f]">{orderSuccess.transferencia.banco}</span></div>
-                <div className="flex justify-between gap-3"><span className="text-gray-500">Tipo de cuenta</span><span className="font-semibold text-[#16233f]">{orderSuccess.transferencia.tipo_cuenta}</span></div>
-                <div className="flex justify-between gap-3"><span className="text-gray-500">N° de cuenta</span><span className="font-semibold text-[#16233f]">{orderSuccess.transferencia.numero_cuenta}</span></div>
-                <div className="flex justify-between gap-3 pt-1.5 border-t border-[#e7ddc4]"><span className="text-gray-500">Enviar comprobante a</span><span className="font-semibold text-[#c9a24e] text-right break-all">{orderSuccess.transferencia.email_comprobante}</span></div>
+                <div className="flex justify-between gap-3"><span className="text-gray-500">Titular</span><span className="font-semibold text-[var(--bx-primary)] text-right">{orderSuccess.transferencia.titular}</span></div>
+                <div className="flex justify-between gap-3"><span className="text-gray-500">RUT</span><span className="font-semibold text-[var(--bx-primary)]">{orderSuccess.transferencia.rut}</span></div>
+                <div className="flex justify-between gap-3"><span className="text-gray-500">Banco</span><span className="font-semibold text-[var(--bx-primary)]">{orderSuccess.transferencia.banco}</span></div>
+                <div className="flex justify-between gap-3"><span className="text-gray-500">Tipo de cuenta</span><span className="font-semibold text-[var(--bx-primary)]">{orderSuccess.transferencia.tipo_cuenta}</span></div>
+                <div className="flex justify-between gap-3"><span className="text-gray-500">N° de cuenta</span><span className="font-semibold text-[var(--bx-primary)]">{orderSuccess.transferencia.numero_cuenta}</span></div>
+                <div className="flex justify-between gap-3 pt-1.5 border-t border-[#e7ddc4]"><span className="text-gray-500">Enviar comprobante a</span><span className="font-semibold text-[var(--bx-accent)] text-right break-all">{orderSuccess.transferencia.email_comprobante}</span></div>
               </div>
               <p className="text-xs text-gray-500 mb-3">
                 Indica el <b>N° de pedido {orderSuccess.numero}</b> al enviar el comprobante. Confirmaremos tu pedido apenas recibamos la transferencia.
@@ -395,17 +418,17 @@ export default function PortalMayoristas({ params }: { params: { token: string }
      RENDER PRINCIPAL
   ════════════════════════════════════════════════════════════ */
   return (
-    <div className="min-h-screen bg-[#f6f3ec]">
+    <div className="min-h-screen bg-[#f6f3ec]" style={temaVars}>
 
       {/* ── Header ── */}
-      <header className="bg-[#16233f] text-white sticky top-0 z-50 shadow-lg">
+      <header className="bg-[var(--bx-primary)] text-white sticky top-0 z-50 shadow-lg">
         <div className="max-w-lg lg:max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-[#c9a24e] flex items-center justify-center flex-shrink-0">
-              <Sprout className="w-5 h-5 text-[#16233f]" />
+            <div className="w-9 h-9 rounded-xl bg-[var(--bx-accent)] flex items-center justify-center flex-shrink-0">
+              <Sprout className="w-5 h-5 text-[var(--bx-primary)]" />
             </div>
             <div>
-              <h1 className="font-bold text-[#c9a24e] text-base leading-tight tracking-wide">NOMMA FOOD</h1>
+              <h1 className="font-bold text-[var(--bx-accent)] text-base leading-tight tracking-wide">{tema.name}</h1>
               <p className="text-xs text-gray-400">Portal Mayoristas</p>
             </div>
           </div>
@@ -421,7 +444,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
             {/* Cart button */}
             <button
               onClick={() => { setShowCart(true); setShowPedidos(false); setShowNomma(false); setShowDir(false) }}
-              className="relative flex items-center gap-1.5 px-3 py-2 bg-[#c9a24e] hover:bg-[#b8923f] rounded-xl transition-colors"
+              className="relative flex items-center gap-1.5 px-3 py-2 bg-[var(--bx-accent)] hover:bg-[var(--bx-accent-h)] rounded-xl transition-colors"
             >
               <ShoppingCart className="w-5 h-5 text-white" />
               {cartCount > 0 && (
@@ -445,13 +468,13 @@ export default function PortalMayoristas({ params }: { params: { token: string }
             </span>
             <div className="flex items-center gap-2 flex-shrink-0">
               {(mayorista?.descuento_pct || 0) > 0 && (
-                <span className="bg-[#c9a24e]/20 text-[#c9a24e] px-2 py-0.5 rounded-full font-medium">
+                <span className="bg-[var(--bx-accent-soft)] text-[var(--bx-accent)] px-2 py-0.5 rounded-full font-medium">
                   {mayorista?.descuento_pct}% desc.
                 </span>
               )}
               <button
                 onClick={() => { setShowNomma(true); setShowCart(false); setShowPedidos(false); setShowDir(false) }}
-                className="flex items-center gap-1 bg-[#c9a24e] text-[#16233f] px-2.5 py-0.5 rounded-full font-bold hover:opacity-90 transition-opacity"
+                className="flex items-center gap-1 bg-[var(--bx-accent)] text-[var(--bx-primary)] px-2.5 py-0.5 rounded-full font-bold hover:opacity-90 transition-opacity"
               >
                 <CreditCard className="w-3 h-3" /> {nfmt(ptsDisp)} pts
               </button>
@@ -462,7 +485,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
         {/* Aviso de mínimo mientras el cliente compra */}
         {cartCount > 0 && bajoMinimo && (
           <div className="max-w-lg lg:max-w-4xl mx-auto px-4 pb-2">
-            <div className="text-xs text-center bg-amber-400 text-[#5a3e00] font-semibold rounded-lg px-3 py-1.5">
+            <div className="text-xs text-center bg-amber-400 text-[var(--bx-accent-d)] font-semibold rounded-lg px-3 py-1.5">
               Llevas {fmt(cartTotal)} · te faltan {fmt(faltanteMin)} para el pedido mínimo de {fmt(MINIMO_NETO)}
             </div>
           </div>
@@ -471,7 +494,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
 
       {/* ── Toast ── */}
       {successMsg && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-[#16233f] text-white text-sm font-medium px-4 py-2 rounded-xl shadow-xl">
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-[var(--bx-primary)] text-white text-sm font-medium px-4 py-2 rounded-xl shadow-xl">
           {successMsg}
         </div>
       )}
@@ -484,7 +507,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
             onClick={() => { setShowCart(false); setShowPedidos(false); setShowNomma(false); setShowDir(false) }}
             className={`flex-1 py-2 px-2 rounded-xl text-sm font-medium transition-colors ${
               !showCart && !showPedidos && !showNomma && !showDir
-                ? 'bg-[#16233f] text-white'
+                ? 'bg-[var(--bx-primary)] text-white'
                 : 'bg-white text-gray-600 hover:bg-gray-50'
             }`}
           >
@@ -495,14 +518,14 @@ export default function PortalMayoristas({ params }: { params: { token: string }
             onClick={() => { setShowPedidos(true); setShowCart(false); setShowNomma(false); setShowDir(false) }}
             className={`flex-1 py-2 px-2 rounded-xl text-sm font-medium transition-colors ${
               showPedidos
-                ? 'bg-[#16233f] text-white'
+                ? 'bg-[var(--bx-primary)] text-white'
                 : 'bg-white text-gray-600 hover:bg-gray-50'
             }`}
           >
             <ClipboardList className="w-4 h-4 inline mr-1" />
             Pedidos
             {pedidos.length > 0 && (
-              <span className="ml-1 bg-[#c9a24e] text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
+              <span className="ml-1 bg-[var(--bx-accent)] text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
                 {pedidos.length}
               </span>
             )}
@@ -511,18 +534,18 @@ export default function PortalMayoristas({ params }: { params: { token: string }
             onClick={() => { setShowNomma(true); setShowCart(false); setShowPedidos(false); setShowDir(false) }}
             className={`flex-1 py-2 px-2 rounded-xl text-sm font-medium transition-colors ${
               showNomma
-                ? 'bg-[#16233f] text-white'
+                ? 'bg-[var(--bx-primary)] text-white'
                 : 'bg-white text-gray-600 hover:bg-gray-50'
             }`}
           >
             <CreditCard className="w-4 h-4 inline mr-1" />
-            NOMMA CARD
+            {tema.card}
           </button>
           <button
             onClick={() => { setShowDir(true); setShowCart(false); setShowPedidos(false); setShowNomma(false) }}
             className={`flex-1 py-2 px-2 rounded-xl text-sm font-medium transition-colors ${
               showDir
-                ? 'bg-[#16233f] text-white'
+                ? 'bg-[var(--bx-primary)] text-white'
                 : 'bg-white text-gray-600 hover:bg-gray-50'
             }`}
           >
@@ -554,7 +577,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
                 value={busqueda}
                 onChange={e => setBusqueda(e.target.value)}
                 placeholder="Buscar producto o SKU..."
-                className="w-full pl-9 pr-4 py-2.5 bg-white rounded-xl border-0 shadow-sm text-sm focus:ring-2 focus:ring-[#c9a24e] outline-none"
+                className="w-full pl-9 pr-4 py-2.5 bg-white rounded-xl border-0 shadow-sm text-sm focus:ring-2 focus:ring-[var(--bx-accent)] outline-none"
               />
             </div>
 
@@ -565,7 +588,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
                   onClick={() => setCatFilter('todas')}
                   className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                     catFilter === 'todas'
-                      ? 'bg-[#c9a24e] text-white'
+                      ? 'bg-[var(--bx-accent)] text-white'
                       : 'bg-white text-gray-600 hover:bg-gray-50'
                   }`}
                 >
@@ -577,7 +600,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
                     onClick={() => setCatFilter(cat)}
                     className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                       catFilter === cat
-                        ? 'bg-[#c9a24e] text-white'
+                        ? 'bg-[var(--bx-accent)] text-white'
                         : 'bg-white text-gray-600 hover:bg-gray-50'
                     }`}
                   >
@@ -622,11 +645,11 @@ export default function PortalMayoristas({ params }: { params: { token: string }
                                 </span>
                               )}
                             </div>
-                            <h3 className="font-semibold text-[#16233f] text-sm leading-tight">{prod.nombre}</h3>
+                            <h3 className="font-semibold text-[var(--bx-primary)] text-sm leading-tight">{prod.nombre}</h3>
                             {prod.sku && <p className="text-xs text-gray-400 mt-0.5">SKU: {prod.sku}</p>}
                           </div>
                           <div className="text-right flex-shrink-0">
-                            <p className="font-bold text-[#16233f] text-base">{fmt(prod.precio_mayorista)}</p>
+                            <p className="font-bold text-[var(--bx-primary)] text-base">{fmt(prod.precio_mayorista)}</p>
                             <p className="text-xs text-gray-400">/{prod.unidad}</p>
                             {(mayorista?.descuento_pct || 0) > 0 && (
                               <p className="text-xs text-gray-400 line-through">{fmt(prod.precio_lista)}</p>
@@ -664,7 +687,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
                                 </span>
                                 <button
                                   onClick={() => updateCartQty(prod.id, inCart.cantidad + 1)}
-                                  className="w-8 h-8 rounded-lg bg-[#c9a24e] hover:bg-[#b8923f] text-white flex items-center justify-center transition-colors"
+                                  className="w-8 h-8 rounded-lg bg-[var(--bx-accent)] hover:bg-[var(--bx-accent-h)] text-white flex items-center justify-center transition-colors"
                                 >
                                   <Plus className="w-3.5 h-3.5" />
                                 </button>
@@ -672,7 +695,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
                             ) : (
                               <button
                                 onClick={() => addToCart(prod, 1)}
-                                className="flex-1 bg-[#16233f] hover:bg-gray-800 text-white text-sm font-medium py-2 px-4 rounded-xl transition-colors flex items-center justify-center gap-2"
+                                className="flex-1 bg-[var(--bx-primary)] hover:bg-gray-800 text-white text-sm font-medium py-2 px-4 rounded-xl transition-colors flex items-center justify-center gap-2"
                               >
                                 <Plus className="w-4 h-4" />
                                 Agregar
@@ -695,7 +718,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
         {showCart && !showCheckout && (
           <div className="lg:max-w-xl lg:mx-auto">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-[#16233f]">Tu pedido</h2>
+              <h2 className="text-lg font-bold text-[var(--bx-primary)]">Tu pedido</h2>
               <button
                 onClick={() => setShowCart(false)}
                 className="text-sm text-gray-500 hover:text-gray-700"
@@ -710,7 +733,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
                 <p className="text-sm">Tu carrito está vacío</p>
                 <button
                   onClick={() => setShowCart(false)}
-                  className="mt-4 text-sm text-[#c9a24e] font-medium hover:underline"
+                  className="mt-4 text-sm text-[var(--bx-accent)] font-medium hover:underline"
                 >
                   Ir al catálogo
                 </button>
@@ -722,7 +745,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
                     <div key={item.producto_id} className="bg-white rounded-2xl p-4 shadow-sm">
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm text-[#16233f] leading-tight">{item.producto_nombre}</p>
+                          <p className="font-medium text-sm text-[var(--bx-primary)] leading-tight">{item.producto_nombre}</p>
                           <p className="text-xs text-gray-400 mt-0.5">{item.producto_sku}</p>
                         </div>
                         <button
@@ -745,7 +768,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
                           </span>
                           <button
                             onClick={() => updateCartQty(item.producto_id, item.cantidad + 1)}
-                            className="w-7 h-7 rounded-lg bg-[#c9a24e] hover:bg-[#b8923f] text-white flex items-center justify-center"
+                            className="w-7 h-7 rounded-lg bg-[var(--bx-accent)] hover:bg-[var(--bx-accent-h)] text-white flex items-center justify-center"
                              >
                             <Plus className="w-3 h-3" />
                           </button>
@@ -790,9 +813,9 @@ export default function PortalMayoristas({ params }: { params: { token: string }
                     <span>IVA ({IVA_PCT}%)</span>
                     <span>{fmt(cartIva)}</span>
                   </div>
-                  <div className="border-t border-gray-100 pt-2 flex justify-between font-bold text-[#16233f]">
+                  <div className="border-t border-gray-100 pt-2 flex justify-between font-bold text-[var(--bx-primary)]">
                     <span>Total a pagar</span>
-                    <span className="text-[#c9a24e] text-lg">{fmt(cartTotalIva)}</span>
+                    <span className="text-[var(--bx-accent)] text-lg">{fmt(cartTotalIva)}</span>
                   </div>
                   <p className="text-xs text-gray-400 mt-1.5">Precios netos; el IVA (19%) se suma al total.</p>
                 </div>
@@ -810,7 +833,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
                 <button
                   onClick={() => setShowCheckout(true)}
                   disabled={bajoMinimo || !pedidosHabilitados}
-                  className={`w-full font-semibold py-3 px-6 rounded-xl transition-colors ${(bajoMinimo || !pedidosHabilitados) ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-[#c9a24e] hover:bg-[#b8923f] text-white'}`}
+                  className={`w-full font-semibold py-3 px-6 rounded-xl transition-colors ${(bajoMinimo || !pedidosHabilitados) ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-[var(--bx-accent)] hover:bg-[var(--bx-accent-h)] text-white'}`}
                 >
                   {pedidosHabilitados ? 'Confirmar pedido →' : 'Pedidos muy pronto'}
                 </button>
@@ -825,7 +848,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
         {showCart && showCheckout && (
           <div className="lg:max-w-xl lg:mx-auto">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-[#16233f]">Detalles del pedido</h2>
+              <h2 className="text-lg font-bold text-[var(--bx-primary)]">Detalles del pedido</h2>
               <button
                 onClick={() => setShowCheckout(false)}
                 className="text-sm text-gray-500"
@@ -842,7 +865,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
                 {direcciones.filter((d: any) => d.estado === 'aprobada').length > 0 && (
                   <select
                     onChange={e => setCheckoutDir(e.target.value)}
-                    className="w-full p-3 mb-2 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#c9a24e] bg-white"
+                    className="w-full p-3 mb-2 border border-gray-200 rounded-xl text-sm outline-none focus:border-[var(--bx-accent)] bg-white"
                     defaultValue=""
                   >
                     <option value="">Elige una de tus direcciones guardadas…</option>
@@ -858,7 +881,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
                   value={checkoutDir}
                   onChange={e => setCheckoutDir(e.target.value)}
                   placeholder="…o escribe la dirección de entrega"
-                  className="w-full p-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#c9a24e]"
+                  className="w-full p-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[var(--bx-accent)]"
                 />
                 <p className="text-[11px] text-gray-400 mt-1">Puedes guardar tus direcciones fijas en la pestaña “Direcciones”.</p>
               </div>
@@ -872,7 +895,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
                   onChange={e => setCheckoutNotas(e.target.value)}
                   rows={3}
                   placeholder="Instrucciones especiales, horario de recepción..."
-                  className="w-full p-3 border border-gray-200 rounded-xl text-sm resize-none outline-none focus:border-[#c9a24e]"
+                  className="w-full p-3 border border-gray-200 rounded-xl text-sm resize-none outline-none focus:border-[var(--bx-accent)]"
                 />
               </div>
 
@@ -885,14 +908,14 @@ export default function PortalMayoristas({ params }: { params: { token: string }
                   <button
                     type="button"
                     onClick={() => setMetodoPago('mercadopago')}
-                    className={`p-3 rounded-xl border text-sm font-semibold transition-colors flex items-center justify-center gap-1.5 ${metodoPago === 'mercadopago' ? 'border-[#c9a24e] bg-[#faf6ec] text-[#16233f]' : 'border-gray-200 text-gray-500'}`}
+                    className={`p-3 rounded-xl border text-sm font-semibold transition-colors flex items-center justify-center gap-1.5 ${metodoPago === 'mercadopago' ? 'border-[var(--bx-accent)] bg-[#faf6ec] text-[var(--bx-primary)]' : 'border-gray-200 text-gray-500'}`}
                   >
                     <CreditCard className="w-4 h-4" /> Mercado Pago
                   </button>
                   <button
                     type="button"
                     onClick={() => setMetodoPago('transferencia')}
-                    className={`p-3 rounded-xl border text-sm font-semibold transition-colors flex items-center justify-center gap-1.5 ${metodoPago === 'transferencia' ? 'border-[#c9a24e] bg-[#faf6ec] text-[#16233f]' : 'border-gray-200 text-gray-500'}`}
+                    className={`p-3 rounded-xl border text-sm font-semibold transition-colors flex items-center justify-center gap-1.5 ${metodoPago === 'transferencia' ? 'border-[var(--bx-accent)] bg-[#faf6ec] text-[var(--bx-primary)]' : 'border-gray-200 text-gray-500'}`}
                   >
                     <span>🏦</span> Transferencia
                   </button>
@@ -905,7 +928,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
               </div>
 
               {/* Resumen */}
-              <div className="bg-[#16233f] rounded-2xl p-4 text-white">
+              <div className="bg-[var(--bx-primary)] rounded-2xl p-4 text-white">
                 <p className="text-xs text-gray-400 mb-3">
                   {cart.length} producto{cart.length !== 1 ? 's' : ''} · {cartCount} unidades
                 </p>
@@ -925,7 +948,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
                 </div>
                 <div className="border-t border-white/10 pt-2 flex justify-between font-bold text-lg">
                   <span>Total a pagar</span>
-                  <span className="text-[#c9a24e]">{fmt(cartTotalIva)}</span>
+                  <span className="text-[var(--bx-accent)]">{fmt(cartTotalIva)}</span>
                 </div>
               </div>
             </div>
@@ -933,7 +956,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
             <button
               onClick={submitOrder}
               disabled={placing}
-              className="w-full bg-[#c9a24e] hover:bg-[#b8923f] disabled:opacity-60 text-white font-semibold py-3.5 px-6 rounded-xl transition-colors flex items-center justify-center gap-2"
+              className="w-full bg-[var(--bx-accent)] hover:bg-[var(--bx-accent-h)] disabled:opacity-60 text-white font-semibold py-3.5 px-6 rounded-xl transition-colors flex items-center justify-center gap-2"
             >
               {placing ? (
                 <>
@@ -955,7 +978,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
         ════════════════════════════════════════════════════════ */}
         {showPedidos && (
           <div>
-            <h2 className="text-lg font-bold text-[#16233f] mb-4">Mis pedidos</h2>
+            <h2 className="text-lg font-bold text-[var(--bx-primary)] mb-4">Mis pedidos</h2>
 
             {pedidos.length === 0 ? (
               <div className="text-center py-16 text-gray-500">
@@ -969,7 +992,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
                     <div className="p-4">
                       <div className="flex items-start justify-between gap-2 mb-2">
                         <div>
-                          <p className="font-semibold text-sm text-[#16233f]">{pedido.numero_pedido}</p>
+                          <p className="font-semibold text-sm text-[var(--bx-primary)]">{pedido.numero_pedido}</p>
                           <p className="text-xs text-gray-400">
                             {new Date(pedido.created_at).toLocaleDateString('es-CL', {
                               day: '2-digit', month: 'short', year: 'numeric'
@@ -977,7 +1000,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="font-bold text-[#c9a24e]">{fmt(pedido.total)}</p>
+                          <p className="font-bold text-[var(--bx-accent)]">{fmt(pedido.total)}</p>
                           <span className={`text-xs px-2 py-0.5 rounded-full ${ESTADO_COLORS[pedido.estado] || 'bg-gray-100 text-gray-600'}`}>
                             {ESTADO_LABELS[pedido.estado] || pedido.estado}
                           </span>
@@ -1014,21 +1037,21 @@ export default function PortalMayoristas({ params }: { params: { token: string }
         ════════════════════════════════════════════════════════ */}
         {showNomma && (
           <div className="lg:max-w-2xl lg:mx-auto">
-            <h2 className="text-lg font-bold text-[#16233f] mb-4">NOMMA CARD</h2>
+            <h2 className="text-lg font-bold text-[var(--bx-primary)] mb-4">{tema.card}</h2>
 
             {/* Tarjeta de membresía */}
-            <div className="relative overflow-hidden rounded-3xl p-6 text-white shadow-lg" style={{ background: 'linear-gradient(135deg,#1f3355 0%,#16233f 55%,#101a31 100%)' }}>
-              <div className="absolute -top-16 -right-10 w-56 h-56 rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(201,162,78,.28), transparent 70%)' }} />
+            <div className="relative overflow-hidden rounded-3xl p-6 text-white shadow-lg" style={{ background: 'linear-gradient(135deg,var(--bx-primary-m) 0%,var(--bx-primary) 55%,var(--bx-primary-d) 100%)' }}>
+              <div className="absolute -top-16 -right-10 w-56 h-56 rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, var(--bx-accent-glow), transparent 70%)' }} />
               <div className="relative">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-[11px] tracking-widest text-gray-400">NOMMA FOOD</p>
+                    <p className="text-[11px] tracking-widest text-gray-400">{tema.name}</p>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <h3 className="text-xl font-extrabold tracking-wide">NOMMA CARD</h3>
-                      <CreditCard className="w-5 h-5 text-[#c9a24e]" />
+                      <h3 className="text-xl font-extrabold tracking-wide">{tema.card}</h3>
+                      <CreditCard className="w-5 h-5 text-[var(--bx-accent)]" />
                     </div>
                   </div>
-                  <span className="text-[10px] font-semibold bg-[#c9a24e]/20 text-[#c9a24e] px-2.5 py-1 rounded-full whitespace-nowrap">MEMBRESÍA MAYORISTA</span>
+                  <span className="text-[10px] font-semibold bg-[var(--bx-accent-soft)] text-[var(--bx-accent)] px-2.5 py-1 rounded-full whitespace-nowrap">MEMBRESÍA MAYORISTA</span>
                 </div>
 
                 <div className="mt-5">
@@ -1039,7 +1062,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
                 <div className="flex gap-10 mt-5">
                   <div>
                     <p className="text-[11px] tracking-widest text-gray-400">DISPONIBLES</p>
-                    <p className="text-3xl font-extrabold text-[#c9a24e]">{nfmt(ptsDisp)}</p>
+                    <p className="text-3xl font-extrabold text-[var(--bx-accent)]">{nfmt(ptsDisp)}</p>
                   </div>
                   <div>
                     <p className="text-[11px] tracking-widest text-gray-400">PENDIENTES</p>
@@ -1054,7 +1077,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
                     <span className="font-semibold">{nfmt(ptsDisp)} / {nfmt(META_CANJE)}</span>
                   </div>
                   <div className="h-2.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,.12)' }}>
-                    <div className="h-full rounded-full" style={{ width: `${ptsPct}%`, background: 'linear-gradient(90deg,#e2ca8f,#c9a24e)' }} />
+                    <div className="h-full rounded-full" style={{ width: `${ptsPct}%`, background: 'linear-gradient(90deg,var(--bx-accent-l),var(--bx-accent))' }} />
                   </div>
                   <p className="text-[11px] text-gray-400 mt-2">
                     {ptsFaltan > 0
@@ -1067,12 +1090,12 @@ export default function PortalMayoristas({ params }: { params: { token: string }
 
             {/* Cómo funciona */}
             <div className="bg-white rounded-2xl p-4 shadow-sm mt-4">
-              <p className="text-sm font-semibold text-[#16233f] mb-2">¿Cómo funciona tu NOMMA CARD?</p>
+              <p className="text-sm font-semibold text-[var(--bx-primary)] mb-2">¿Cómo funciona tu {tema.card}?</p>
               <ul className="space-y-2 text-xs text-gray-600">
-                <li className="flex gap-2"><span className="text-[#c9a24e] font-bold">•</span> Acumulas <b>1,5% del monto neto</b> de cada compra.</li>
-                <li className="flex gap-2"><span className="text-[#c9a24e] font-bold">•</span> Los puntos pasan a <b>disponibles</b> cuando tu pedido se entrega con éxito.</li>
-                <li className="flex gap-2"><span className="text-[#c9a24e] font-bold">•</span> Mientras el pedido está en curso, quedan <b>pendientes</b>.</li>
-                <li className="flex gap-2"><span className="text-[#c9a24e] font-bold">•</span> Canjeas desde <b>{nfmt(META_CANJE)} puntos</b> por productos o descuentos.</li>
+                <li className="flex gap-2"><span className="text-[var(--bx-accent)] font-bold">•</span> Acumulas <b>1,5% del monto neto</b> de cada compra.</li>
+                <li className="flex gap-2"><span className="text-[var(--bx-accent)] font-bold">•</span> Los puntos pasan a <b>disponibles</b> cuando tu pedido se entrega con éxito.</li>
+                <li className="flex gap-2"><span className="text-[var(--bx-accent)] font-bold">•</span> Mientras el pedido está en curso, quedan <b>pendientes</b>.</li>
+                <li className="flex gap-2"><span className="text-[var(--bx-accent)] font-bold">•</span> Canjeas desde <b>{nfmt(META_CANJE)} puntos</b> por productos o descuentos.</li>
               </ul>
             </div>
           </div>
@@ -1084,10 +1107,10 @@ export default function PortalMayoristas({ params }: { params: { token: string }
         {showDir && (
           <div className="lg:max-w-2xl lg:mx-auto">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-[#16233f]">Mis direcciones de despacho</h2>
+              <h2 className="text-lg font-bold text-[var(--bx-primary)]">Mis direcciones de despacho</h2>
               <button
                 onClick={() => setDirShowForm(v => !v)}
-                className="text-sm font-semibold text-[#c9a24e] flex items-center gap-1"
+                className="text-sm font-semibold text-[var(--bx-accent)] flex items-center gap-1"
               >
                 <Plus className="w-4 h-4" /> Agregar
               </button>
@@ -1101,7 +1124,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
                 <input className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm" placeholder="Comuna" value={dirForm.comuna} onChange={e => setDirForm({ ...dirForm, comuna: e.target.value })} />
                 <input className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm" placeholder="Contacto en el local" value={dirForm.contacto} onChange={e => setDirForm({ ...dirForm, contacto: e.target.value })} />
                 <input className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm" placeholder="Teléfono" value={dirForm.telefono} onChange={e => setDirForm({ ...dirForm, telefono: e.target.value })} />
-                <button onClick={agregarDireccion} disabled={dirSaving} className="w-full bg-[#c9a24e] hover:bg-[#b8923f] text-white font-semibold py-2.5 rounded-xl disabled:opacity-60">
+                <button onClick={agregarDireccion} disabled={dirSaving} className="w-full bg-[var(--bx-accent)] hover:bg-[var(--bx-accent-h)] text-white font-semibold py-2.5 rounded-xl disabled:opacity-60">
                   {dirSaving ? 'Guardando…' : 'Guardar dirección'}
                 </button>
               </div>
@@ -1118,7 +1141,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
                   <div key={d.id} className="bg-white rounded-2xl p-4 shadow-sm">
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="font-semibold text-[#16233f] text-sm">{d.alias || 'Dirección'}</p>
+                        <p className="font-semibold text-[var(--bx-primary)] text-sm">{d.alias || 'Dirección'}</p>
                         <p className="text-sm text-gray-600">{d.direccion}{d.comuna ? `, ${d.comuna}` : ''}</p>
                         {d.contacto && <p className="text-xs text-gray-400">{d.contacto}{d.telefono ? ` · ${d.telefono}` : ''}</p>}
                       </div>
@@ -1144,7 +1167,7 @@ export default function PortalMayoristas({ params }: { params: { token: string }
           <div className="max-w-lg lg:max-w-4xl mx-auto">
             <button
               onClick={() => { setShowCart(true); setShowPedidos(false); setShowNomma(false); setShowDir(false) }}
-              className="w-full bg-[#c9a24e] hover:bg-[#b8923f] text-white font-semibold py-3 px-6 rounded-xl transition-colors flex items-center justify-between"
+              className="w-full bg-[var(--bx-accent)] hover:bg-[var(--bx-accent-h)] text-white font-semibold py-3 px-6 rounded-xl transition-colors flex items-center justify-between"
             >
               <span className="bg-white/20 text-white text-sm font-bold px-2 py-0.5 rounded-lg">
                 {cartCount}
