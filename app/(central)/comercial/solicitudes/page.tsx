@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Users, Loader2, RefreshCw, X, Check, Ban, UserPlus, MessageSquarePlus, Building2, MapPin, Phone, Mail, Send, Link2, Copy, KeyRound, CheckCircle2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
+import { NOMMA_PORTAL_URL, BROTES_PORTAL_URL } from '@/lib/marca-portal'
 
 interface Sol {
   id: string; numero: string; nombre: string; empresa: string | null; rut: string | null; giro: string | null
@@ -274,9 +275,9 @@ export default function SolicitudesAcceso() {
                 <div className="bg-gray-50 rounded-xl p-3 text-sm space-y-2">
                   <div className="flex items-center justify-between gap-2"><span className="text-gray-400 text-xs">Correo</span><span className="font-mono text-[#1a1a1a] text-xs">{pwOk.email}</span></div>
                   <div className="flex items-center justify-between gap-2"><span className="text-gray-400 text-xs">Contraseña</span><span className="font-mono text-[#1a1a1a]">{pwValue}</span></div>
-                  <div className="flex items-center justify-between gap-2"><span className="text-gray-400 text-xs">Portal</span><span className="text-[#1a1a1a] text-xs">nommafood.cl/portal/mayoristas/login{(sel?.origen || '').toLowerCase().includes('brotes') ? '?marca=brotes' : ''}</span></div>
+                  <div className="flex items-center justify-between gap-2"><span className="text-gray-400 text-xs">Portal</span><span className="text-[#1a1a1a] text-xs">{((sel?.origen || '').toLowerCase().includes('brotes') ? BROTES_PORTAL_URL + '/portal/mayoristas/login?marca=brotes' : NOMMA_PORTAL_URL + '/portal/mayoristas/login').replace('https://', '')}</span></div>
                 </div>
-                <button onClick={() => { const eb = (sel?.origen || '').toLowerCase().includes('brotes'); const nom = eb ? 'BROTES ASIÁTICOS' : 'NOMMA FOOD'; const url = 'https://nommafood.cl/portal/mayoristas/login' + (eb ? '?marca=brotes' : ''); navigator.clipboard?.writeText(`Ingresa a ${nom}:\nPortal: ${url}\nCorreo: ${pwOk.email}\nContraseña: ${pwValue}`) }} className="w-full mt-3 flex items-center justify-center gap-2 text-sm font-semibold border border-gray-200 rounded-xl py-2.5 text-gray-600 hover:border-[#c9a24e]"><Copy size={14} /> Copiar datos para enviar al cliente</button>
+                <button onClick={() => { const eb = (sel?.origen || '').toLowerCase().includes('brotes'); const nom = eb ? 'BROTES ASIÁTICOS' : 'NOMMA FOOD'; const url = eb ? BROTES_PORTAL_URL + '/portal/mayoristas/login?marca=brotes' : NOMMA_PORTAL_URL + '/portal/mayoristas/login'; navigator.clipboard?.writeText(`Ingresa a ${nom}:\nPortal: ${url}\nCorreo: ${pwOk.email}\nContraseña: ${pwValue}`) }} className="w-full mt-3 flex items-center justify-center gap-2 text-sm font-semibold border border-gray-200 rounded-xl py-2.5 text-gray-600 hover:border-[#c9a24e]"><Copy size={14} /> Copiar datos para enviar al cliente</button>
                 <button onClick={() => setPwOpen(false)} className="w-full mt-2 bg-[#c9a24e] hover:bg-[#b8923f] text-[#1b2a4a] font-bold py-2.5 rounded-xl">Cerrar</button>
               </div>
             ) : (

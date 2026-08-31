@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { Plus, X, Search, Users, TrendingUp, AlertCircle, Building2, Loader2, KeyRound, CheckCircle2, Copy, ShoppingCart } from 'lucide-react'
+import { NOMMA_PORTAL_URL, BROTES_PORTAL_URL } from '@/lib/marca-portal'
 
 interface Cliente {
   id: string
@@ -18,9 +19,10 @@ interface Cliente {
 }
 
 // Datos de marca para el mensaje que se copia y se envía al cliente.
+// Brotes usa su dominio propio (mayoristas.brotesasiaticos.cl); NOMMA, nommafood.cl.
 const MARCA_INFO = {
-  nomma:  { nombre: 'NOMMA FOOD',       login: 'https://nommafood.cl/portal/mayoristas/login' },
-  brotes: { nombre: 'BROTES ASIÁTICOS', login: 'https://nommafood.cl/portal/mayoristas/login?marca=brotes' },
+  nomma:  { nombre: 'NOMMA FOOD',       login: `${NOMMA_PORTAL_URL}/portal/mayoristas/login` },
+  brotes: { nombre: 'BROTES ASIÁTICOS', login: `${BROTES_PORTAL_URL}/portal/mayoristas/login?marca=brotes` },
 } as const
 const marcaDe = (c?: { marca?: string } | null): 'nomma' | 'brotes' =>
   String(c?.marca || '').toLowerCase().includes('brotes') ? 'brotes' : 'nomma'

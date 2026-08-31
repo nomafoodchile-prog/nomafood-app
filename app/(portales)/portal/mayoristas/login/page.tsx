@@ -25,9 +25,14 @@ export default function LoginMayorista() {
   useEffect(() => {
     let m: 'nomma' | 'brotes' = 'nomma'
     try {
-      const q = new URLSearchParams(window.location.search).get('marca')
-      if (q === 'brotes' || q === 'nomma') { m = q; localStorage.setItem('bma_portal_marca', q) }
-      else if (localStorage.getItem('bma_portal_marca') === 'brotes') { m = 'brotes' }
+      // 1) El dominio manda: si entra por mayoristas.brotesasiaticos.cl es Brotes, siempre.
+      if (window.location.hostname.includes('brotesasiaticos')) {
+        m = 'brotes'; localStorage.setItem('bma_portal_marca', 'brotes')
+      } else {
+        const q = new URLSearchParams(window.location.search).get('marca')
+        if (q === 'brotes' || q === 'nomma') { m = q; localStorage.setItem('bma_portal_marca', q) }
+        else if (localStorage.getItem('bma_portal_marca') === 'brotes') { m = 'brotes' }
+      }
     } catch { /* localStorage puede fallar en modo privado */ }
     setMarca(m)
   }, [])

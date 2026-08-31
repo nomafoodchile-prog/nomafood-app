@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createServerClient } from '@/lib/supabase/server'
 import { buildBienvenidaBrotes } from '@/lib/solicitud-emails'
+import { BROTES_PORTAL_URL } from '@/lib/marca-portal'
 import { randomBytes, createHash } from 'node:crypto'
 
 export const runtime = 'nodejs'
@@ -79,7 +80,8 @@ export async function POST(req: NextRequest) {
     const hash = createHash('sha256').update(raw).digest('hex')
     const exp = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
     await db.from('mayoristas').update({ clave_token: hash, clave_token_exp: exp }).eq('id', may.id)
-    brotesTokenLink = `${origin}/portal/mayoristas/crear-clave?marca=brotes&token=${raw}`
+    // El enlace usa el dominio propio de Brotes (no nommafood.cl).
+    brotesTokenLink = `${BROTES_PORTAL_URL}/portal/mayoristas/crear-clave?marca=brotes&token=${raw}`
     const from = process.env.WHOLESALE_BROTES_FROM_EMAIL || 'Brotes Asiaticos <hola@brotesasiaticos.cl>'
     const key = real(process.env.WHOLESALE_BROTES_RESEND_KEY) ? process.env.WHOLESALE_BROTES_RESEND_KEY : process.env.RESEND_API_KEY
     const { subject, html } = buildBienvenidaBrotes(nombre, brotesTokenLink)
