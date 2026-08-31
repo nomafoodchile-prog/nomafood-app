@@ -2,8 +2,12 @@
 
 import { useEffect, useState } from 'react'
 
-const NAVY = '#1b2a4a'
-const GOLD = '#c9a24e'
+// Tema por marca: la orden de compra se viste según la marca del cliente,
+// para que un pedido de Brotes NUNCA salga con la identidad de NOMMA (y viceversa).
+const TEMAS = {
+  nomma:  { primary: '#1b2a4a', gold: '#c9a24e', nombre: 'NOMMA FOOD' },
+  brotes: { primary: '#143026', gold: '#e6b23f', nombre: 'BROTES ASIÁTICOS' },
+} as const
 const clp = (n: number) => new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(Number(n) || 0)
 const fecha = (s?: string | null) => s ? new Date(s).toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—'
 
@@ -25,6 +29,10 @@ export default function OrdenCompraPage({ params }: { params: { id: string } }) 
   if (!data) return <div style={{ padding: 40, fontFamily: 'system-ui', color: '#666' }}>Cargando orden de compra…</div>
 
   const { pedido, items, mayorista, facturacion } = data
+  const marcaKey: 'nomma' | 'brotes' = String(mayorista?.marca || '').toLowerCase().includes('brotes') ? 'brotes' : 'nomma'
+  const T = TEMAS[marcaKey]
+  const NAVY = T.primary
+  const GOLD = T.gold
   const cel = { padding: '8px 10px', borderBottom: '1px solid #eee', fontSize: 13 } as const
   const th = { padding: '8px 10px', textAlign: 'left' as const, fontSize: 12, color: '#fff', background: NAVY, fontWeight: 600 }
 
@@ -46,7 +54,7 @@ export default function OrdenCompraPage({ params }: { params: { id: string } }) 
           {/* Encabezado */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: `2px solid ${GOLD}`, paddingBottom: 16, marginBottom: 20 }}>
             <div>
-              <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: 1, color: NAVY }}>NOMMA FOOD</div>
+              <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: 1, color: NAVY }}>{T.nombre}</div>
               <div style={{ fontSize: 12, color: '#6b6f77' }}>Alma Libre Grupo SpA · Santiago de Chile</div>
             </div>
             <div style={{ textAlign: 'right' }}>
@@ -116,7 +124,7 @@ export default function OrdenCompraPage({ params }: { params: { id: string } }) 
           )}
 
           <div style={{ marginTop: 28, paddingTop: 14, borderTop: '1px solid #eee', fontSize: 11, color: '#9aa', textAlign: 'center' }}>
-            Documento interno de gestión · No constituye factura ni boleta electrónica · NOMMA FOOD
+            Documento interno de gestión · No constituye factura ni boleta electrónica · {T.nombre}
           </div>
         </div>
       </div>

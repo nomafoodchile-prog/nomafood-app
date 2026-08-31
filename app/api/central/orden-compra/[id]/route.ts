@@ -37,7 +37,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
 
   const { data: mayorista } = await db
     .from('mayoristas')
-    .select('nombre, empresa, email, telefono, rut')
+    .select('nombre, empresa, email, telefono, rut, marca')
     .eq('id', pedido.mayorista_id)
     .maybeSingle()
 
