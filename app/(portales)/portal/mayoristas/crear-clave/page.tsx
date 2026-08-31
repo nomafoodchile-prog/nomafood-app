@@ -24,7 +24,28 @@ export default function CrearClave() {
 
   useEffect(() => {
     if (new URLSearchParams(window.location.search).get('marca') === 'brotes') setMarca('brotes')
-    supabase.auth.getSession().then(({ data }) => setReady(!!data.session))
+
+    // El link del correo trae los tokens en el hash (#access_token=...&refresh_token=...).
+    // El cliente SSR no siempre los toma solo, así que establecemos la sesión a mano.
+    const hash = typeof window !== 'undefined' ? window.location.hash.replace(/^#/, '') : ''
+    const hp = new URLSearchParams(hash)
+    const access_token = hp.get('access_token')
+    const refresh_token = hp.get('refresh_token')
+
+    if (access_token && refresh_token) {
+      supabase.auth.setSession({ access_token, refresh_token })
+        .then(({ data, error }) => {
+          setReady(!!data.session && !error)
+          // limpiar el hash de la URL por prolijidad/seguridad
+          if (data.session && typeof window !== 'undefined') {
+            window.history.replaceState(null, '', window.location.pathname + window.location.search)
+          }
+        })
+        .catch(() => setReady(false))
+    } else {
+      supabase.auth.getSession().then(({ data }) => setReady(!!data.session))
+    }
+
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => { if (session) setReady(true) })
     return () => sub.subscription.unsubscribe()
   }, [])
