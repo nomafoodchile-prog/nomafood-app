@@ -33,16 +33,24 @@ export async function GET(
     // Catálogo de productos activos con precio mayorista calculado.
     // Excluye tipos internos (insumos/materia prima) para que NO aparezcan en el portal.
     const TIPOS_INTERNOS = ['materia_prima', 'envase_insumo', 'preelaboracion']
+
+    // Productos EXCLUSIVOS de Aldea Vegetal: están en aldea_catalogo y NO deben
+    // aparecer nunca en el portal mayorista (aunque compartan marca por defecto).
+    const { data: aldeaRows } = await supabase.from('aldea_catalogo').select('product_id')
+    const aldeaIds = new Set((aldeaRows || []).map(r => String((r as { product_id?: string }).product_id)))
+
     const { data: productos } = await supabase
       .from('products')
       .select('id, nombre, sku, precio, unidad, categoria, stock_actual, imagen_url, descripcion, tipo_producto')
       .eq('activo', true)
       .eq('marca', marcaCliente)
+      .gt('stock_actual', 0)   // Ocultar productos sin stock (no comprables)
       .order('categoria')
       .order('nombre')
 
     const catalogo = (productos || [])
       .filter(p => !TIPOS_INTERNOS.includes(String((p as { tipo_producto?: string }).tipo_producto)))
+      .filter(p => !aldeaIds.has(String((p as { id?: string }).id)))   // fuera exclusivos de Aldea
       .map(p => ({
         ...p,
         precio_lista: p.precio,
