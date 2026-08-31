@@ -47,9 +47,12 @@ export default function LoginMayorista() {
     e.preventDefault(); setErr(null)
     if (!email.trim()) { setErr('Escribe tu correo.'); return }
     setLoading(true)
-    await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
-      redirectTo: `${window.location.origin}/portal/mayoristas/crear-clave${mq}`,
-    })
+    // Endpoint marca-consciente: a Brotes le envía SU correo (marca Brotes) con token
+    // propio durable; a NOMMA el flujo Supabase de siempre. Nunca se cruzan las marcas.
+    await fetch('/api/portal/mayoristas/reenviar-acceso', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email.trim().toLowerCase() }),
+    }).catch(() => {})
     setResetOk(true); setLoading(false)
   }
 

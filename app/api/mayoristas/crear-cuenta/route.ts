@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
   if (!body.mayorista_id) return NextResponse.json({ error: 'Falta el cliente' }, { status: 400 })
 
   const db = createServerClient()
-  const { data: may } = await db.from('mayoristas').select('id, nombre, empresa, email, telefono').eq('id', body.mayorista_id).maybeSingle()
+  const { data: may } = await db.from('mayoristas').select('id, nombre, empresa, email, telefono, marca').eq('id', body.mayorista_id).maybeSingle()
   if (!may) return NextResponse.json({ error: 'Cliente no encontrado' }, { status: 404 })
   if (!may.email) return NextResponse.json({ error: 'El cliente no tiene email para crear la cuenta.' }, { status: 400 })
 
@@ -47,8 +47,9 @@ export async function POST(req: NextRequest) {
   const nombre = may.nombre || may.empresa || email
 
   // ¿El cliente viene de Brotes? (por el origen de su solicitud) → marca Brotes en el correo.
-  let esBrotes = false
-  if (body.request_id) {
+  // Deteccion robusta: por la marca del cliente (autoritativa) O por el origen de su solicitud.
+  let esBrotes = String((may as { marca?: string }).marca || '').toLowerCase().includes('brotes')
+  if (!esBrotes && body.request_id) {
     const { data: ar } = await db.from('access_requests').select('origen').eq('id', body.request_id).maybeSingle()
     esBrotes = !!ar?.origen && String(ar.origen).toLowerCase().includes('brotes')
   }
