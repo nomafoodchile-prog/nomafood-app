@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createServerClient } from '@/lib/supabase/server'
 import { buildBienvenidaBrotes } from '@/lib/solicitud-emails'
+import { randomBytes, createHash } from 'node:crypto'
 
 export const runtime = 'nodejs'
 
@@ -55,32 +56,33 @@ export async function POST(req: NextRequest) {
   let userId: string | null = null
   let emailSent = false
   let yaExistia = false
+  let brotesTokenLink: string | null = null
 
   if (esBrotes) {
-    // BROTES: creamos la cuenta y generamos el enlace SIN disparar el correo global de
-    // Supabase (que es marca NOMMA). Enviamos NUESTRO propio correo con marca Brotes,
-    // usando la cuenta Resend de Brotes. NOMMA no se ve afectado por esta rama.
-    // El enlace lleva ?marca=brotes para que la pagina de "crear contraseña" se vea Brotes.
+    // BROTES: creamos la cuenta y enviamos NUESTRO propio correo (Resend) con un TOKEN
+    // PROPIO y durable (7 dias). NO usamos el enlace magico de Supabase porque Gmail lo
+    // pre-escanea y lo consume (queda "expirado"). El token propio no se rompe con eso.
     const redirectBrotes = `${redirectTo}?marca=brotes`
-    let actionLink: string | null = null
+    // generateLink crea la cuenta (o detecta que ya existe) sin enviar correo de Supabase.
     const gl = await db.auth.admin.generateLink({ type: 'invite', email, options: { redirectTo: redirectBrotes, data: { full_name: nombre } } })
     if (gl.error) {
-      // Ya tenía cuenta → enlace de recuperación (tampoco envía correo)
       yaExistia = true
       const gr = await db.auth.admin.generateLink({ type: 'recovery', email, options: { redirectTo: redirectBrotes } })
       if (gr.error) return NextResponse.json({ error: 'No se pudo generar el acceso: ' + gr.error.message }, { status: 500 })
-      actionLink = gr.data.properties?.action_link ?? null
       userId = gr.data.user?.id ?? null
     } else {
-      actionLink = gl.data.properties?.action_link ?? null
       userId = gl.data.user?.id ?? null
     }
-    if (actionLink) {
-      const from = process.env.WHOLESALE_BROTES_FROM_EMAIL || 'Brotes Asiaticos <hola@brotesasiaticos.cl>'
-      const key = real(process.env.WHOLESALE_BROTES_RESEND_KEY) ? process.env.WHOLESALE_BROTES_RESEND_KEY : process.env.RESEND_API_KEY
-      const { subject, html } = buildBienvenidaBrotes(nombre, actionLink)
-      emailSent = await enviarEmail(from, email, subject, html, key)
-    }
+    // Token propio (durable, hasheado en BD). El enlace del correo lleva el token en crudo.
+    const raw = randomBytes(24).toString('hex')
+    const hash = createHash('sha256').update(raw).digest('hex')
+    const exp = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+    await db.from('mayoristas').update({ clave_token: hash, clave_token_exp: exp }).eq('id', may.id)
+    brotesTokenLink = `${origin}/portal/mayoristas/crear-clave?marca=brotes&token=${raw}`
+    const from = process.env.WHOLESALE_BROTES_FROM_EMAIL || 'Brotes Asiaticos <hola@brotesasiaticos.cl>'
+    const key = real(process.env.WHOLESALE_BROTES_RESEND_KEY) ? process.env.WHOLESALE_BROTES_RESEND_KEY : process.env.RESEND_API_KEY
+    const { subject, html } = buildBienvenidaBrotes(nombre, brotesTokenLink)
+    emailSent = await enviarEmail(from, email, subject, html, key)
   } else {
     // NOMMA: comportamiento original — Supabase crea la cuenta y envía el correo por su SMTP.
     const inv = await db.auth.admin.inviteUserByEmail(email, { redirectTo, data: { full_name: nombre } })
@@ -100,8 +102,12 @@ export async function POST(req: NextRequest) {
 
   // Enlace de respaldo (copiar / WhatsApp) por si el correo no llega
   let fallbackLink: string | null = null
-  const rec2 = await db.auth.admin.generateLink({ type: 'recovery', email, options: { redirectTo } })
-  if (!rec2.error) fallbackLink = rec2.data.properties?.action_link ?? null
+  if (esBrotes) {
+    fallbackLink = brotesTokenLink
+  } else {
+    const rec2 = await db.auth.admin.generateLink({ type: 'recovery', email, options: { redirectTo } })
+    if (!rec2.error) fallbackLink = rec2.data.properties?.action_link ?? null
+  }
 
   // Vincula la cuenta al cliente; solo marca rol Mayorista si es cuenta nueva (no pisar admins)
   if (userId) {
