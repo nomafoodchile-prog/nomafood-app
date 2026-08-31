@@ -21,11 +21,17 @@ export default function CrearClave() {
   const [err, setErr] = useState<string | null>(null)
   const [ok, setOk] = useState(false)
   const [marca, setMarca] = useState<'nomma' | 'brotes'>('nomma')
+  const [token, setToken] = useState<string | null>(null)
 
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get('marca') === 'brotes') setMarca('brotes')
+    const qs = new URLSearchParams(window.location.search)
+    if (qs.get('marca') === 'brotes') setMarca('brotes')
 
-    // El link del correo trae los tokens en el hash (#access_token=...&refresh_token=...).
+    // Flujo NUEVO: enlace con token propio (durable, no se rompe con Gmail).
+    const tk = qs.get('token')
+    if (tk) { setToken(tk); setReady(true); return }
+
+    // Flujo legado: el link del correo trae los tokens en el hash (#access_token=...&refresh_token=...).
     // El cliente SSR no siempre los toma solo, así que establecemos la sesión a mano.
     const hash = typeof window !== 'undefined' ? window.location.hash.replace(/^#/, '') : ''
     const hp = new URLSearchParams(hash)
@@ -57,6 +63,18 @@ export default function CrearClave() {
     if (pass.length < 6) return setErr('La contraseña debe tener al menos 6 caracteres.')
     if (pass !== pass2) return setErr('Las contraseñas no coinciden.')
     setSaving(true)
+    if (token) {
+      // Flujo con token propio: guardar via nuestro endpoint (no depende de sesión).
+      const r = await fetch('/api/portal/mayoristas/set-password', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, password: pass }),
+      })
+      const d = await r.json().catch(() => ({}))
+      if (!r.ok) { setErr(d.error || 'No se pudo guardar la contraseña.'); setSaving(false); return }
+      setOk(true)
+      setTimeout(() => router.push('/portal/mayoristas/login'), 1500)
+      return
+    }
     const { error } = await supabase.auth.updateUser({ password: pass })
     if (error) { setErr(error.message); setSaving(false); return }
     setOk(true)
