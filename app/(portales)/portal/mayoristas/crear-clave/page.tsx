@@ -25,7 +25,7 @@ export default function CrearClave() {
 
   useEffect(() => {
     const qs = new URLSearchParams(window.location.search)
-    if (qs.get('marca') === 'brotes') setMarca('brotes')
+    if (qs.get('marca') === 'brotes') { setMarca('brotes'); try { localStorage.setItem('bma_portal_marca', 'brotes') } catch {} }
 
     // Flujo NUEVO: enlace con token propio (durable, no se rompe con Gmail).
     const tk = qs.get('token')
@@ -72,7 +72,7 @@ export default function CrearClave() {
       const d = await r.json().catch(() => ({}))
       if (!r.ok) { setErr(d.error || 'No se pudo guardar la contraseña.'); setSaving(false); return }
       setOk(true)
-      setTimeout(() => router.push('/portal/mayoristas/login'), 1500)
+      setTimeout(() => router.push('/portal/mayoristas/login' + (marca === 'brotes' ? '?marca=brotes' : '')), 1500)
       return
     }
     const { error } = await supabase.auth.updateUser({ password: pass })
