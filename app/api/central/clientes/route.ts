@@ -21,7 +21,7 @@ export async function GET() {
 
   const { data: mays } = await db
     .from('mayoristas')
-    .select('id, nombre, empresa, email, telefono, rut, activo, created_at')
+    .select('id, nombre, empresa, email, telefono, rut, activo, created_at, marca')
     .order('created_at', { ascending: false })
 
   const lista = mays || []
@@ -65,6 +65,7 @@ export async function GET() {
     tipo: solMap.get(m.id)?.tipo || 'Mayorista',
     saldoPendiente: saldoMap.get(m.id) || 0,
     estado: m.activo === false ? 'Inactivo' : 'Activo',
+    marca: m.marca || 'NOMMA FOOD',
   }))
 
   return NextResponse.json({ clientes })
