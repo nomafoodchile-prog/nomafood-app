@@ -39,6 +39,7 @@ import { useRouter } from 'next/navigation'
 import { notify, armAudioUnlock } from '@/lib/notify'
 
 const SEEN_KEY = 'central_msgs_seen'
+const SEEN_PEDIDOS_KEY = 'central_pedidos_seen'
 
 type NavItem = {
   label: string
@@ -234,7 +235,34 @@ export function Sidebar() {
     return () => { supabase.removeChannel(ch) }
   }, [recomputarSol])
 
-  const badges = { '/operaciones/mensajes': novedadesMsg, '/comercial/solicitudes': nuevasSol }
+  // Pedidos mayoristas: badge de "nuevos desde la última visita" + sonido al entrar uno
+  const [nuevosPedidos, setNuevosPedidos] = useState(0)
+  const pedidosIds = useRef<Set<string>>(new Set())
+  const pedidosPrimed = useRef(false)
+  const recomputarPedidos = useCallback(async () => {
+    const seen = (typeof localStorage !== 'undefined' && localStorage.getItem(SEEN_PEDIDOS_KEY)) || '1970-01-01'
+    const { data } = await supabase.from('mayorista_pedidos').select('id, created_at')
+    const list = (data as { id: string; created_at: string }[]) || []
+    if (pedidosPrimed.current && list.some(p => !pedidosIds.current.has(p.id))) notify(true)
+    pedidosIds.current = new Set(list.map(p => p.id))
+    pedidosPrimed.current = true
+    setNuevosPedidos(list.filter(p => p.created_at && p.created_at > seen).length)
+  }, [])
+  useEffect(() => {
+    recomputarPedidos()
+    const ch = supabase.channel('sidebar-pedidos')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'mayorista_pedidos' }, () => recomputarPedidos())
+      .subscribe()
+    return () => { supabase.removeChannel(ch) }
+  }, [recomputarPedidos])
+  useEffect(() => {
+    if (pathname === '/operaciones/pedidos') {
+      try { localStorage.setItem(SEEN_PEDIDOS_KEY, new Date().toISOString()) } catch {}
+      setNuevosPedidos(0)
+    }
+  }, [pathname])
+
+  const badges = { '/operaciones/mensajes': novedadesMsg, '/operaciones/pedidos': nuevosPedidos, '/comercial/solicitudes': nuevasSol }
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
