@@ -71,6 +71,7 @@ const navItems: NavItem[] = [
     icon: ShoppingBag,
     children: [
       { label: 'Solicitudes de acceso', href: '/comercial/solicitudes', icon: UserCircle },
+      { label: 'Pedidos minorista', href: '/comercial/pedidos-minorista', icon: ShoppingCart },
       { label: 'Productos', href: '/comercial/productos', icon: Tag },
       { label: 'Clientes', href: '/comercial/clientes', icon: Users },
       { label: 'Direcciones', href: '/comercial/direcciones', icon: MapPin },
