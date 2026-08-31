@@ -77,7 +77,8 @@ export default function SolicitudesAcceso() {
       const r = await fetch('/api/mayoristas/crear-cuenta', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mayorista_id: mayoristaId, request_id: requestId }) })
       const d = await r.json()
       if (r.ok) {
-        const wa = telefono && d.link ? `https://wa.me/${telefono.replace(/[^0-9]/g, '')}?text=${encodeURIComponent('¡Hola! Tu cuenta del Portal Mayorista NOMMA FOOD ya está lista. Crea tu contraseña aquí: ' + d.link)}` : null
+        const marcaNom = (sel?.origen || '').toLowerCase().includes('brotes') ? 'BROTES ASIÁTICOS' : 'NOMMA FOOD'
+        const wa = telefono && d.link ? `https://wa.me/${telefono.replace(/[^0-9]/g, '')}?text=${encodeURIComponent('¡Hola! Tu cuenta del Portal Mayorista ' + marcaNom + ' ya está lista. Crea tu contraseña aquí: ' + d.link)}` : null
         setAcceso({ email: d.email, emailSent: d.emailSent, link: d.link, waLink: wa })
       }
       await cargar(); await recargarEventos(requestId)
@@ -273,9 +274,9 @@ export default function SolicitudesAcceso() {
                 <div className="bg-gray-50 rounded-xl p-3 text-sm space-y-2">
                   <div className="flex items-center justify-between gap-2"><span className="text-gray-400 text-xs">Correo</span><span className="font-mono text-[#1a1a1a] text-xs">{pwOk.email}</span></div>
                   <div className="flex items-center justify-between gap-2"><span className="text-gray-400 text-xs">Contraseña</span><span className="font-mono text-[#1a1a1a]">{pwValue}</span></div>
-                  <div className="flex items-center justify-between gap-2"><span className="text-gray-400 text-xs">Portal</span><span className="text-[#1a1a1a] text-xs">nommafood.cl/portal/mayoristas/login</span></div>
+                  <div className="flex items-center justify-between gap-2"><span className="text-gray-400 text-xs">Portal</span><span className="text-[#1a1a1a] text-xs">nommafood.cl/portal/mayoristas/login{(sel?.origen || '').toLowerCase().includes('brotes') ? '?marca=brotes' : ''}</span></div>
                 </div>
-                <button onClick={() => navigator.clipboard?.writeText(`Ingresa a NOMMA FOOD:\nPortal: https://nommafood.cl/portal/mayoristas/login\nCorreo: ${pwOk.email}\nContraseña: ${pwValue}`)} className="w-full mt-3 flex items-center justify-center gap-2 text-sm font-semibold border border-gray-200 rounded-xl py-2.5 text-gray-600 hover:border-[#c9a24e]"><Copy size={14} /> Copiar datos para enviar al cliente</button>
+                <button onClick={() => { const eb = (sel?.origen || '').toLowerCase().includes('brotes'); const nom = eb ? 'BROTES ASIÁTICOS' : 'NOMMA FOOD'; const url = 'https://nommafood.cl/portal/mayoristas/login' + (eb ? '?marca=brotes' : ''); navigator.clipboard?.writeText(`Ingresa a ${nom}:\nPortal: ${url}\nCorreo: ${pwOk.email}\nContraseña: ${pwValue}`) }} className="w-full mt-3 flex items-center justify-center gap-2 text-sm font-semibold border border-gray-200 rounded-xl py-2.5 text-gray-600 hover:border-[#c9a24e]"><Copy size={14} /> Copiar datos para enviar al cliente</button>
                 <button onClick={() => setPwOpen(false)} className="w-full mt-2 bg-[#c9a24e] hover:bg-[#b8923f] text-[#1b2a4a] font-bold py-2.5 rounded-xl">Cerrar</button>
               </div>
             ) : (

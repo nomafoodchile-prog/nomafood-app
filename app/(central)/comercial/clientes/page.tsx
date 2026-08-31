@@ -14,7 +14,16 @@ interface Cliente {
   saldoPendiente: number
   estado: string
   contacto?: string
+  marca?: string
 }
+
+// Datos de marca para el mensaje que se copia y se envía al cliente.
+const MARCA_INFO = {
+  nomma:  { nombre: 'NOMMA FOOD',       login: 'https://nommafood.cl/portal/mayoristas/login' },
+  brotes: { nombre: 'BROTES ASIÁTICOS', login: 'https://nommafood.cl/portal/mayoristas/login?marca=brotes' },
+} as const
+const marcaDe = (c?: { marca?: string } | null): 'nomma' | 'brotes' =>
+  String(c?.marca || '').toLowerCase().includes('brotes') ? 'brotes' : 'nomma'
 
 function clp(n: number) {
   return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(n)
@@ -331,10 +340,10 @@ export default function ClientesPage() {
                 <div className="bg-gray-50 rounded-xl p-3 text-sm space-y-2">
                   <div className="flex items-center justify-between gap-2"><span className="text-gray-400 text-xs">Correo</span><span className="font-mono text-[#1a1a1a] text-xs">{pwEmail}</span></div>
                   <div className="flex items-center justify-between gap-2"><span className="text-gray-400 text-xs">Contraseña</span><span className="font-mono text-[#1a1a1a]">{pwValue}</span></div>
-                  <div className="flex items-center justify-between gap-2"><span className="text-gray-400 text-xs">Portal</span><span className="text-[#1a1a1a] text-xs">nommafood.cl/portal/mayoristas/login</span></div>
+                  <div className="flex items-center justify-between gap-2"><span className="text-gray-400 text-xs">Portal</span><span className="text-[#1a1a1a] text-xs">{MARCA_INFO[marcaDe(pwCliente)].login.replace('https://', '')}</span></div>
                 </div>
                 <button
-                  onClick={() => navigator.clipboard?.writeText(`Ingresa a NOMMA FOOD:\nPortal: https://nommafood.cl/portal/mayoristas/login\nCorreo: ${pwEmail}\nContraseña: ${pwValue}`)}
+                  onClick={() => { const mi = MARCA_INFO[marcaDe(pwCliente)]; navigator.clipboard?.writeText(`Ingresa a ${mi.nombre}:\nPortal: ${mi.login}\nCorreo: ${pwEmail}\nContraseña: ${pwValue}`) }}
                   className="w-full mt-3 flex items-center justify-center gap-2 text-sm font-semibold border border-gray-200 rounded-xl py-2.5 text-gray-600 hover:border-[#c9a24e]">
                   <Copy size={14} /> Copiar datos para enviar al cliente
                 </button>
