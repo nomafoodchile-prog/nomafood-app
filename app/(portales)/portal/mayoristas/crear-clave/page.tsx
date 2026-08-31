@@ -25,7 +25,9 @@ export default function CrearClave() {
 
   useEffect(() => {
     const qs = new URLSearchParams(window.location.search)
-    if (qs.get('marca') === 'brotes') { setMarca('brotes'); try { localStorage.setItem('bma_portal_marca', 'brotes') } catch {} }
+    // El dominio propio de Brotes fuerza la marca (aunque el enlace no traiga ?marca).
+    const esDominioBrotes = typeof window !== 'undefined' && window.location.hostname.includes('brotesasiaticos')
+    if (esDominioBrotes || qs.get('marca') === 'brotes') { setMarca('brotes'); try { localStorage.setItem('bma_portal_marca', 'brotes') } catch {} }
 
     // Flujo NUEVO: enlace con token propio (durable, no se rompe con Gmail).
     const tk = qs.get('token')

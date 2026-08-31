@@ -44,7 +44,7 @@ export default function CuentaMayorista() {
     setLoading(false)
   }, [router])
 
-  useEffect(() => { try { if (localStorage.getItem('bma_portal_marca') === 'brotes') setMarcaKey('brotes') } catch {} }, [])
+  useEffect(() => { try { if (window.location.hostname.includes('brotesasiaticos') || localStorage.getItem('bma_portal_marca') === 'brotes') setMarcaKey('brotes') } catch {} }, [])
   useEffect(() => { cargar() }, [cargar])
   useEffect(() => {
     if (!may) return
