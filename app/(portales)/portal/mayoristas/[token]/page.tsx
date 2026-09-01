@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo, type CSSProperties } from 'r
 import {
   ShoppingCart, Package, ChevronDown, ChevronUp, Trash2, Plus, Minus,
   CheckCircle2, AlertCircle, Clock, User, LogOut, RefreshCw,
-  CreditCard, ClipboardList, Search, Filter, Wifi, WifiOff, Sprout, MapPin, Loader2
+  CreditCard, ClipboardList, Search, Filter, Wifi, WifiOff, Sprout, MapPin, Loader2, Pencil
 } from 'lucide-react'
 
 /* ════════════════════════════════════════════════════════════
@@ -72,7 +72,7 @@ interface Pedido {
   created_at: string
   mp_status?: string
   mp_init_point?: string | null
-  items: { producto_nombre: string; cantidad: number; unidad: string; precio_final: number }[]
+  items: { producto_id?: string; producto_nombre: string; producto_sku?: string; cantidad: number; unidad: string; precio_lista?: number; precio_final: number }[]
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -154,6 +154,57 @@ export default function PortalMayoristas({ params }: { params: { token: string }
     } catch { alert('Sin conexión. Intenta de nuevo.') }
     setPagandoId(null)
   }
+
+  const [modificandoId, setModificandoId] = useState<string | null>(null)
+  // Modificar un pedido que aún NO se ha pagado: devuelve sus productos al carrito
+  // (sumándolos a lo que ya haya) y borra el pedido pendiente para no duplicarlo.
+  async function modificarPedido(pedido: Pedido) {
+    setModificandoId(pedido.id)
+    try {
+      // Reconstruir los items con los precios ACTUALES del catálogo cuando el
+      // producto sigue disponible; si no, con lo guardado en el pedido.
+      const reabiertos: CartItem[] = pedido.items.map(it => {
+        const prod = catalogo.find(p => p.id === it.producto_id)
+        if (prod) {
+          return {
+            producto_id: prod.id, producto_nombre: prod.nombre, producto_sku: prod.sku,
+            precio_lista: prod.precio_lista, precio_mayorista: prod.precio_mayorista,
+            unidad: prod.unidad, cantidad: it.cantidad,
+          }
+        }
+        return {
+          producto_id: it.producto_id || it.producto_nombre,
+          producto_nombre: it.producto_nombre, producto_sku: it.producto_sku || '',
+          precio_lista: it.precio_lista ?? it.precio_final, precio_mayorista: it.precio_final,
+          unidad: it.unidad, cantidad: it.cantidad,
+        }
+      })
+      // Borrar el pedido pendiente (no reserva stock → seguro).
+      const res = await fetch(`/api/portal/mayoristas/${token}/cancelar-pedido`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pedido_id: pedido.id }),
+      })
+      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || 'No se pudo modificar el pedido.') }
+      // Sumar al carrito actual (por si ya tenía algo agregado).
+      setCart(prev => {
+        const map = new Map<string, CartItem>(prev.map(i => [i.producto_id, { ...i }] as [string, CartItem]))
+        for (const ni of reabiertos) {
+          const ex = map.get(ni.producto_id)
+          if (ex) ex.cantidad += ni.cantidad
+          else map.set(ni.producto_id, ni)
+        }
+        return Array.from(map.values())
+      })
+      setShowPedidos(false); setShowCart(true); setShowNomma(false); setShowDir(false)
+      await loadData()
+      showFeedback('Tu pedido se reabrió en el carrito. Agrega lo que falte y confírmalo de nuevo.')
+    } catch (e: any) {
+      alert(e?.message || 'No se pudo modificar el pedido.')
+    } finally {
+      setModificandoId(null)
+    }
+  }
+
   const [successMsg, setSuccessMsg]   = useState<string | null>(null)
   const [dirForm, setDirForm]         = useState({ alias: '', direccion: '', comuna: '', contacto: '', telefono: '' })
   const [dirSaving, setDirSaving]     = useState(false)
@@ -1019,10 +1070,17 @@ export default function PortalMayoristas({ params }: { params: { token: string }
                         </div>
                       )}
                       {pedido.estado === 'pendiente_pago' && (
-                        <button onClick={() => pagarPedido(pedido)} disabled={pagandoId === pedido.id}
-                           className="mt-3 flex items-center justify-center gap-2 w-full bg-[#009ee3] hover:bg-[#007ec0] text-white font-semibold py-2.5 rounded-xl transition-colors disabled:opacity-60">
-                          {pagandoId === pedido.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />} Pagar ahora
-                        </button>
+                        <div className="mt-3 space-y-2">
+                          <button onClick={() => pagarPedido(pedido)} disabled={pagandoId === pedido.id || modificandoId === pedido.id}
+                             className="flex items-center justify-center gap-2 w-full bg-[#009ee3] hover:bg-[#007ec0] text-white font-semibold py-2.5 rounded-xl transition-colors disabled:opacity-60">
+                            {pagandoId === pedido.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />} Pagar ahora
+                          </button>
+                          <button onClick={() => modificarPedido(pedido)} disabled={pagandoId === pedido.id || modificandoId === pedido.id}
+                             className="flex items-center justify-center gap-2 w-full border border-[var(--bx-primary)] text-[var(--bx-primary)] hover:bg-[var(--bx-primary)]/5 font-semibold py-2.5 rounded-xl transition-colors disabled:opacity-60">
+                            {modificandoId === pedido.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Pencil className="w-4 h-4" />} Modificar pedido
+                          </button>
+                          <p className="text-[11px] text-gray-400 text-center">Puedes agregar o quitar productos antes de pagar.</p>
+                        </div>
                       )}
                     </div>
                   </div>
