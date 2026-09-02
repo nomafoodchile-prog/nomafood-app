@@ -6,22 +6,56 @@ const N = (v: unknown) => { const n = Number(v); return Number.isNaN(n) ? 0 : n 
 const S = (v: unknown) => v === null || v === undefined ? '' : String(v)
 function esc(s: unknown) { return S(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') }
 
+// Remitente del correo según la marca de la audiencia (Brotes o NOMMA).
+export function remitentePorMarca(marca?: unknown): string {
+  const m = S(marca).toLowerCase()
+  if (m.includes('brotes')) {
+    return process.env.MARKETING_BROTES_FROM_EMAIL || process.env.WHOLESALE_BROTES_FROM_EMAIL || 'Brotes Asiaticos <marketing@nomafood.cl>'
+  }
+  return process.env.MARKETING_FROM_EMAIL || 'NOMMA FOOD <marketing@nomafood.cl>'
+}
+
 export function buildHtml(c: Row, nombre: string, bajaUrl: string): string {
   const fonts: Record<string, string> = { Poppins: 'Poppins,Arial,sans-serif', Inter: 'Inter,Arial,sans-serif', Playfair: "'Playfair Display',Georgia,serif", Montserrat: 'Montserrat,Arial,sans-serif' }
   const font = fonts[S(c.tipografia)] || 'Arial,sans-serif'
+  // Marca de la audiencia → identidad del correo (pie + color del botón).
+  const esBrotes = S((c.audiencia as Row | undefined)?.marca).toLowerCase().includes('brotes')
+  const marcaPie = esBrotes ? 'BROTES ASIÁTICOS' : 'NOMMA FOOD'
+  const btnBg = esBrotes ? '#e6b23f' : '#c9a24e'
+  const btnColor = esBrotes ? '#143026' : '#1b2a4a'
   const prods = Array.isArray(c.productos) ? (c.productos as Row[]) : []
   const prodHtml = prods.map(p => `<div style="border:1px solid #eee;border-radius:10px;padding:12px;margin:8px 0;text-align:center">${p.foto ? `<img src="${esc(p.foto)}" style="max-width:100%;border-radius:8px" alt="">` : ''}<div style="font-weight:600;color:#1b2a4a;margin-top:6px">${esc(p.nombre)}</div>${p.precio ? `<div style="color:#c9a24e;font-weight:600">$${N(p.precio).toLocaleString('es-CL')}</div>` : ''}${p.url ? `<a href="${esc(p.url)}" style="color:#185FA5;font-size:13px">Ver producto</a>` : ''}</div>`).join('')
   const cup = c.cupon as Row | null
   const cupon = cup ? `<div style="background:#f5efdf;border-radius:8px;padding:10px;text-align:center;margin:12px 0;color:#5f4b1a">Cupón <b>${esc(cup.codigo)}</b> — ${S(cup.tipo) === 'porcentaje' ? N(cup.valor) + '%' : '$' + N(cup.valor).toLocaleString('es-CL')} de descuento${cup.hasta ? ` · válido hasta ${esc(cup.hasta)}` : ''}</div>` : ''
-  const boton = c.boton_url ? `<div style="text-align:center;margin:22px 0"><a href="${esc(c.boton_url)}" style="background:#c9a24e;color:#1b2a4a;font-weight:600;padding:12px 30px;border-radius:8px;text-decoration:none;display:inline-block">${esc(c.boton_texto) || 'Comprar ahora'}</a></div>` : ''
+  const boton = c.boton_url ? `<div style="text-align:center;margin:22px 0"><a href="${esc(c.boton_url)}" style="background:${btnBg};color:${btnColor};font-weight:600;padding:12px 30px;border-radius:8px;text-decoration:none;display:inline-block">${esc(c.boton_texto) || 'Comprar ahora'}</a></div>` : ''
   const media = c.imagen_url ? `<a href="${esc(c.video_url || c.boton_url || '#')}"><img src="${esc(c.imagen_url)}" style="width:100%;display:block" alt=""></a>` : ''
   const body = esc(c.contenido_html).replace(/\n/g, '<br>')
-  return `<div style="font-family:${font};max-width:600px;margin:0 auto;background:#fff">${c.preheader ? `<div style="display:none;max-height:0;overflow:hidden">${esc(c.preheader)}</div>` : ''}${media}<div style="padding:22px;color:#333"><p>¡Hola ${esc(nombre)}!</p><div style="line-height:1.7">${body}</div>${prodHtml}${cupon}${boton}</div><div style="padding:14px;text-align:center;font-size:11px;color:#999;border-top:1px solid #eee">NOMMA FOOD · Alma Libre Grupo SpA<br><a href="${bajaUrl}" style="color:#999">Darse de baja</a></div></div>`
+  return `<div style="font-family:${font};max-width:600px;margin:0 auto;background:#fff">${c.preheader ? `<div style="display:none;max-height:0;overflow:hidden">${esc(c.preheader)}</div>` : ''}${media}<div style="padding:22px;color:#333"><p>¡Hola ${esc(nombre)}!</p><div style="line-height:1.7">${body}</div>${prodHtml}${cupon}${boton}</div><div style="padding:14px;text-align:center;font-size:11px;color:#999;border-top:1px solid #eee">${marcaPie} · Alma Libre Grupo SpA<br><a href="${bajaUrl}" style="color:#999">Darse de baja</a></div></div>`
 }
 
 export async function resolverAudiencia(db: DB, aud: Row | null) {
   const seg = S(aud?.segmento) || 'todos'
-  let q = db.from('mayoristas').select('id, nombre, empresa, email, activo, tipo, categoria, created_at, baja_marketing').not('email', 'is', null)
+  const marca = S(aud?.marca) // '' = todas las marcas; si no, filtra por esa marca
+
+  // Segmento "minorista": clientes retail (compradores de la web) desde minorista_pedidos.
+  if (seg === 'minorista') {
+    const { data: bajas } = await db.from('mkt_envios').select('contacto_email').eq('baja', true)
+    const optout = new Set(((bajas as Row[] | null) || []).map(b => S(b.contacto_email).trim().toLowerCase()))
+    let mq = db.from('minorista_pedidos').select('cliente_email, cliente_nombre, marca').not('cliente_email', 'is', null)
+    if (marca) mq = mq.eq('marca', marca)
+    const { data } = await mq
+    const map = new Map<string, { ref: string; email: string; nombre: string }>()
+    for (const r of ((data as Row[] | null) || [])) {
+      const email = S(r.cliente_email).trim().toLowerCase()
+      if (!email || optout.has(email) || map.has(email)) continue
+      map.set(email, { ref: email, email, nombre: (S(r.cliente_nombre) || 'cliente').split(' ')[0] })
+    }
+    return Array.from(map.values())
+  }
+
+  // Mayoristas (con filtro opcional de marca).
+  let q = db.from('mayoristas').select('id, nombre, empresa, email, activo, tipo, categoria, marca, created_at, baja_marketing').not('email', 'is', null)
+  if (marca) q = q.eq('marca', marca)
   if (seg === 'activos') q = q.eq('activo', true)
   else if (seg === 'inactivos') q = q.eq('activo', false)
   else if (seg === 'nuevos') q = q.gte('created_at', new Date(Date.now() - 30 * 86400000).toISOString())
@@ -46,7 +80,7 @@ export function validarCampana(c: Row): string | null {
 export async function enviarCampana(db: DB, c: Row, base: string): Promise<{ ok: boolean; enviados: number; errores: number; total: number; error?: string }> {
   const key = process.env.RESEND_API_KEY
   if (!key) return { ok: false, enviados: 0, errores: 0, total: 0, error: 'Falta configurar RESEND_API_KEY' }
-  const from = process.env.MARKETING_FROM_EMAIL || 'NOMMA FOOD <marketing@nomafood.cl>'
+  const from = remitentePorMarca((c.audiencia as Row | undefined)?.marca)
   const contactos = await resolverAudiencia(db, c.audiencia as Row)
   if (contactos.length === 0) return { ok: false, enviados: 0, errores: 0, total: 0, error: 'La audiencia no tiene destinatarios con email' }
   if (c.cupon_id) { const { data: cu } = await db.from('mkt_cupones').select('*').eq('id', String(c.cupon_id)).maybeSingle(); c.cupon = cu }
