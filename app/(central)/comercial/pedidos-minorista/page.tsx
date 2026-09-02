@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ShoppingCart, Loader2, RefreshCw, X, MapPin, Phone, Mail, Package } from 'lucide-react'
-import { supabase } from '@/lib/supabase/client'
 
 interface Item { id: string; producto_nombre: string; producto_sku: string | null; cantidad: number; precio: number }
 interface Pedido {
@@ -31,12 +30,15 @@ export default function PedidosMinorista() {
 
   const cargar = useCallback(async () => {
     setLoading(true)
-    const { data } = await supabase
-      .from('minorista_pedidos')
-      .select('*, items:minorista_pedido_items(*)')
-      .order('created_at', { ascending: false })
-      .limit(200)
-    setRows((data as Pedido[]) || [])
+    // Leemos por la API del servidor (service-role + rol admin): la tabla tiene RLS
+    // y no debe exponerse a todo usuario autenticado (datos de clientes retail).
+    try {
+      const res = await fetch('/api/central/pedidos-minorista')
+      const d = await res.json().catch(() => ({}))
+      setRows(res.ok ? ((d.pedidos as Pedido[]) || []) : [])
+    } catch {
+      setRows([])
+    }
     setLoading(false)
   }, [])
   useEffect(() => { cargar() }, [cargar])
