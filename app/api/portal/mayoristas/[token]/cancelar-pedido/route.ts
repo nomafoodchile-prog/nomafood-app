@@ -4,10 +4,12 @@ import { createServerClient } from '@/lib/supabase/server'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-// POST { pedido_id } — Elimina un pedido del cliente que AÚN no ha pagado.
-// Un pedido "pendiente_pago" no reserva ni descuenta stock, así que borrarlo es
-// seguro. Se usa para "Modificar pedido": el cliente reabre sus productos en el
-// carrito (en el front) y este endpoint borra el pedido viejo para no duplicar.
+// POST { pedido_id } — Marca como CANCELADO un pedido del cliente aún no pagado
+// (usado por "Modificar pedido": el cliente reabre sus productos en el carrito).
+// IMPORTANTE: NO se borra la fila. Antes se hacía DELETE y eso hacía "desaparecer"
+// pedidos por transferencia que el cliente YA había pagado (llegaba la plata pero
+// el pedido no quedaba en ninguna parte). Ahora queda como 'cancelado' → siempre
+// hay traza y nada se pierde.
 export async function POST(req: NextRequest, { params }: { params: { token: string } }) {
   const db = createServerClient()
 
@@ -37,8 +39,12 @@ export async function POST(req: NextRequest, { params }: { params: { token: stri
     return NextResponse.json({ error: 'Este pedido ya no se puede modificar.' }, { status: 409 })
   }
 
-  await db.from('mayorista_pedido_items').delete().eq('pedido_id', pedidoId)
-  await db.from('mayorista_pedidos').delete().eq('id', pedidoId)
+  // Cancelación SUAVE: no se borra la fila (así nunca "desaparece" un pedido).
+  const { error } = await db
+    .from('mayorista_pedidos')
+    .update({ estado: 'cancelado', estado_updated_at: new Date().toISOString() })
+    .eq('id', pedidoId)
+  if (error) return NextResponse.json({ error: 'No se pudo modificar el pedido.' }, { status: 500 })
 
   return NextResponse.json({ ok: true })
 }
