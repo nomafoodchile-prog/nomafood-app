@@ -10,9 +10,9 @@ export async function GET() {
   const BASE = 'id, nombre, categoria, subcategoria, descripcion, descripcion_publica, foto_oficial_url, precio, precio_venta, unidad_venta, tipo_producto, marca'
   // Resiliente: intenta con la 2a foto (empaque); si la columna aun no existe, cae a la base.
   let q: any = await db.from('products').select(BASE + ', foto_empaque_url')
-    .eq('visible_catalogo', true).order('categoria', { ascending: true }).order('nombre', { ascending: true })
+    .eq('visible_catalogo', true).order('categoria', { ascending: true }).order('subcategoria', { ascending: true, nullsFirst: false }).order('nombre', { ascending: true })
   if (q.error) q = await db.from('products').select(BASE)
-    .eq('visible_catalogo', true).order('categoria', { ascending: true }).order('nombre', { ascending: true })
+    .eq('visible_catalogo', true).order('categoria', { ascending: true }).order('subcategoria', { ascending: true, nullsFirst: false }).order('nombre', { ascending: true })
   const data = q.data
 
   // Excluye tipos internos (insumos/materia prima) por si quedaran "visibles".

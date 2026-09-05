@@ -39,11 +39,12 @@ export async function GET(
 
     const { data: productos } = await supabase
       .from('products')
-      .select('id, nombre, sku, precio, unidad, categoria, stock_actual, imagen_url, descripcion, tipo_producto')
+      .select('id, nombre, sku, precio, unidad, categoria, subcategoria, stock_actual, imagen_url, descripcion, tipo_producto')
       .eq('activo', true)
       .eq('marca', marcaCliente)
       .eq('visible_catalogo', true)
       .order('categoria')
+      .order('subcategoria', { ascending: true, nullsFirst: false })
       .order('nombre')
 
     const catalogo = (productos || [])
