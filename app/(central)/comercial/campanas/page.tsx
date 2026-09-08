@@ -13,7 +13,9 @@ const ENVIAR = ['SuperAdmin', 'Administracion', 'Gerencia']
 const TIPOGRAFIAS = ['Poppins', 'Inter', 'Playfair', 'Montserrat']
 const TIPOS = ['restaurante', 'universidad', 'minimarket', 'retail', 'oficina']
 const CATEGORIAS = ['pasteleria', 'salados', 'vegano', 'asiatica']
-const SEGMENTOS: [string, string][] = [['todos', 'Todos los mayoristas'], ['activos', 'Mayoristas activos'], ['inactivos', 'Mayoristas inactivos'], ['nuevos', 'Nuevos (30 días)'], ['tipo', 'Por tipo de cliente'], ['categoria', 'Por categoría de compra']]
+const SEGMENTOS: [string, string][] = [['todos', 'Todos los mayoristas'], ['activos', 'Mayoristas activos'], ['inactivos', 'Mayoristas inactivos'], ['nuevos', 'Nuevos (30 días)'], ['tipo', 'Por tipo de cliente'], ['categoria', 'Por categoría de compra'], ['minorista', 'Clientes minorista (retail)']]
+// Marca de la audiencia: separa NOMMA de Brotes para no mezclar públicos.
+const MARCAS: [string, string][] = [['', 'Todas las marcas'], ['NOMMA FOOD', 'Solo NOMMA FOOD'], ['Brotes Asiáticos', 'Solo Brotes Asiáticos']]
 const ESTADO: Record<string, { l: string; c: string }> = {
   borrador: { l: 'Borrador', c: 'bg-gray-100 text-gray-500' }, programada: { l: 'Programada', c: 'bg-blue-100 text-blue-700' },
   enviada: { l: 'Enviada', c: 'bg-green-100 text-green-700' }, pausada: { l: 'Pausada', c: 'bg-amber-100 text-amber-700' },
@@ -147,6 +149,7 @@ export default function CampanasPage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div><label className="text-xs text-gray-500">Marca</label><select className="noma-input mt-1" value={S(aud.marca)} onChange={e => setAud('marca', e.target.value)}>{MARCAS.map(m => <option key={m[0]} value={m[0]}>{m[1]}</option>)}</select></div>
             <div><label className="text-xs text-gray-500">Audiencia</label><select className="noma-input mt-1" value={S(aud.segmento)} onChange={e => setAud('segmento', e.target.value)}><option value="">Elegir…</option>{SEGMENTOS.map(s => <option key={s[0]} value={s[0]}>{s[1]}</option>)}</select></div>
             {S(aud.segmento) === 'tipo' ? <div><label className="text-xs text-gray-500">Tipo</label><select className="noma-input mt-1" value={S(aud.tipo)} onChange={e => setAud('tipo', e.target.value)}><option value="">—</option>{TIPOS.map(t => <option key={t} value={t}>{t}</option>)}</select></div> : null}
             {S(aud.segmento) === 'categoria' ? <div><label className="text-xs text-gray-500">Categoría</label><select className="noma-input mt-1" value={S(aud.categoria)} onChange={e => setAud('categoria', e.target.value)}><option value="">—</option>{CATEGORIAS.map(t => <option key={t} value={t}>{t}</option>)}</select></div> : null}

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSupabase } from '@/lib/supabase/auth-server'
 import { createServerClient } from '@/lib/supabase/server'
-import { buildHtml, resolverAudiencia, validarCampana, enviarCampana } from '@/lib/marketing'
+import { buildHtml, resolverAudiencia, validarCampana, enviarCampana, remitentePorMarca } from '@/lib/marketing'
 
 export const runtime = 'nodejs'
 
@@ -27,7 +27,6 @@ export async function POST(req: NextRequest) {
   const db = createServerClient()
   const puedeEnviar = ENVIAR.includes(auth.role)
   const base = new URL(req.url).origin
-  const from = process.env.MARKETING_FROM_EMAIL || 'NOMMA FOOD <marketing@nomafood.cl>'
 
   // ── Guardar campaña (crear/actualizar) ───────────────────────────
   if (action === 'guardar') {
@@ -66,7 +65,8 @@ export async function POST(req: NextRequest) {
     const c = camp as Row
     if (c.cupon_id) { const { data: cu } = await db.from('mkt_cupones').select('*').eq('id', String(c.cupon_id)).maybeSingle(); c.cupon = cu }
     const html = buildHtml(c, 'prueba', `${base}/api/marketing/baja?demo=1`)
-    const r = await fetch('https://api.resend.com/emails', { method: 'POST', headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ from, to: emailPrueba, subject: `[PRUEBA] ${S(c.asunto) || 'Campaña NOMMA FOOD'}`, html }) })
+    const fromPrueba = remitentePorMarca((c.audiencia as Row | undefined)?.marca)
+    const r = await fetch('https://api.resend.com/emails', { method: 'POST', headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ from: fromPrueba, to: emailPrueba, subject: `[PRUEBA] ${S(c.asunto) || 'Campaña'}`, html }) })
     if (!r.ok) { const t = await r.text(); return NextResponse.json({ error: `No se pudo enviar la prueba: ${t.slice(0, 180)}` }, { status: 500 }) }
     await db.from('mkt_campanas').update({ prueba_enviada: true, updated_at: new Date().toISOString() }).eq('id', String(body.id))
     return NextResponse.json({ ok: true })
