@@ -7,10 +7,14 @@ const S = (v: unknown) => v === null || v === undefined ? '' : String(v)
 function esc(s: unknown) { return S(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') }
 
 // Remitente del correo según la marca de la audiencia (Brotes o NOMMA).
+// Brotes: usa MARKETING_BROTES_FROM_EMAIL SOLO si apunta a un dominio verificado
+// en Resend. Por defecto sale desde nomafood.cl (verificado) con el NOMBRE
+// visible "Brotes Asiaticos", para que el correo siempre se pueda enviar aunque
+// brotesasiaticos.cl aún no esté verificado en Resend.
 export function remitentePorMarca(marca?: unknown): string {
   const m = S(marca).toLowerCase()
   if (m.includes('brotes')) {
-    return process.env.MARKETING_BROTES_FROM_EMAIL || process.env.WHOLESALE_BROTES_FROM_EMAIL || 'Brotes Asiaticos <marketing@nomafood.cl>'
+    return process.env.MARKETING_BROTES_FROM_EMAIL || 'Brotes Asiaticos <marketing@nomafood.cl>'
   }
   return process.env.MARKETING_FROM_EMAIL || 'NOMMA FOOD <marketing@nomafood.cl>'
 }
