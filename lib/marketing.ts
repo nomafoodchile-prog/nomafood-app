@@ -41,6 +41,29 @@ export async function resolverAudiencia(db: DB, aud: Row | null) {
   const seg = S(aud?.segmento) || 'todos'
   const marca = S(aud?.marca) // '' = todas las marcas; si no, filtra por esa marca
 
+  // Segmento "importada": base de contactos cargada por CSV (tabla mkt_contactos).
+  // Pagina de a 1000 (límite de PostgREST) para traer TODOS (miles de contactos).
+  if (seg === 'importada') {
+    const { data: bajas } = await db.from('mkt_envios').select('contacto_email').eq('baja', true)
+    const optout = new Set(((bajas as Row[] | null) || []).map(b => S(b.contacto_email).trim().toLowerCase()))
+    const map = new Map<string, { ref: string; email: string; nombre: string }>()
+    const page = 1000
+    for (let from = 0; from < 200000; from += page) {
+      let q = db.from('mkt_contactos').select('email, nombre, marca').range(from, from + page - 1)
+      if (marca) q = q.eq('marca', marca)
+      const { data, error } = await q
+      const rows = (data as Row[] | null) || []
+      if (error || rows.length === 0) break
+      for (const r of rows) {
+        const email = S(r.email).trim().toLowerCase()
+        if (!email || optout.has(email) || map.has(email)) continue
+        map.set(email, { ref: email, email, nombre: (S(r.nombre) || 'cliente').split(' ')[0] })
+      }
+      if (rows.length < page) break
+    }
+    return Array.from(map.values())
+  }
+
   // Segmento "minorista": clientes retail (compradores de la web) desde minorista_pedidos.
   if (seg === 'minorista') {
     const { data: bajas } = await db.from('mkt_envios').select('contacto_email').eq('baja', true)

@@ -13,7 +13,7 @@ const ENVIAR = ['SuperAdmin', 'Administracion', 'Gerencia']
 const TIPOGRAFIAS = ['Poppins', 'Inter', 'Playfair', 'Montserrat']
 const TIPOS = ['restaurante', 'universidad', 'minimarket', 'retail', 'oficina']
 const CATEGORIAS = ['pasteleria', 'salados', 'vegano', 'asiatica']
-const SEGMENTOS: [string, string][] = [['todos', 'Todos los mayoristas'], ['activos', 'Mayoristas activos'], ['inactivos', 'Mayoristas inactivos'], ['nuevos', 'Nuevos (30 días)'], ['tipo', 'Por tipo de cliente'], ['categoria', 'Por categoría de compra'], ['minorista', 'Clientes minorista (retail)']]
+const SEGMENTOS: [string, string][] = [['todos', 'Todos los mayoristas'], ['activos', 'Mayoristas activos'], ['inactivos', 'Mayoristas inactivos'], ['nuevos', 'Nuevos (30 días)'], ['tipo', 'Por tipo de cliente'], ['categoria', 'Por categoría de compra'], ['minorista', 'Clientes minorista (retail)'], ['importada', 'Lista importada (base cargada)']]
 // Marca de la audiencia: separa NOMMA de Brotes para no mezclar públicos.
 const MARCAS: [string, string][] = [['', 'Todas las marcas'], ['NOMMA FOOD', 'Solo NOMMA FOOD'], ['Brotes Asiáticos', 'Solo Brotes Asiáticos']]
 const ESTADO: Record<string, { l: string; c: string }> = {
