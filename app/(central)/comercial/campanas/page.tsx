@@ -65,13 +65,13 @@ export default function CampanasPage() {
   }
 
   const aud = (ed?.audiencia as Row) || {}
-  const contarAudiencia = useCallback(async (a: Row) => {
+  const contarAudiencia = useCallback(async (a: Row, id?: unknown) => {
     if (!a.segmento) { setCuenta(null); return }
-    const r = await fetch('/api/central/marketing', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'audiencia', audiencia: a }) })
+    const r = await fetch('/api/central/marketing', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'audiencia', audiencia: a, id }) })
     const d = await r.json() as Row
     if (r.ok) setCuenta(N(d.total))
   }, [])
-  useEffect(() => { if (ed) contarAudiencia((ed.audiencia as Row) || {}) }, [ed, contarAudiencia])
+  useEffect(() => { if (ed) contarAudiencia((ed.audiencia as Row) || {}, ed.id) }, [ed, contarAudiencia])
 
   function set(k: string, v: unknown) { setEd(e => e ? { ...e, [k]: v } : e) }
   function setAud(k: string, v: unknown) { setEd(e => e ? { ...e, audiencia: { ...(e.audiencia as Row), [k]: v } } : e) }
@@ -153,8 +153,10 @@ export default function CampanasPage() {
             <div><label className="text-xs text-gray-500">Audiencia</label><select className="noma-input mt-1" value={S(aud.segmento)} onChange={e => setAud('segmento', e.target.value)}><option value="">Elegir…</option>{SEGMENTOS.map(s => <option key={s[0]} value={s[0]}>{s[1]}</option>)}</select></div>
             {S(aud.segmento) === 'tipo' ? <div><label className="text-xs text-gray-500">Tipo</label><select className="noma-input mt-1" value={S(aud.tipo)} onChange={e => setAud('tipo', e.target.value)}><option value="">—</option>{TIPOS.map(t => <option key={t} value={t}>{t}</option>)}</select></div> : null}
             {S(aud.segmento) === 'categoria' ? <div><label className="text-xs text-gray-500">Categoría</label><select className="noma-input mt-1" value={S(aud.categoria)} onChange={e => setAud('categoria', e.target.value)}><option value="">—</option>{CATEGORIAS.map(t => <option key={t} value={t}>{t}</option>)}</select></div> : null}
+            {(S(aud.segmento) === 'importada' || S(aud.segmento) === 'minorista') ? <div><label className="text-xs text-gray-500">Enviar de a (tanda)</label><input type="number" min={0} step={100} className="noma-input mt-1" value={aud.limite ? N(aud.limite) : ''} onChange={e => setAud('limite', e.target.value ? N(e.target.value) : 0)} placeholder="Todos" /></div> : null}
             <div className="flex items-end"><div className="text-sm text-gray-600 flex items-center gap-1.5"><Users size={15} className="text-[#c9a24e]" /> {cuenta === null ? '—' : `${cuenta} destinatarios`}</div></div>
           </div>
+          {(S(aud.segmento) === 'importada' || S(aud.segmento) === 'minorista') && N(aud.limite) > 0 ? <div className="text-[11px] text-gray-500 -mt-2 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">Envío por tandas: cada vez que le das <b>Enviar ahora</b> salen los siguientes {N(aud.limite)} que aún no reciben esta campaña (sin repetir). Repite el envío otro día hasta llegar a toda la base.</div> : null}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="sm:col-span-2"><label className="text-xs text-gray-500">Asunto</label><input className="noma-input mt-1" value={S(ed.asunto)} onChange={e => set('asunto', e.target.value)} /></div>

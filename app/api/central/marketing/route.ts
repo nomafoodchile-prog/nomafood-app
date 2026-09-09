@@ -50,7 +50,9 @@ export async function POST(req: NextRequest) {
 
   // ── Contar destinatarios de una audiencia ────────────────────────
   if (action === 'audiencia') {
-    const contactos = await resolverAudiencia(db, (body.audiencia as Row) || null)
+    // Pasa el id (si existe) para que, en envíos por tandas, el conteo muestre
+    // cuántos QUEDAN por recibir esta campaña (no los ya enviados).
+    const contactos = await resolverAudiencia(db, (body.audiencia as Row) || null, body.id)
     return NextResponse.json({ ok: true, total: contactos.length, sample: contactos.slice(0, 5).map(c => c.email) })
   }
 
