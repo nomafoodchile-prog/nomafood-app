@@ -37,15 +37,29 @@ export function buildHtml(c: Row, nombre: string, bajaUrl: string): string {
   return `<div style="font-family:${font};max-width:600px;margin:0 auto;background:#fff">${c.preheader ? `<div style="display:none;max-height:0;overflow:hidden">${esc(c.preheader)}</div>` : ''}${media}<div style="padding:22px;color:#333"><p>¡Hola ${esc(nombre)}!</p><div style="line-height:1.7">${body}</div>${prodHtml}${cupon}${boton}</div><div style="padding:14px;text-align:center;font-size:11px;color:#999;border-top:1px solid #eee">${marcaPie} · Alma Libre Grupo SpA<br><a href="${bajaUrl}" style="color:#999">Darse de baja</a></div></div>`
 }
 
-export async function resolverAudiencia(db: DB, aud: Row | null) {
+export async function resolverAudiencia(db: DB, aud: Row | null, campanaId?: unknown) {
   const seg = S(aud?.segmento) || 'todos'
   const marca = S(aud?.marca) // '' = todas las marcas; si no, filtra por esa marca
+  // "Tanda": enviar de a N (para calentar el remitente). 0/undefined = sin límite.
+  const limite = N(aud?.limite)
+
+  // Contactos que ya recibieron ESTA campaña (para envío por tandas: no repetir).
+  // Se combinan con las bajas para excluirlos de la próxima tanda.
+  async function excluidos(): Promise<Set<string>> {
+    const { data: bajas } = await db.from('mkt_envios').select('contacto_email').eq('baja', true)
+    const set = new Set(((bajas as Row[] | null) || []).map(b => S(b.contacto_email).trim().toLowerCase()))
+    const cid = S(campanaId)
+    if (cid) {
+      const { data: ya } = await db.from('mkt_envios').select('contacto_email').eq('campana_id', cid).eq('estado', 'enviado')
+      for (const r of ((ya as Row[] | null) || [])) set.add(S(r.contacto_email).trim().toLowerCase())
+    }
+    return set
+  }
 
   // Segmento "importada": base de contactos cargada por CSV (tabla mkt_contactos).
   // Pagina de a 1000 (límite de PostgREST) para traer TODOS (miles de contactos).
   if (seg === 'importada') {
-    const { data: bajas } = await db.from('mkt_envios').select('contacto_email').eq('baja', true)
-    const optout = new Set(((bajas as Row[] | null) || []).map(b => S(b.contacto_email).trim().toLowerCase()))
+    const optout = await excluidos()
     const map = new Map<string, { ref: string; email: string; nombre: string }>()
     const page = 1000
     for (let from = 0; from < 200000; from += page) {
@@ -59,15 +73,16 @@ export async function resolverAudiencia(db: DB, aud: Row | null) {
         if (!email || optout.has(email) || map.has(email)) continue
         map.set(email, { ref: email, email, nombre: (S(r.nombre) || 'cliente').split(' ')[0] })
       }
+      if (limite > 0 && map.size >= limite) break // ya juntamos la tanda: no seguir paginando
       if (rows.length < page) break
     }
-    return Array.from(map.values())
+    const arr = Array.from(map.values())
+    return limite > 0 ? arr.slice(0, limite) : arr
   }
 
   // Segmento "minorista": clientes retail (compradores de la web) desde minorista_pedidos.
   if (seg === 'minorista') {
-    const { data: bajas } = await db.from('mkt_envios').select('contacto_email').eq('baja', true)
-    const optout = new Set(((bajas as Row[] | null) || []).map(b => S(b.contacto_email).trim().toLowerCase()))
+    const optout = await excluidos()
     let mq = db.from('minorista_pedidos').select('cliente_email, cliente_nombre, marca').not('cliente_email', 'is', null)
     if (marca) mq = mq.eq('marca', marca)
     const { data } = await mq
@@ -77,7 +92,8 @@ export async function resolverAudiencia(db: DB, aud: Row | null) {
       if (!email || optout.has(email) || map.has(email)) continue
       map.set(email, { ref: email, email, nombre: (S(r.cliente_nombre) || 'cliente').split(' ')[0] })
     }
-    return Array.from(map.values())
+    const arr = Array.from(map.values())
+    return limite > 0 ? arr.slice(0, limite) : arr
   }
 
   // Mayoristas (con filtro opcional de marca).
@@ -108,8 +124,9 @@ export async function enviarCampana(db: DB, c: Row, base: string): Promise<{ ok:
   const key = process.env.RESEND_API_KEY
   if (!key) return { ok: false, enviados: 0, errores: 0, total: 0, error: 'Falta configurar RESEND_API_KEY' }
   const from = remitentePorMarca((c.audiencia as Row | undefined)?.marca)
-  const contactos = await resolverAudiencia(db, c.audiencia as Row)
-  if (contactos.length === 0) return { ok: false, enviados: 0, errores: 0, total: 0, error: 'La audiencia no tiene destinatarios con email' }
+  // Pasa el id: así, en envíos por tandas, excluye a quienes ya recibieron esta campaña.
+  const contactos = await resolverAudiencia(db, c.audiencia as Row, c.id)
+  if (contactos.length === 0) return { ok: false, enviados: 0, errores: 0, total: 0, error: 'Ya no quedan destinatarios pendientes en esta audiencia (todos recibieron esta campaña o se dieron de baja).' }
   if (c.cupon_id) { const { data: cu } = await db.from('mkt_cupones').select('*').eq('id', String(c.cupon_id)).maybeSingle(); c.cupon = cu }
   let enviados = 0, errores = 0
   const rows: Row[] = []
@@ -126,6 +143,9 @@ export async function enviarCampana(db: DB, c: Row, base: string): Promise<{ ok:
     rows.push({ campana_id: c.id, contacto_ref: ct.ref, contacto_email: ct.email, contacto_nombre: ct.nombre, estado: ok ? 'enviado' : 'fallido', error: e, provider_id: provider, sent_at: ok ? new Date().toISOString() : null })
   }
   await db.from('mkt_envios').insert(rows)
-  await db.from('mkt_campanas').update({ estado: 'enviada', stats: { total: contactos.length, enviados, errores, entregados: 0, abiertos: 0, clics: 0, compras: 0, monto: 0 }, updated_at: new Date().toISOString() }).eq('id', String(c.id))
+  // Acumulado real de esta campaña (suma todas las tandas ya enviadas con éxito).
+  const { count: acum } = await db.from('mkt_envios').select('id', { count: 'exact', head: true }).eq('campana_id', String(c.id)).eq('estado', 'enviado')
+  const enviadosTotal = typeof acum === 'number' ? acum : enviados
+  await db.from('mkt_campanas').update({ estado: 'enviada', stats: { total: enviadosTotal, ultima_tanda: enviados, enviados: enviadosTotal, errores, entregados: 0, abiertos: 0, clics: 0, compras: 0, monto: 0 }, updated_at: new Date().toISOString() }).eq('id', String(c.id))
   return { ok: true, enviados, errores, total: contactos.length }
 }
