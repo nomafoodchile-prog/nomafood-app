@@ -128,19 +128,58 @@ export async function enviarCampana(db: DB, c: Row, base: string): Promise<{ ok:
   const contactos = await resolverAudiencia(db, c.audiencia as Row, c.id)
   if (contactos.length === 0) return { ok: false, enviados: 0, errores: 0, total: 0, error: 'Ya no quedan destinatarios pendientes en esta audiencia (todos recibieron esta campaña o se dieron de baja).' }
   if (c.cupon_id) { const { data: cu } = await db.from('mkt_cupones').select('*').eq('id', String(c.cupon_id)).maybeSingle(); c.cupon = cu }
+  const asunto = S(c.asunto)
+  const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   let enviados = 0, errores = 0
   const rows: Row[] = []
+
+  // Prepara los correos válidos (descarta formatos claramente inválidos sin
+  // gastar una llamada a Resend: se marcan como fallidos y se reintentan luego).
+  const validos: { ct: { ref: string; email: string; nombre: string }; html: string }[] = []
   for (const ct of contactos) {
+    if (!emailRe.test(ct.email)) {
+      errores++
+      rows.push({ campana_id: c.id, contacto_ref: ct.ref, contacto_email: ct.email, contacto_nombre: ct.nombre, estado: 'fallido', error: 'email con formato inválido', provider_id: null, sent_at: null })
+      continue
+    }
     const bajaUrl = `${base}/api/marketing/baja?e=${encodeURIComponent(ct.email)}&camp=${S(c.id)}`
-    const html = buildHtml(c, ct.nombre, bajaUrl)
+    validos.push({ ct, html: buildHtml(c, ct.nombre, bajaUrl) })
+  }
+
+  // Envío por LOTES con la API batch de Resend (hasta 100 por llamada): evita el
+  // límite de velocidad que rechazaba correos cuando se enviaban uno por uno.
+  const enviarUno = async (x: { ct: { ref: string; email: string; nombre: string }; html: string }) => {
     let ok = false, provider: string | null = null, e: string | null = null
     try {
-      const r = await fetch('https://api.resend.com/emails', { method: 'POST', headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ from, to: ct.email, subject: S(c.asunto), html }) })
+      const r = await fetch('https://api.resend.com/emails', { method: 'POST', headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ from, to: x.ct.email, subject: asunto, html: x.html }) })
       ok = r.ok
       if (ok) { const j = await r.json() as Row; provider = S(j.id) } else { e = (await r.text()).slice(0, 180) }
     } catch (ex) { e = String(ex).slice(0, 180) }
     if (ok) enviados++; else errores++
-    rows.push({ campana_id: c.id, contacto_ref: ct.ref, contacto_email: ct.email, contacto_nombre: ct.nombre, estado: ok ? 'enviado' : 'fallido', error: e, provider_id: provider, sent_at: ok ? new Date().toISOString() : null })
+    rows.push({ campana_id: c.id, contacto_ref: x.ct.ref, contacto_email: x.ct.email, contacto_nombre: x.ct.nombre, estado: ok ? 'enviado' : 'fallido', error: e, provider_id: provider, sent_at: ok ? new Date().toISOString() : null })
+  }
+
+  const LOTE = 100
+  for (let i = 0; i < validos.length; i += LOTE) {
+    const lote = validos.slice(i, i + LOTE)
+    let okBatch = false
+    let ids: string[] = []
+    try {
+      const r = await fetch('https://api.resend.com/emails/batch', { method: 'POST', headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' }, body: JSON.stringify(lote.map(x => ({ from, to: x.ct.email, subject: asunto, html: x.html }))) })
+      if (r.ok) { const j = await r.json() as Row; ids = ((j.data as Row[] | null) || []).map(d => S(d.id)); okBatch = true }
+    } catch { /* cae al envío individual */ }
+    if (okBatch) {
+      lote.forEach((x, idx) => {
+        enviados++
+        rows.push({ campana_id: c.id, contacto_ref: x.ct.ref, contacto_email: x.ct.email, contacto_nombre: x.ct.nombre, estado: 'enviado', error: null, provider_id: ids[idx] || null, sent_at: new Date().toISOString() })
+      })
+    } else {
+      // Si el lote falla (p. ej. un correo problemático), se envía uno por uno
+      // para aislar solo el/los que fallan y no perder el resto del lote.
+      for (const x of lote) await enviarUno(x)
+    }
+    // Respiro breve entre lotes (cuida la reputación del remitente nuevo).
+    if (i + LOTE < validos.length) await new Promise(res => setTimeout(res, 300))
   }
   await db.from('mkt_envios').insert(rows)
   // Acumulado real de esta campaña (suma todas las tandas ya enviadas con éxito).
