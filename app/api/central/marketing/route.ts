@@ -4,6 +4,8 @@ import { createServerClient } from '@/lib/supabase/server'
 import { buildHtml, resolverAudiencia, validarCampana, enviarCampana, remitentePorMarca } from '@/lib/marketing'
 
 export const runtime = 'nodejs'
+// Los envíos masivos pueden tomar varios segundos; damos margen al servidor.
+export const maxDuration = 300
 
 const VER = ['SuperAdmin', 'Administracion', 'Gerencia', 'Comercial']
 const ENVIAR = ['SuperAdmin', 'Administracion', 'Gerencia']
