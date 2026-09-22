@@ -81,12 +81,16 @@ export async function POST(req: NextRequest) {
     }
     const tipo = f.tipo_producto ? String(f.tipo_producto) : 'terminado_fabricado'
     const esFood = tipo === 'terminado_fabricado'
+    // Solo los tipos vendibles pueden estar visibles en catálogo (regla chk_visible_solo_vendibles).
+    // Materia prima / insumo / preelaboración se crean NO visibles para no violar la restricción.
+    const VENDIBLES = ['terminado_fabricado', 'reventa', 'kit']
     const unidadVenta = f.unidad_venta ? String(f.unidad_venta) : null
     const { data, error } = await db.from('products').insert({
       nombre,
       sku:           f.sku ? String(f.sku).trim() : null,
       categoria:     f.categoria ? String(f.categoria).trim() : null,
       tipo_producto: tipo,
+      visible_catalogo: VENDIBLES.includes(tipo),
       estado_ciclo:  'borrador',
       unidad_venta:  unidadVenta,
       unidad:        unidadVenta || 'un',
