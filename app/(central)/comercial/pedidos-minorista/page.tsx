@@ -1,7 +1,11 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { ShoppingCart, Loader2, RefreshCw, X, MapPin, Phone, Mail, Package } from 'lucide-react'
+import { ShoppingCart, Loader2, RefreshCw, X, MapPin, Phone, Mail, Package, Printer } from 'lucide-react'
+
+// Estados que representan un pedido PAGADO / activo (se puede imprimir su OC para armar).
+const PAGADO = ['processing', 'procesando', 'on-hold', 'completado', 'completed', 'pagado']
+const esPagado = (estado: string) => PAGADO.includes(String(estado || '').toLowerCase())
 
 interface Item { id: string; producto_nombre: string; producto_sku: string | null; cantidad: number; precio: number }
 interface Pedido {
@@ -78,6 +82,7 @@ export default function PedidosMinorista() {
               <th className="text-left px-4 py-2">Pedido</th><th className="text-left px-4 py-2">Cliente</th>
               <th className="text-left px-4 py-2">Comuna</th><th className="text-right px-4 py-2">Total</th>
               <th className="text-left px-4 py-2">Estado</th><th className="text-left px-4 py-2">Fecha</th>
+              <th className="text-right px-4 py-2">OC</th>
             </tr></thead>
             <tbody>
               {filtered.map(p => (
@@ -88,6 +93,14 @@ export default function PedidosMinorista() {
                   <td className="px-4 py-2.5 text-right font-semibold">{fmt(p.total)}</td>
                   <td className="px-4 py-2.5"><span className={`text-xs px-2 py-0.5 rounded-full ${EST[p.estado] || 'noma-badge-gold'}`}>{p.estado}</span></td>
                   <td className="px-4 py-2.5 text-gray-500">{cuando(p.created_at)}</td>
+                  <td className="px-4 py-2.5 text-right" onClick={e => e.stopPropagation()}>
+                    {esPagado(p.estado) && (
+                      <a href={`/orden-compra-minorista/${p.id}`} target="_blank" rel="noopener noreferrer" title="Imprimir orden de compra"
+                        className="inline-flex items-center gap-1 text-xs font-semibold text-[#c9a24e] hover:underline whitespace-nowrap">
+                        <Printer className="w-3.5 h-3.5" /> OC
+                      </a>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -123,6 +136,16 @@ export default function PedidosMinorista() {
                 <div className="flex justify-between font-bold text-[#16233f] text-base pt-1 border-t"><span>Total</span><span>{fmt(sel.total)}</span></div>
                 {sel.metodo_pago && <div className="text-xs text-gray-400 text-right">Pago: {sel.metodo_pago}</div>}
               </div>
+            </div>
+            <div className="p-5 border-t">
+              <a
+                href={`/orden-compra-minorista/${sel.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex items-center justify-center gap-2 bg-[#c9a24e] hover:bg-[#b8923f] text-[#16233f] font-semibold py-2.5 rounded-xl transition-colors"
+              >
+                <Printer className="w-4 h-4" /> Imprimir orden de compra
+              </a>
             </div>
           </div>
         </div>
