@@ -27,6 +27,10 @@ export default function DashboardPage() {
 
   // KPIs
   const lastSnapshot = initialFinancialSnapshots[initialFinancialSnapshots.length - 1]
+  const prevSnapshot = initialFinancialSnapshots[initialFinancialSnapshots.length - 2]
+  const ventasDeltaPct = prevSnapshot?.income
+    ? Math.round(((lastSnapshot.income - prevSnapshot.income) / prevSnapshot.income) * 100)
+    : 0
   const prodDone = productionOrders.filter(p => p.status === 'Completada').length
   const prodPct = productionOrders.length ? Math.round((prodDone / productionOrders.length) * 100) : 0
   const vencidas = initialReceivables.filter(r => receivableComputedStatus(r) === 'Vencida')
@@ -89,10 +93,10 @@ export default function DashboardPage() {
 
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <KpiCard icon={ShoppingCart} label="Pedidos de hoy" value={orders.length} tone="gold" detailHref="/operaciones/pedidos" />
-        <KpiCard icon={Factory} label="Producción" value={`${prodPct}%`} tone="navy" detailHref="/operaciones/produccion" />
-        <KpiCard icon={DollarSign} label="Ventas del mes" value={currency(lastSnapshot?.income ?? 0)} tone="green" detailHref="/finanzas/balance" />
-        <KpiCard icon={FileWarning} label="Facturas vencidas" value={vencidas.length} tone="red" detailHref="/finanzas/cobranza" />
+        <KpiCard icon={ShoppingCart} label="Pedidos de hoy" value={orders.length} tone="gold" detailHref="/operaciones/pedidos" trend={{ text: `${dispatches.filter(d => d.status !== 'Entregado').length} por despachar`, tone: 'muted' }} />
+        <KpiCard icon={Factory} label="Producción" value={`${prodPct}%`} tone="navy" detailHref="/operaciones/produccion" trend={{ text: `${prodDone}/${productionOrders.length} completadas`, tone: 'muted' }} />
+        <KpiCard icon={DollarSign} label="Ventas del mes" value={currency(lastSnapshot?.income ?? 0)} tone="green" detailHref="/finanzas/balance" trend={{ text: `${ventasDeltaPct >= 0 ? '+' : ''}${ventasDeltaPct}% vs mes anterior`, tone: ventasDeltaPct >= 0 ? 'pos' : 'neg' }} />
+        <KpiCard icon={FileWarning} label="Facturas vencidas" value={vencidas.length} tone="red" detailHref="/finanzas/cobranza" trend={{ text: 'requieren gestión', tone: 'muted' }} />
       </div>
 
       {/* Flujo operativo + Alertas */}
