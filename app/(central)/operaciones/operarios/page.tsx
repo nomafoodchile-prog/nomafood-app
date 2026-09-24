@@ -33,6 +33,7 @@ export default function CentralOperariosPage() {
   const [cis, setCis] = useState<Row[]>([])
   const [sel, setSel] = useState<string | null>(null)
   const [crearOpen, setCrearOpen] = useState(false)
+  const [asignarOpen, setAsignarOpen] = useState(false)
 
   const cargar = useCallback(async () => {
     const { data: o } = await supabase.from('operarios').select('profile_id, area, turno_default, activo')
@@ -99,10 +100,14 @@ export default function CentralOperariosPage() {
     return (
       <div className="space-y-5">
         <button onClick={() => setSel(null)} className="flex items-center gap-1 text-sm text-gray-500 hover:text-[#1b2a4a]"><ArrowLeft size={15} /> Volver a operarios</button>
-        <div>
-          <h1 className="text-2xl font-bold text-[#1a1a1a]">{nombre(sel)}</h1>
-          <p className="text-sm text-gray-500">{m?.area || 'Sin área'} · {JORN_LBL[m?.estado || 'no_iniciado']?.l} · ingreso {hhmm(m?.ingreso)}</p>
+        <div className="flex items-start justify-between flex-wrap gap-3">
+          <div>
+            <h1 className="text-2xl font-bold text-[#1a1a1a]">{nombre(sel)}</h1>
+            <p className="text-sm text-gray-500">{m?.area || 'Sin área'} · {JORN_LBL[m?.estado || 'no_iniciado']?.l} · ingreso {hhmm(m?.ingreso)}</p>
+          </div>
+          <button onClick={() => setAsignarOpen(true)} className="flex items-center gap-2 text-sm font-semibold bg-[#c9a24e] text-[#1b2a4a] rounded-lg px-4 py-2 hover:bg-[#b8923f]"><CheckSquare size={15} /> Asignar tarea</button>
         </div>
+        {asignarOpen && <AsignarTareaModal operarioId={sel} nombre={nombre(sel)} area={m?.area || ''} onClose={() => setAsignarOpen(false)} onDone={() => { setAsignarOpen(false); setLoading(true); cargar() }} />}
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <Metric label="Tareas" value={`${m?.done ?? 0}/${m?.asignadas ?? 0}`} />
@@ -299,4 +304,65 @@ function CrearOperarioModal({ onClose, onCreated }: { onClose: () => void; onCre
 
 function Campo({ label, children }: { label: string; children: React.ReactNode }) {
   return <div><label className="block text-xs font-semibold text-gray-500 mb-1">{label}</label>{children}</div>
+}
+
+// ── Modal: asignar una tarea a un operario ──
+function AsignarTareaModal({ operarioId, nombre, area, onClose, onDone }: { operarioId: string; nombre: string; area: string; onClose: () => void; onDone: () => void }) {
+  const [tipo, setTipo] = useState('produccion')
+  const [prioridad, setPrioridad] = useState('media')
+  const [titulo, setTitulo] = useState('')
+  const [cantidad, setCantidad] = useState('')
+  const [unidad, setUnidad] = useState('kg')
+  const [mins, setMins] = useState('')
+  const [fecha, setFecha] = useState(hoy())
+  const [instr, setInstr] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const TIPOS: [string, string][] = [['produccion', 'Producción'], ['preelaboracion', 'Preelaboración'], ['limpieza', 'Limpieza'], ['orden', 'Orden']]
+  const PRIOS: [string, string][] = [['alta', 'Alta'], ['media', 'Media'], ['baja', 'Baja']]
+
+  async function asignar() {
+    if (!titulo.trim()) { setError('El título es obligatorio'); return }
+    setSaving(true); setError(null)
+    try {
+      const r = await fetch('/api/central/operarios/asignar-tarea', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ operario_id: operarioId, tipo, prioridad, area, titulo, cantidad, unidad, tiempo_estimado_min: mins, fecha, instrucciones: instr }),
+      })
+      const d = await r.json()
+      if (!r.ok || !d.ok) { setError(d.error || 'No se pudo asignar'); return }
+      onDone()
+    } catch { setError('Error de conexión') } finally { setSaving(false) }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl max-w-md w-full max-h-[88vh] overflow-auto" onClick={e => e.stopPropagation()}>
+        <div className="p-5 border-b flex items-center justify-between">
+          <div><h2 className="font-bold text-[#1b2a4a]">Asignar tarea</h2><p className="text-xs text-gray-400">para {nombre}</p></div>
+          <button onClick={onClose}><X className="w-5 h-5 text-gray-400" /></button>
+        </div>
+        <div className="p-5 space-y-3">
+          <Campo label="Título de la tarea *"><input className="noma-input" value={titulo} onChange={e => setTitulo(e.target.value)} placeholder="Ej. Producir salsa bolognesa veg" /></Campo>
+          <div className="grid grid-cols-2 gap-3">
+            <Campo label="Tipo"><select className="noma-input" value={tipo} onChange={e => setTipo(e.target.value)}>{TIPOS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></Campo>
+            <Campo label="Prioridad"><select className="noma-input" value={prioridad} onChange={e => setPrioridad(e.target.value)}>{PRIOS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></Campo>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <Campo label="Cantidad"><input className="noma-input" type="number" value={cantidad} onChange={e => setCantidad(e.target.value)} placeholder="40" /></Campo>
+            <Campo label="Unidad"><input className="noma-input" value={unidad} onChange={e => setUnidad(e.target.value)} placeholder="kg" /></Campo>
+            <Campo label="Min. est."><input className="noma-input" type="number" value={mins} onChange={e => setMins(e.target.value)} placeholder="90" /></Campo>
+          </div>
+          <Campo label="Fecha"><input className="noma-input" type="date" value={fecha} onChange={e => setFecha(e.target.value)} /></Campo>
+          <Campo label="Instrucciones (opcional)"><textarea className="noma-input" rows={2} value={instr} onChange={e => setInstr(e.target.value)} placeholder="Seguir la receta paso a paso…" /></Campo>
+          {error && <div className="bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg px-3 py-2">{error}</div>}
+          <button onClick={asignar} disabled={saving} className="w-full bg-[#c9a24e] text-[#1b2a4a] font-semibold rounded-xl py-2.5 text-sm hover:bg-[#b8923f] flex items-center justify-center gap-2 disabled:opacity-60">
+            {saving ? <Loader2 size={15} className="animate-spin" /> : <CheckSquare size={15} />} Asignar tarea
+          </button>
+          <p className="text-[11px] text-gray-400 text-center">La tarea aparece en el portal del operario en la fecha elegida.</p>
+        </div>
+      </div>
+    </div>
+  )
 }
