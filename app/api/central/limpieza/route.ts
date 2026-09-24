@@ -84,6 +84,29 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true })
   }
 
+  if (body.action === 'editar_tarea') {
+    if (!body.id) return NextResponse.json({ error: 'Falta la tarea' }, { status: 400 })
+    const nombre = String(body.nombre || '').trim()
+    if (!nombre) return NextResponse.json({ error: 'Falta el nombre' }, { status: 400 })
+    const pasos = Array.isArray(body.pasos) ? body.pasos.map((p: any) => String(p)).filter(Boolean) : []
+    const { error } = await db.from('ops_limpieza_tareas').update({
+      nombre,
+      pasos,
+      tiempo_estimado_min: body.tiempo_estimado_min ? Number(body.tiempo_estimado_min) : null,
+      recurrencia: body.recurrencia || 'diaria',
+      dia_semana: body.dia_semana ? Number(body.dia_semana) : null,
+    }).eq('id', body.id)
+    if (error) return NextResponse.json({ error: 'No se pudo editar la tarea' }, { status: 500 })
+    return NextResponse.json({ ok: true })
+  }
+
+  if (body.action === 'borrar_tarea') {
+    if (!body.id) return NextResponse.json({ error: 'Falta la tarea' }, { status: 400 })
+    const { error } = await db.from('ops_limpieza_tareas').delete().eq('id', body.id)
+    if (error) return NextResponse.json({ error: 'No se pudo borrar la tarea' }, { status: 500 })
+    return NextResponse.json({ ok: true })
+  }
+
   if (body.action === 'ejecutar') {
     if (!body.tarea_id) return NextResponse.json({ error: 'Falta la tarea' }, { status: 400 })
     const { error } = await db.from('ops_ejecuciones').insert({

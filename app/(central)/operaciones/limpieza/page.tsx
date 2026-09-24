@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Plus, X, Loader2, SprayCan, ChevronDown, Clock, Printer, Check, MapPin, List, CalendarDays, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react'
+import { Plus, X, Loader2, SprayCan, ChevronDown, Clock, Printer, Check, MapPin, List, CalendarDays, ChevronLeft, ChevronRight, AlertTriangle, Pencil, Trash2 } from 'lucide-react'
 
 const REC: Record<string, { l: string; c: string }> = {
   turno:     { l: 'Cada turno', c: 'bg-blue-50 text-blue-700' },
@@ -49,6 +49,7 @@ export default function LimpiezaPage() {
   const [saving, setSaving] = useState(false)
   const [areaForm, setAreaForm] = useState('')
   const [tForm, setTForm] = useState({ area_id: '', nombre: '', tiempo_estimado_min: '', recurrencia: 'diaria', pasos: '' })
+  const [editId, setEditId] = useState<string | null>(null)
   const [vista, setVista] = useState<'lista' | 'calendario'>('lista')
   const [cursor, setCursor] = useState(() => { const d = new Date(); return { y: d.getFullYear(), m: d.getMonth() } })
   const [diaSel, setDiaSel] = useState<string | null>(null)
@@ -77,10 +78,27 @@ export default function LimpiezaPage() {
     e.preventDefault(); setSaving(true)
     try {
       const pasos = tForm.pasos.split('\n').map(s => s.trim()).filter(Boolean)
-      const r = await fetch('/api/central/limpieza', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'tarea', ...tForm, pasos }) })
+      const payload = editId ? { action: 'editar_tarea', id: editId, ...tForm, pasos } : { action: 'tarea', ...tForm, pasos }
+      const r = await fetch('/api/central/limpieza', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       if (!r.ok) throw new Error()
-      setTForm({ area_id: '', nombre: '', tiempo_estimado_min: '', recurrencia: 'diaria', pasos: '' }); setModal(null); cargar()
-    } catch { alert('No se pudo crear la tarea') } finally { setSaving(false) }
+      setTForm({ area_id: '', nombre: '', tiempo_estimado_min: '', recurrencia: 'diaria', pasos: '' }); setEditId(null); setModal(null); cargar()
+    } catch { alert(editId ? 'No se pudo editar la tarea' : 'No se pudo crear la tarea') } finally { setSaving(false) }
+  }
+
+  function abrirNueva() {
+    setEditId(null)
+    setTForm({ area_id: '', nombre: '', tiempo_estimado_min: '', recurrencia: 'diaria', pasos: '' })
+    setModal('tarea')
+  }
+  function abrirEditar(t: Tarea, areaId: string) {
+    setEditId(t.id)
+    setTForm({ area_id: areaId, nombre: t.nombre, tiempo_estimado_min: t.tiempo_estimado_min ? String(t.tiempo_estimado_min) : '', recurrencia: t.recurrencia || 'diaria', pasos: (t.pasos || []).join('\n') })
+    setModal('tarea')
+  }
+  async function borrarTarea(id: string) {
+    if (!confirm('¿Borrar esta tarea de limpieza? No se puede deshacer.')) return
+    await fetch('/api/central/limpieza', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'borrar_tarea', id }) })
+    cargar()
   }
 
   async function marcarHecha(tareaId: string) {
@@ -115,7 +133,7 @@ export default function LimpiezaPage() {
         </div>
         <div className="flex gap-2">
           <button onClick={() => setModal('area')} className="text-sm flex items-center gap-1.5 border border-gray-200 rounded-lg px-3 py-2 text-gray-600 hover:border-[#c9a24e]"><MapPin size={15} /> Nueva área</button>
-          <button onClick={() => setModal('tarea')} className="noma-btn-primary text-sm flex items-center gap-2"><Plus size={16} /> Nueva tarea</button>
+          <button onClick={abrirNueva} className="noma-btn-primary text-sm flex items-center gap-2"><Plus size={16} /> Nueva tarea</button>
         </div>
       </div>
 
@@ -219,6 +237,8 @@ export default function LimpiezaPage() {
                             <div className="flex gap-2 flex-wrap">
                               <button onClick={() => marcarHecha(t.id)} className="text-xs font-semibold flex items-center gap-1.5 bg-green-600 text-white rounded-lg px-3 py-1.5 hover:bg-green-700"><Check size={13} /> Marcar hecha</button>
                               <button onClick={() => printProc(a.nombre, t)} className="text-xs font-semibold flex items-center gap-1.5 border border-gray-200 text-gray-600 rounded-lg px-3 py-1.5 hover:border-[#c9a24e]"><Printer size={13} /> Imprimir procedimiento</button>
+                              <button onClick={() => abrirEditar(t, a.id)} className="text-xs font-semibold flex items-center gap-1.5 border border-gray-200 text-gray-600 rounded-lg px-3 py-1.5 hover:border-[#c9a24e]"><Pencil size={13} /> Editar</button>
+                              <button onClick={() => borrarTarea(t.id)} className="text-xs font-semibold flex items-center gap-1.5 text-red-500 rounded-lg px-2 py-1.5 hover:bg-red-50"><Trash2 size={13} /></button>
                             </div>
                           </div>
                         )}
@@ -247,9 +267,9 @@ export default function LimpiezaPage() {
       {/* Modal Nueva tarea */}
       {modal === 'tarea' && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setModal(null)} />
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => { setModal(null); setEditId(null) }} />
           <form onSubmit={crearTarea} className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4"><h3 className="font-bold text-[#1a1a1a]">Nueva tarea de limpieza</h3><button type="button" onClick={() => setModal(null)}><X size={16} className="text-gray-400" /></button></div>
+            <div className="flex items-center justify-between mb-4"><h3 className="font-bold text-[#1a1a1a]">{editId ? 'Editar tarea de limpieza' : 'Nueva tarea de limpieza'}</h3><button type="button" onClick={() => { setModal(null); setEditId(null) }}><X size={16} className="text-gray-400" /></button></div>
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -281,7 +301,7 @@ export default function LimpiezaPage() {
                 <textarea value={tForm.pasos} onChange={e => setTForm(f => ({ ...f, pasos: e.target.value }))} rows={5} className="noma-input" placeholder={"Retira utensilios y restos\nAplica sanitizante\nRestriega y enjuaga\nSeca la superficie"} />
               </div>
             </div>
-            <button type="submit" disabled={saving} className="noma-btn-primary w-full mt-4 disabled:opacity-60">{saving ? 'Guardando…' : 'Crear tarea'}</button>
+            <button type="submit" disabled={saving} className="noma-btn-primary w-full mt-4 disabled:opacity-60">{saving ? 'Guardando…' : editId ? 'Guardar cambios' : 'Crear tarea'}</button>
           </form>
         </div>
       )}
