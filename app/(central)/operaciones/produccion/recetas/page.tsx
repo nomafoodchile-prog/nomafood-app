@@ -88,6 +88,17 @@ export default function RecetasPage() {
     if (d) { await cargarLista(); abrir(S(d.receta_id)) }
   }
 
+  async function crearDemo() {
+    setSaving(true)
+    try {
+      const r = await fetch('/api/central/recetas/demo', { method: 'POST' })
+      const d = await r.json()
+      if (!r.ok || !d.ok) { alert(d.error || 'No se pudo crear la receta de ejemplo'); return }
+      await cargarLista()
+      alert(d.ya ? 'La receta de ejemplo ya existía.' : '¡Receta de ejemplo "Chickent Tutos" creada y aprobada! Ya aparece en Asignar tarea.')
+    } catch { alert('Error de conexión') } finally { setSaving(false) }
+  }
+
   const aprobada = S(version.estado) === 'aprobada'
 
   async function guardarVersion() {
@@ -152,7 +163,10 @@ export default function RecetasPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div><h1 className="text-2xl font-bold text-[#1a1a1a]">Recetas y formulaciones</h1><p className="text-sm text-gray-500 mt-0.5">{lista.length} recetas · Producción</p></div>
-          <button onClick={crearReceta} disabled={saving} className="noma-btn-primary flex items-center gap-2 text-sm"><Plus size={16} /> Nueva receta</button>
+          <div className="flex gap-2">
+            <button onClick={crearDemo} disabled={saving} className="text-sm flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-2 text-gray-600 hover:border-[#c9a24e]"><GitBranch size={15} /> Receta de ejemplo</button>
+            <button onClick={crearReceta} disabled={saving} className="noma-btn-primary flex items-center gap-2 text-sm"><Plus size={16} /> Nueva receta</button>
+          </div>
         </div>
         {err && <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-sm text-red-700">{err.join(' · ')}</div>}
         <div className="noma-card !p-4"><div className="relative"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" /><input className="noma-input pl-9" placeholder="Buscar receta o código..." value={search} onChange={e => setSearch(e.target.value)} /></div></div>

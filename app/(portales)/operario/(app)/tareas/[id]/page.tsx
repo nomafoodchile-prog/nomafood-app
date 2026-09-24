@@ -42,6 +42,7 @@ export default function OperarioTareaDetalle() {
   // Receta / pasos (O-C)
   const [rvers, setRvers] = useState<Row | null>(null)
   const [pasos, setPasos] = useState<Row[]>([])
+  const [ings, setIngs] = useState<Row[]>([])
   const [hechos, setHechos] = useState<Record<number, boolean>>({})
   const [regPaso, setRegPaso] = useState<Record<number, string>>({})
 
@@ -70,13 +71,15 @@ export default function OperarioTareaDetalle() {
     // Receta aprobada + pasos (O-C)
     const rvId = S((t as Row)?.receta_version_id)
     if (rvId) {
-      const [{ data: rv }, { data: ps }, { data: hp }] = await Promise.all([
+      const [{ data: rv }, { data: ps }, { data: hp }, { data: ig }] = await Promise.all([
         supabase.from('receta_versiones').select('rendimiento_cantidad, rendimiento_unidad, vida_util_dias, condicion_almacenamiento').eq('id', rvId).maybeSingle(),
         supabase.from('receta_pasos').select('*').eq('version_id', rvId).order('numero', { ascending: true }),
         supabase.from('op_produccion_pasos').select('numero').eq('tarea_id', id),
+        supabase.from('receta_ingredientes').select('cantidad, unidad, orden, producto:products(nombre)').eq('version_id', rvId).order('orden', { ascending: true }),
       ])
       setRvers((rv as Row) || null)
       setPasos((ps as Row[]) || [])
+      setIngs((ig as Row[]) || [])
       const done: Record<number, boolean> = {}
       for (const r of (hp as Row[] | null) || []) done[Number(r.numero)] = true
       setHechos(done)
@@ -148,6 +151,11 @@ export default function OperarioTareaDetalle() {
   // Validación de cierre
   const tipo = S(tarea?.tipo)
   const prod = esProd(tipo)
+  // Escalado por tandas: cantidad asignada ÷ rendimiento de la receta
+  const rendCant = Number(rvers?.rendimiento_cantidad) || 0
+  const cantAsig = Number(tarea?.cantidad_asignada) || 0
+  const tandas = rendCant > 0 && cantAsig > 0 ? Math.round((cantAsig / rendCant) * 100) / 100 : 1
+  const nfmt = (n: number) => Number.isInteger(n) ? String(n) : n.toFixed(2)
   const pasosPendientes = prod ? pasos.filter(p => !hechos[Number(p.numero)]).length : 0
   const faltan: string[] = []
   if (pasosPendientes > 0) faltan.push(`${pasosPendientes} paso(s) de la receta`)
@@ -238,6 +246,29 @@ export default function OperarioTareaDetalle() {
               </>}
               {estado === 'pausada' && <button onClick={reanudar} disabled={busy} className="flex-1 bg-[#c9a24e] text-[#1b2a4a] font-semibold rounded-xl py-3 flex items-center justify-center gap-2"><Play size={18} /> Reanudar</button>}
             </div>
+          </div>
+        )}
+
+        {!finalizada && prod && ings.length > 0 && (
+          <div className="bg-white rounded-2xl border border-gray-100 p-4 space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="font-semibold text-[#1b2a4a]">Ingredientes</div>
+              <span className="text-xs font-semibold text-[#c9a24e]">{nfmt(tandas)} {tandas === 1 ? 'tanda' : 'tandas'}{cantAsig > 0 ? ` · ${nfmt(cantAsig)} ${S(tarea?.unidad) || 'un'}` : ''}</span>
+            </div>
+            <div className="divide-y divide-gray-50">
+              {ings.map((ig, i) => {
+                const base = Number(ig.cantidad) || 0
+                const total = base * tandas
+                const pname = S((ig.producto as { nombre?: string } | null)?.nombre) || 'Insumo'
+                return (
+                  <div key={i} className="flex items-center justify-between py-2 text-sm">
+                    <span className="text-gray-700">{pname}</span>
+                    <span className="font-bold text-[#1b2a4a]">{nfmt(total)} {S(ig.unidad)}</span>
+                  </div>
+                )
+              })}
+            </div>
+            <p className="text-[11px] text-gray-400">Cantidades ya multiplicadas por las tandas asignadas.</p>
           </div>
         )}
 
