@@ -318,9 +318,41 @@ function AsignarTareaModal({ operarioId, nombre, area, onClose, onDone }: { oper
   const [instr, setInstr] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [recetas, setRecetas] = useState<{ nombre: string; codigo: string; version_id: string; rend_cant: number | null; rend_unid: string | null }[]>([])
+  const [recetaVersionId, setRecetaVersionId] = useState('')
+  const [tandas, setTandas] = useState('')
 
   const TIPOS: [string, string][] = [['produccion', 'Producción'], ['preelaboracion', 'Preelaboración'], ['limpieza', 'Limpieza'], ['orden', 'Orden']]
   const PRIOS: [string, string][] = [['alta', 'Alta'], ['media', 'Media'], ['baja', 'Baja']]
+
+  useEffect(() => {
+    supabase.from('recetas')
+      .select('id, nombre, codigo, version:receta_versiones!fk_recetas_version_activa(id, estado, rendimiento_cantidad, rendimiento_unidad)')
+      .then(({ data }) => {
+        const list = ((data as Row[]) || []).map(r => {
+          const vraw = (r as { version?: unknown }).version
+          const v = (Array.isArray(vraw) ? vraw[0] : vraw) as Row || {}
+          return { nombre: S(r.nombre) || 'Receta', codigo: S(r.codigo), version_id: S(v.id), rend_cant: v.rendimiento_cantidad != null ? Number(v.rendimiento_cantidad) : null, rend_unid: v.rendimiento_unidad ? String(v.rendimiento_unidad) : null }
+        }).filter(r => r.version_id)
+        setRecetas(list)
+      })
+  }, [])
+
+  const recetaSel = recetas.find(r => r.version_id === recetaVersionId) || null
+
+  function aplicarTandas(t: string, r = recetaSel) {
+    setTandas(t)
+    const n = Number(t)
+    if (r && r.rend_cant != null && Number.isFinite(n) && n > 0) {
+      setCantidad(String(Number((r.rend_cant * n).toFixed(2))))
+      if (r.rend_unid) setUnidad(r.rend_unid)
+    }
+  }
+  function elegirReceta(vid: string) {
+    setRecetaVersionId(vid)
+    const r = recetas.find(x => x.version_id === vid)
+    if (r) { if (!titulo.trim()) setTitulo(r.nombre); if (r.rend_unid) setUnidad(r.rend_unid); aplicarTandas(tandas, r) }
+  }
 
   async function asignar() {
     if (!titulo.trim()) { setError('El título es obligatorio'); return }
@@ -328,7 +360,7 @@ function AsignarTareaModal({ operarioId, nombre, area, onClose, onDone }: { oper
     try {
       const r = await fetch('/api/central/operarios/asignar-tarea', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ operario_id: operarioId, tipo, prioridad, area, titulo, cantidad, unidad, tiempo_estimado_min: mins, fecha, instrucciones: instr }),
+        body: JSON.stringify({ operario_id: operarioId, tipo, prioridad, area, titulo, cantidad, unidad, tiempo_estimado_min: mins, fecha, instrucciones: instr, receta_version_id: recetaVersionId || undefined }),
       })
       const d = await r.json()
       if (!r.ok || !d.ok) { setError(d.error || 'No se pudo asignar'); return }
@@ -349,6 +381,28 @@ function AsignarTareaModal({ operarioId, nombre, area, onClose, onDone }: { oper
             <Campo label="Tipo"><select className="noma-input" value={tipo} onChange={e => setTipo(e.target.value)}>{TIPOS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></Campo>
             <Campo label="Prioridad"><select className="noma-input" value={prioridad} onChange={e => setPrioridad(e.target.value)}>{PRIOS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></Campo>
           </div>
+          {(tipo === 'produccion' || tipo === 'preelaboracion') && (
+            <div className="bg-[#f6f3ec] border border-[#e7ddc4] rounded-xl p-3 space-y-2">
+              <Campo label="Receta (opcional)">
+                <select className="noma-input" value={recetaVersionId} onChange={e => elegirReceta(e.target.value)}>
+                  <option value="">— Sin receta —</option>
+                  {recetas.map(r => <option key={r.version_id} value={r.version_id}>{r.nombre}{r.codigo ? ` (${r.codigo})` : ''}</option>)}
+                </select>
+              </Campo>
+              {recetas.length === 0 && <p className="text-[11px] text-gray-400">No hay recetas creadas. Créalas en <b>Recetas y formulaciones</b>.</p>}
+              {recetaSel && (
+                <>
+                  <Campo label="Tandas"><input className="noma-input" type="number" min="1" value={tandas} onChange={e => aplicarTandas(e.target.value)} placeholder="1" /></Campo>
+                  <p className="text-[11px] text-gray-500">
+                    {recetaSel.rend_cant != null
+                      ? <>1 tanda ≈ <b>{recetaSel.rend_cant} {recetaSel.rend_unid || ''}</b>{tandas && Number(tandas) > 0 ? <> · Total: <b>{Number((recetaSel.rend_cant * Number(tandas)).toFixed(2))} {recetaSel.rend_unid || ''}</b></> : null}</>
+                      : <span className="text-gray-400">Esta receta no tiene rendimiento definido.</span>}
+                    <br />El operario verá su paso a paso e ingredientes.
+                  </p>
+                </>
+              )}
+            </div>
+          )}
           <div className="grid grid-cols-3 gap-3">
             <Campo label="Cantidad"><input className="noma-input" type="number" value={cantidad} onChange={e => setCantidad(e.target.value)} placeholder="40" /></Campo>
             <Campo label="Unidad"><input className="noma-input" value={unidad} onChange={e => setUnidad(e.target.value)} placeholder="kg" /></Campo>

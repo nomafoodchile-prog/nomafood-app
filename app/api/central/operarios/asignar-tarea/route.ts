@@ -46,6 +46,9 @@ export async function POST(req: NextRequest) {
     es_demo: false,
   }
   if (fecha) fila.fecha = fecha
+  // Receta vinculada: el operario ve su paso a paso e ingredientes. Las "tandas"
+  // se derivan de cantidad_asignada ÷ rendimiento, así que no hace falta guardarlas.
+  if (b.receta_version_id) fila.receta_version_id = String(b.receta_version_id)
 
   const { error } = await db.from('op_tareas').insert(fila)
   if (error) return NextResponse.json({ error: 'No se pudo asignar la tarea. ' + error.message }, { status: 500 })
