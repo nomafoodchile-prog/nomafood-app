@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Loader2, RefreshCw, ArrowLeft, Image as ImageIcon, CheckSquare, AlertTriangle, MessageSquare } from 'lucide-react'
+import { Loader2, RefreshCw, ArrowLeft, Image as ImageIcon, CheckSquare, AlertTriangle, MessageSquare, UserPlus, X, Copy, Check } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 
 type Row = Record<string, unknown>
@@ -32,6 +32,7 @@ export default function CentralOperariosPage() {
   const [tars, setTars] = useState<Row[]>([])
   const [cis, setCis] = useState<Row[]>([])
   const [sel, setSel] = useState<string | null>(null)
+  const [crearOpen, setCrearOpen] = useState(false)
 
   const cargar = useCallback(async () => {
     const { data: o } = await supabase.from('operarios').select('profile_id, area, turno_default, activo')
@@ -162,13 +163,17 @@ export default function CentralOperariosPage() {
         <div className="flex gap-2">
           <a href="/operaciones/operarios/mensajes" className="flex items-center gap-2 text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-2 hover:border-[#c9a24e]"><MessageSquare size={15} /> Mensajes</a>
           <button onClick={() => { setLoading(true); cargar() }} className="flex items-center gap-2 text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-2 hover:border-[#c9a24e]"><RefreshCw size={15} /> Actualizar</button>
+          <button onClick={() => setCrearOpen(true)} className="flex items-center gap-2 text-sm font-semibold bg-[#c9a24e] text-[#1b2a4a] rounded-lg px-3 py-2 hover:bg-[#b8923f]"><UserPlus size={15} /> Crear operario</button>
         </div>
       </div>
+
+      {crearOpen && <CrearOperarioModal onClose={() => setCrearOpen(false)} onCreated={() => { setCrearOpen(false); setLoading(true); cargar() }} />}
 
       {ops.length === 0 ? (
         <div className="noma-card text-center text-gray-400 py-10">
           <CheckSquare className="w-8 h-8 mx-auto text-gray-300 mb-2" />
-          <p className="text-sm">Aún no hay operarios. Créalos y actívalos desde Personas.</p>
+          <p className="text-sm mb-3">Aún no hay operarios registrados.</p>
+          <button onClick={() => setCrearOpen(true)} className="inline-flex items-center gap-2 text-sm font-semibold bg-[#c9a24e] text-[#1b2a4a] rounded-lg px-4 py-2 hover:bg-[#b8923f]"><UserPlus size={15} /> Crear el primero</button>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -217,4 +222,81 @@ function Barra({ label, pct }: { label: string; pct: number | null }) {
       <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden mt-0.5"><div className={`h-full ${pctColor(pct)}`} style={{ width: `${pct ?? 0}%` }} /></div>
     </div>
   )
+}
+
+// ── Modal: crear un operario completo (usuario + rol + registro) ──
+function CrearOperarioModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
+  const [nombre, setNombre] = useState('')
+  const [rol, setRol] = useState('Operario')
+  const [area, setArea] = useState('Producción')
+  const [turno, setTurno] = useState('Mañana')
+  const [email, setEmail] = useState('')
+  const [pass, setPass] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [creado, setCreado] = useState<{ nombre: string; email: string; password: string } | null>(null)
+  const [copiado, setCopiado] = useState(false)
+
+  const AREAS = ['Producción', 'Armado', 'Limpieza', 'Despacho', 'Bodega']
+  const TURNOS = ['Mañana', 'Tarde', 'Noche']
+
+  async function crear() {
+    if (!nombre.trim()) { setError('El nombre es obligatorio'); return }
+    setSaving(true); setError(null)
+    try {
+      const r = await fetch('/api/central/operarios/crear', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre, rol, area, turno, email: email || undefined, password: pass || undefined }),
+      })
+      const d = await r.json()
+      if (!r.ok || !d.ok) { setError(d.error || 'No se pudo crear'); return }
+      setCreado({ nombre: d.nombre, email: d.email, password: d.password })
+    } catch { setError('Error de conexión') } finally { setSaving(false) }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl max-w-md w-full max-h-[88vh] overflow-auto" onClick={e => e.stopPropagation()}>
+        <div className="p-5 border-b flex items-center justify-between">
+          <h2 className="font-bold text-[#1b2a4a]">{creado ? '✅ Operario creado' : 'Crear operario'}</h2>
+          <button onClick={onClose}><X className="w-5 h-5 text-gray-400" /></button>
+        </div>
+        {creado ? (
+          <div className="p-5 space-y-4">
+            <p className="text-sm text-gray-600">Entrégale estas credenciales a <b>{creado.nombre}</b>. Entra en <b>nommafood.cl/operario/login</b>.</p>
+            <div className="bg-[#f6f3ec] border border-[#e7ddc4] rounded-xl p-4 text-sm space-y-2">
+              <div className="flex justify-between gap-3"><span className="text-gray-500">Correo</span><span className="font-semibold text-[#1b2a4a] break-all">{creado.email}</span></div>
+              <div className="flex justify-between gap-3"><span className="text-gray-500">Contraseña</span><span className="font-semibold text-[#1b2a4a]">{creado.password}</span></div>
+            </div>
+            <button
+              onClick={() => { navigator.clipboard?.writeText(`Portal Operario NOMMA\nEntra en: https://nommafood.cl/operario/login\nCorreo: ${creado.email}\nContraseña: ${creado.password}`); setCopiado(true); setTimeout(() => setCopiado(false), 2000) }}
+              className="w-full flex items-center justify-center gap-2 border border-gray-200 rounded-xl py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50">
+              {copiado ? <><Check size={15} className="text-green-600" /> Copiado</> : <><Copy size={15} /> Copiar credenciales</>}
+            </button>
+            <button onClick={onCreated} className="w-full bg-[#c9a24e] text-[#1b2a4a] font-semibold rounded-xl py-2.5 text-sm hover:bg-[#b8923f]">Listo</button>
+          </div>
+        ) : (
+          <div className="p-5 space-y-3">
+            <Campo label="Nombre completo *"><input className="noma-input" value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Ej. Rosa Mansilla" /></Campo>
+            <div className="grid grid-cols-2 gap-3">
+              <Campo label="Rol"><select className="noma-input" value={rol} onChange={e => setRol(e.target.value)}><option>Operario</option><option>Armado</option></select></Campo>
+              <Campo label="Turno"><select className="noma-input" value={turno} onChange={e => setTurno(e.target.value)}>{TURNOS.map(t => <option key={t}>{t}</option>)}</select></Campo>
+            </div>
+            <Campo label="Área"><select className="noma-input" value={area} onChange={e => setArea(e.target.value)}>{AREAS.map(a => <option key={a}>{a}</option>)}</select></Campo>
+            <Campo label="Correo (opcional)"><input className="noma-input" value={email} onChange={e => setEmail(e.target.value)} placeholder="Vacío = se genera automático" /></Campo>
+            <Campo label="Contraseña (opcional)"><input className="noma-input" value={pass} onChange={e => setPass(e.target.value)} placeholder="Vacío = se genera una" /></Campo>
+            {error && <div className="bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg px-3 py-2">{error}</div>}
+            <button onClick={crear} disabled={saving} className="w-full bg-[#c9a24e] text-[#1b2a4a] font-semibold rounded-xl py-2.5 text-sm hover:bg-[#b8923f] flex items-center justify-center gap-2 disabled:opacity-60">
+              {saving ? <Loader2 size={15} className="animate-spin" /> : <UserPlus size={15} />} Crear operario
+            </button>
+            <p className="text-[11px] text-gray-400 text-center">Entra en nommafood.cl/operario/login con estas credenciales.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function Campo({ label, children }: { label: string; children: React.ReactNode }) {
+  return <div><label className="block text-xs font-semibold text-gray-500 mb-1">{label}</label>{children}</div>
 }
