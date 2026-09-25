@@ -39,19 +39,21 @@ export async function POST() {
 
   // 1) Asegurar los productos-insumo (materia prima)
   const ingProductIds: { producto_id: string; cant: number; unidad: string }[] = []
+  let lastInsErr = ''
   for (const ins of INSUMOS) {
     let { data: prod } = await db.from('products').select('id').eq('nombre', ins.nombre).maybeSingle()
     if (!prod?.id) {
-      const { data: creado } = await db.from('products').insert({
+      const { data: creado, error: eProd } = await db.from('products').insert({
         nombre: ins.nombre, sku: ins.sku, tipo_producto: 'materia_prima', estado_ciclo: 'listo_operar',
         unidad: ins.unidad, unidad_venta: ins.unidad, precio: ins.precio, stock_actual: 0,
         visible_catalogo: false, activo: true, categoria: 'Insumos',
       }).select('id').single()
+      if (eProd) lastInsErr = eProd.message
       prod = creado
     }
     if (prod?.id) ingProductIds.push({ producto_id: prod.id, cant: ins.cant, unidad: ins.unidad })
   }
-  if (ingProductIds.length === 0) return NextResponse.json({ error: 'No se pudieron crear los insumos.' }, { status: 500 })
+  if (ingProductIds.length === 0) return NextResponse.json({ error: 'No se pudieron crear los insumos.', detalle: lastInsErr }, { status: 500 })
 
   // 2) Receta
   const { data: receta, error: eR } = await db.from('recetas').insert({
