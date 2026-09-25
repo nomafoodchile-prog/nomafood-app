@@ -44,7 +44,7 @@ export async function POST() {
     let { data: prod } = await db.from('products').select('id').eq('nombre', ins.nombre).maybeSingle()
     if (!prod?.id) {
       const { data: creado, error: eProd } = await db.from('products').insert({
-        nombre: ins.nombre, sku: ins.sku, tipo_producto: 'materia_prima', estado_ciclo: 'listo_operar',
+        nombre: ins.nombre, sku: ins.sku, tipo_producto: 'materia_prima', estado_ciclo: 'borrador',
         unidad: ins.unidad, unidad_venta: ins.unidad, precio: ins.precio, stock_actual: 0,
         visible_catalogo: false, activo: true, categoria: 'Insumos',
       }).select('id').single()
