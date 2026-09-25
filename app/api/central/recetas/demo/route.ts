@@ -16,11 +16,14 @@ export async function GET() {
   const { data: { user } } = await ss.auth.getUser()
   if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
   const db = createServerClient()
-  const svc = await db.from('recetas').select('id, codigo, nombre', { count: 'exact' })
-  const usr = await ss.from('recetas').select('id, codigo, nombre', { count: 'exact' })
+  const SEL = 'id, codigo, nombre, tipo_receta, area, product_id, version_activa_id, producto:products(nombre), version:receta_versiones!fk_recetas_version_activa(estado, version, rendimiento_cantidad, rendimiento_unidad)'
+  const svc = await db.from('recetas').select('id', { count: 'exact' })
+  const joinSvc = await db.from('recetas').select(SEL).limit(3)
+  const joinUsr = await ss.from('recetas').select(SEL).limit(3)
   return NextResponse.json({
-    servicio: { count: svc.count, error: svc.error?.message || null, rows: svc.data },
-    usuario:  { count: usr.count, error: usr.error?.message || null, rows: usr.data },
+    total_servicio: svc.count,
+    join_servicio: { error: joinSvc.error?.message || null, len: (joinSvc.data || []).length },
+    join_usuario:  { error: joinUsr.error?.message || null, len: (joinUsr.data || []).length, sample: joinUsr.data?.[0] || null },
   })
 }
 
