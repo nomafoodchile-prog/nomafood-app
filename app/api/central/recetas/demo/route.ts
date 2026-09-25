@@ -8,6 +8,22 @@ export const dynamic = 'force-dynamic'
 const ADMIN_ROLES = ['SuperAdmin', 'Administracion', 'Gerencia', 'EncargadoProduccion']
 const CODIGO = 'DEMO-TUTOS'
 
+// Diagnóstico: compara lectura con rol de servicio (ignora RLS) vs. lectura con
+// la sesión del usuario (respeta RLS). Si la de servicio ve la receta y la del
+// usuario no, el problema es RLS en la tabla recetas.
+export async function GET() {
+  const ss = getServerSupabase()
+  const { data: { user } } = await ss.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
+  const db = createServerClient()
+  const svc = await db.from('recetas').select('id, codigo, nombre', { count: 'exact' })
+  const usr = await ss.from('recetas').select('id, codigo, nombre', { count: 'exact' })
+  return NextResponse.json({
+    servicio: { count: svc.count, error: svc.error?.message || null, rows: svc.data },
+    usuario:  { count: usr.count, error: usr.error?.message || null, rows: usr.data },
+  })
+}
+
 // Ingredientes de la receta demo (por 1 tanda = 300 unidades). Cada uno es una
 // materia prima; si no existe como producto, se crea.
 const INSUMOS = [
