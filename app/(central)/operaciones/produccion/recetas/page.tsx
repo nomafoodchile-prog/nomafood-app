@@ -41,7 +41,7 @@ export default function RecetasPage() {
   const prodById = (id: unknown) => products.find(p => S(p.id) === S(id))
 
   const cargarLista = useCallback(async () => {
-    const { data } = await supabase.from('recetas').select('id, codigo, nombre, tipo_receta, area, product_id, version_activa_id, producto:products(nombre), version:receta_versiones!fk_recetas_version_activa(estado, version, rendimiento_cantidad, rendimiento_unidad)').order('created_at', { ascending: false })
+    const { data } = await supabase.from('recetas').select('id, codigo, nombre, tipo_receta, area, product_id, version_activa_id, producto:products!product_id(nombre), version:receta_versiones!fk_recetas_version_activa(estado, version, rendimiento_cantidad, rendimiento_unidad)').order('created_at', { ascending: false })
     setLista((data as Row[]) || [])
     setLoading(false)
   }, [])

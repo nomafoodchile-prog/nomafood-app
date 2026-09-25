@@ -75,7 +75,7 @@ export default function OperarioTareaDetalle() {
         supabase.from('receta_versiones').select('rendimiento_cantidad, rendimiento_unidad, vida_util_dias, condicion_almacenamiento').eq('id', rvId).maybeSingle(),
         supabase.from('receta_pasos').select('*').eq('version_id', rvId).order('numero', { ascending: true }),
         supabase.from('op_produccion_pasos').select('numero').eq('tarea_id', id),
-        supabase.from('receta_ingredientes').select('cantidad, unidad, orden, producto:products(nombre)').eq('version_id', rvId).order('orden', { ascending: true }),
+        supabase.from('receta_ingredientes').select('cantidad, unidad, orden, producto:products!producto_id(nombre)').eq('version_id', rvId).order('orden', { ascending: true }),
       ])
       setRvers((rv as Row) || null)
       setPasos((ps as Row[]) || [])

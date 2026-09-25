@@ -8,25 +8,6 @@ export const dynamic = 'force-dynamic'
 const ADMIN_ROLES = ['SuperAdmin', 'Administracion', 'Gerencia', 'EncargadoProduccion']
 const CODIGO = 'DEMO-TUTOS'
 
-// Diagnóstico: compara lectura con rol de servicio (ignora RLS) vs. lectura con
-// la sesión del usuario (respeta RLS). Si la de servicio ve la receta y la del
-// usuario no, el problema es RLS en la tabla recetas.
-export async function GET() {
-  const ss = getServerSupabase()
-  const { data: { user } } = await ss.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
-  const db = createServerClient()
-  const SEL = 'id, codigo, nombre, tipo_receta, area, product_id, version_activa_id, producto:products(nombre), version:receta_versiones!fk_recetas_version_activa(estado, version, rendimiento_cantidad, rendimiento_unidad)'
-  const svc = await db.from('recetas').select('id', { count: 'exact' })
-  const joinSvc = await db.from('recetas').select(SEL).limit(3)
-  const joinUsr = await ss.from('recetas').select(SEL).limit(3)
-  return NextResponse.json({
-    total_servicio: svc.count,
-    join_servicio: { error: joinSvc.error?.message || null, len: (joinSvc.data || []).length },
-    join_usuario:  { error: joinUsr.error?.message || null, len: (joinUsr.data || []).length, sample: joinUsr.data?.[0] || null },
-  })
-}
-
 // Ingredientes de la receta demo (por 1 tanda = 300 unidades). Cada uno es una
 // materia prima; si no existe como producto, se crea.
 const INSUMOS = [
