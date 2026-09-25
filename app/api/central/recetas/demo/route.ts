@@ -45,7 +45,7 @@ export async function POST() {
     if (!prod?.id) {
       const { data: creado, error: eProd } = await db.from('products').insert({
         nombre: ins.nombre, sku: ins.sku, tipo_producto: 'materia_prima', estado_ciclo: 'borrador',
-        unidad: ins.unidad, unidad_venta: ins.unidad, precio: ins.precio, stock_actual: 0,
+        unidad: ins.unidad, unidad_venta: null, precio: ins.precio, stock_actual: 0,
         visible_catalogo: false, activo: true, categoria: 'Insumos',
       }).select('id').single()
       if (eProd) lastInsErr = eProd.message
