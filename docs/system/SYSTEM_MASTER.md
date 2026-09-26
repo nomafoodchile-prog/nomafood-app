@@ -63,6 +63,13 @@ Detalle por área:
 - Replicar para un cliente nuevo → [`REPLICATION_PLAYBOOK.md`](./REPLICATION_PLAYBOOK.md)
 - Contexto para IA/devs → [`AGENT_CONTEXT.md`](./AGENT_CONTEXT.md)
 
+**Auditoría de seguridad** (carpeta aparte, [`../security/`](../security/SECURITY_AUDIT.md)):
+- Auditoría de seguridad → [`SECURITY_AUDIT.md`](../security/SECURITY_AUDIT.md) · Arquitectura de seguridad → [`SECURITY_ARCHITECTURE.md`](../security/SECURITY_ARCHITECTURE.md)
+- Aislamiento multiempresa → [`TENANT_ISOLATION.md`](../security/TENANT_ISOLATION.md) · Modelo de amenazas → [`THREAT_MODEL.md`](../security/THREAT_MODEL.md)
+- Mapa de datos → [`DATA_MAP.md`](../security/DATA_MAP.md) · Privacidad → [`PRIVACY_ARCHITECTURE.md`](../security/PRIVACY_ARCHITECTURE.md)
+- Seguridad del agente IA → [`AI_SECURITY.md`](../security/AI_SECURITY.md) · Backups → [`BACKUP_RECOVERY.md`](../security/BACKUP_RECOVERY.md) · Incidentes → [`INCIDENT_RESPONSE.md`](../security/INCIDENT_RESPONSE.md)
+- Licencias de terceros → [`THIRD_PARTY_LICENSES.md`](../security/THIRD_PARTY_LICENSES.md) · Protección de IP → [`IP_PROTECTION.md`](../security/IP_PROTECTION.md)
+
 ## 4. Cómo se conecta todo (resumen)
 
 ```
