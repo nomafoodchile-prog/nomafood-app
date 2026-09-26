@@ -70,6 +70,13 @@ Detalle por área:
 - Seguridad del agente IA → [`AI_SECURITY.md`](../security/AI_SECURITY.md) · Backups → [`BACKUP_RECOVERY.md`](../security/BACKUP_RECOVERY.md) · Incidentes → [`INCIDENT_RESPONSE.md`](../security/INCIDENT_RESPONSE.md)
 - Licencias de terceros → [`THIRD_PARTY_LICENSES.md`](../security/THIRD_PARTY_LICENSES.md) · Protección de IP → [`IP_PROTECTION.md`](../security/IP_PROTECTION.md)
 
+**Transformación a SaaS multiempresa** (diseño objetivo, [`../saas/`](../saas/SAAS_MASTER_PLAN.md)):
+- Índice del diseño → [`SAAS_MASTER_PLAN.md`](../saas/SAAS_MASTER_PLAN.md) · Roadmap Phase 0–9 → [`ROADMAP.md`](../saas/ROADMAP.md)
+- Arquitectura → [`SAAS_ARCHITECTURE.md`](../saas/SAAS_ARCHITECTURE.md) · Modelo tenant → [`TENANT_MODEL.md`](../saas/TENANT_MODEL.md) · Datos → [`DATA_ARCHITECTURE.md`](../saas/DATA_ARCHITECTURE.md) · RBAC → [`RBAC_MODEL.md`](../saas/RBAC_MODEL.md)
+- Módulos → [`MODULE_ARCHITECTURE.md`](../saas/MODULE_ARCHITECTURE.md) · Configuración → [`CONFIGURATION_ENGINE.md`](../saas/CONFIGURATION_ENGINE.md) · Inventario → [`INVENTORY_ARCHITECTURE.md`](../saas/INVENTORY_ARCHITECTURE.md) · Pedidos → [`ORDER_FLOW.md`](../saas/ORDER_FLOW.md)
+- Integraciones → [`INTEGRATION_HUB.md`](../saas/INTEGRATION_HUB.md) · Facturación DTE → [`BILLING_INTEGRATION.md`](../saas/BILLING_INTEGRATION.md) · Storage → [`STORAGE_ARCHITECTURE.md`](../saas/STORAGE_ARCHITECTURE.md) · Observabilidad → [`OBSERVABILITY.md`](../saas/OBSERVABILITY.md)
+- Onboarding → [`ONBOARDING.md`](../saas/ONBOARDING.md) · Migración → [`MIGRATION_PLAN.md`](../saas/MIGRATION_PLAN.md) · Piloto → [`PILOT_PLAN.md`](../saas/PILOT_PLAN.md) · Producto/planes → [`PRODUCT_MODEL.md`](../saas/PRODUCT_MODEL.md) · Agente IA → [`AI_AGENT_ARCHITECTURE.md`](../saas/AI_AGENT_ARCHITECTURE.md)
+
 ## 4. Cómo se conecta todo (resumen)
 
 ```
