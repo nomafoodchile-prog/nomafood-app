@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Loader2, RefreshCw, ArrowLeft, Image as ImageIcon, CheckSquare, AlertTriangle, MessageSquare, UserPlus, X, Copy, Check } from 'lucide-react'
+import { Loader2, RefreshCw, ArrowLeft, Image as ImageIcon, CheckSquare, AlertTriangle, MessageSquare, UserPlus, X, Copy, Check, Pencil, Trash2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 
 type Row = Record<string, unknown>
@@ -34,6 +34,8 @@ export default function CentralOperariosPage() {
   const [sel, setSel] = useState<string | null>(null)
   const [crearOpen, setCrearOpen] = useState(false)
   const [asignarOpen, setAsignarOpen] = useState(false)
+  const [editOpen, setEditOpen] = useState(false)
+  const [borrando, setBorrando] = useState(false)
 
   const cargar = useCallback(async () => {
     const { data: o } = await supabase.from('operarios').select('profile_id, area, turno_default, activo')
@@ -54,6 +56,18 @@ export default function CentralOperariosPage() {
   }, [])
 
   useEffect(() => { cargar() }, [cargar])
+
+  const eliminarOperario = useCallback(async (pid: string, nom: string) => {
+    if (!confirm(`¿Eliminar a ${nom}? Se borra su acceso y no aparecerá más. Esta acción no se puede deshacer.`)) return
+    setBorrando(true)
+    const r = await fetch('/api/central/operarios/gestionar', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'eliminar', profile_id: pid }),
+    })
+    setBorrando(false)
+    if (!r.ok) { const e = await r.json().catch(() => ({})); alert(e.error || 'No se pudo eliminar.'); return }
+    setSel(null); setLoading(true); cargar()
+  }, [cargar])
 
   // Tiempo real: refresca al cambiar tareas o cierres
   useEffect(() => {
@@ -105,9 +119,14 @@ export default function CentralOperariosPage() {
             <h1 className="text-2xl font-bold text-[#1a1a1a]">{nombre(sel)}</h1>
             <p className="text-sm text-gray-500">{m?.area || 'Sin área'} · {JORN_LBL[m?.estado || 'no_iniciado']?.l} · ingreso {hhmm(m?.ingreso)}</p>
           </div>
-          <button onClick={() => setAsignarOpen(true)} className="flex items-center gap-2 text-sm font-semibold bg-[#c9a24e] text-[#1b2a4a] rounded-lg px-4 py-2 hover:bg-[#b8923f]"><CheckSquare size={15} /> Asignar tarea</button>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setEditOpen(true)} className="flex items-center gap-1.5 text-sm font-semibold text-[#1b2a4a] border border-gray-200 rounded-lg px-3 py-2 hover:bg-gray-50"><Pencil size={14} /> Editar</button>
+            <button onClick={() => eliminarOperario(sel, nombre(sel))} disabled={borrando} className="flex items-center gap-1.5 text-sm font-semibold text-[#E24B4A] border border-red-200 rounded-lg px-3 py-2 hover:bg-red-50 disabled:opacity-50"><Trash2 size={14} /> Eliminar</button>
+            <button onClick={() => setAsignarOpen(true)} className="flex items-center gap-2 text-sm font-semibold bg-[#c9a24e] text-[#1b2a4a] rounded-lg px-4 py-2 hover:bg-[#b8923f]"><CheckSquare size={15} /> Asignar tarea</button>
+          </div>
         </div>
         {asignarOpen && <AsignarTareaModal operarioId={sel} nombre={nombre(sel)} area={m?.area || ''} onClose={() => setAsignarOpen(false)} onDone={() => { setAsignarOpen(false); setLoading(true); cargar() }} />}
+        {editOpen && <EditarOperarioModal profileId={sel} nombreActual={nombre(sel)} areaActual={m?.area || ''} turnoActual={S(ops.find(o => S(o.profile_id) === sel)?.turno_default)} activoActual={ops.find(o => S(o.profile_id) === sel)?.activo !== false} onClose={() => setEditOpen(false)} onDone={() => { setEditOpen(false); setLoading(true); cargar() }} />}
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <Metric label="Tareas" value={`${m?.done ?? 0}/${m?.asignadas ?? 0}`} />
@@ -297,6 +316,56 @@ function CrearOperarioModal({ onClose, onCreated }: { onClose: () => void; onCre
             <p className="text-[11px] text-gray-400 text-center">Entra en nommafood.cl/operario/login con estas credenciales.</p>
           </div>
         )}
+      </div>
+    </div>
+  )
+}
+
+// ── Modal: editar un operario (nombre, área, turno, estado) ──
+function EditarOperarioModal({ profileId, nombreActual, areaActual, turnoActual, activoActual, onClose, onDone }:
+  { profileId: string; nombreActual: string; areaActual: string; turnoActual: string; activoActual: boolean; onClose: () => void; onDone: () => void }) {
+  const [nombre, setNombre] = useState(nombreActual)
+  const [area, setArea] = useState(areaActual || 'Producción')
+  const [turno, setTurno] = useState(turnoActual || 'Mañana')
+  const [activo, setActivo] = useState(activoActual)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const AREAS = ['Producción', 'Armado', 'Limpieza', 'Despacho', 'Bodega']
+  const TURNOS = ['Mañana', 'Tarde', 'Noche']
+
+  async function guardar() {
+    setSaving(true); setError(null)
+    try {
+      const r = await fetch('/api/central/operarios/gestionar', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'editar', profile_id: profileId, nombre, area, turno, activo }),
+      })
+      const d = await r.json()
+      if (!r.ok || !d.ok) { setError(d.error || 'No se pudo guardar'); return }
+      onDone()
+    } catch { setError('Error de conexión') } finally { setSaving(false) }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl max-w-md w-full max-h-[88vh] overflow-auto" onClick={e => e.stopPropagation()}>
+        <div className="p-5 border-b flex items-center justify-between">
+          <h2 className="font-bold text-[#1b2a4a]">Editar operario</h2>
+          <button onClick={onClose}><X className="w-5 h-5 text-gray-400" /></button>
+        </div>
+        <div className="p-5 space-y-3">
+          <Campo label="Nombre completo"><input className="noma-input" value={nombre} onChange={e => setNombre(e.target.value)} /></Campo>
+          <div className="grid grid-cols-2 gap-3">
+            <Campo label="Área"><select className="noma-input" value={area} onChange={e => setArea(e.target.value)}>{AREAS.map(a => <option key={a}>{a}</option>)}</select></Campo>
+            <Campo label="Turno"><select className="noma-input" value={turno} onChange={e => setTurno(e.target.value)}>{TURNOS.map(t => <option key={t}>{t}</option>)}</select></Campo>
+          </div>
+          <label className="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" checked={activo} onChange={e => setActivo(e.target.checked)} /> Activo (puede iniciar sesión y recibir tareas)</label>
+          {error && <div className="bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg px-3 py-2">{error}</div>}
+          <button onClick={guardar} disabled={saving} className="w-full bg-[#c9a24e] text-[#1b2a4a] font-semibold rounded-xl py-2.5 text-sm hover:bg-[#b8923f] flex items-center justify-center gap-2 disabled:opacity-60">
+            {saving ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />} Guardar cambios
+          </button>
+          <p className="text-[11px] text-gray-400 text-center">El correo/contraseña no cambian aquí. Para restablecer la clave, usa el flujo de acceso.</p>
+        </div>
       </div>
     </div>
   )
