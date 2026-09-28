@@ -51,6 +51,14 @@ export async function POST(req: NextRequest) {
   }
 
   if (action === 'eliminar') {
+    // Si es picker: libera sus pedidos (picker_id → null) y reinicia su armado,
+    // para no dejar referencias colgando ni pedidos marcados por un usuario borrado.
+    const { data: asignados } = await db.from('mayorista_pedidos').select('id').eq('picker_id', pid)
+    if (asignados && asignados.length) {
+      const ids = asignados.map(r => r.id)
+      await db.from('mayorista_pedidos').update({ picker_id: null, estado_armado: 'sin_asignar' }).in('id', ids)
+      await db.from('mayorista_pedido_items').update({ pickeado: false, cantidad_pickeada: null }).in('pedido_id', ids)
+    }
     // Borra el historial operativo del trabajador (por profile_id) para no dejar FKs colgando,
     // luego el registro de operario, el perfil y por último el usuario de Auth (login).
     await db.from('op_tarea_cierre').delete().eq('operario_id', pid)
