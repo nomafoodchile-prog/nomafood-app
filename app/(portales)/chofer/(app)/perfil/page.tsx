@@ -11,8 +11,10 @@ export default function PerfilPage() {
   const [email, setEmail] = useState('')
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email || ''))
-    supabase.from('drivers').select('nombre').limit(1).maybeSingle().then(({ data }) => setNombre(data?.nombre || ''))
+    supabase.auth.getUser().then(({ data }) => {
+      setEmail(data.user?.email || '')
+      if (data.user) supabase.from('drivers').select('nombre').eq('profile_id', data.user.id).maybeSingle().then(({ data: d }) => setNombre(d?.nombre || ''))
+    })
   }, [])
 
   async function logout() {

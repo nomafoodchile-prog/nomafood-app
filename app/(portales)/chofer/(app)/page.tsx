@@ -48,7 +48,9 @@ export default function ChoferDashboard() {
   const shownWelcome = useRef(false)
 
   const cargar = useCallback(async () => {
-    const { data: d } = await supabase.from('drivers').select('id, nombre').limit(1).maybeSingle()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { setNoDriver(true); setLoading(false); return }
+    const { data: d } = await supabase.from('drivers').select('id, nombre').eq('profile_id', user.id).maybeSingle()
     if (!d) { setNoDriver(true); setLoading(false); return }
     setDriver(d)
     const hoy = new Date().toISOString().slice(0, 10)

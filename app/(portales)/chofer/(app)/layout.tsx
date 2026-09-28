@@ -55,8 +55,11 @@ export default function ChoferAppLayout({ children }: { children: React.ReactNod
 
   useEffect(() => {
     if (!ready) return
-    supabase.from('drivers').select('id').limit(1).maybeSingle().then(({ data }) => {
-      if (data?.id) { setDriverId(data.id); cargarMsgs(data.id) }
+    supabase.auth.getUser().then(({ data: u }) => {
+      if (!u.user) return
+      supabase.from('drivers').select('id').eq('profile_id', u.user.id).maybeSingle().then(({ data }) => {
+        if (data?.id) { setDriverId(data.id); cargarMsgs(data.id) }
+      })
     })
   }, [ready, cargarMsgs])
 

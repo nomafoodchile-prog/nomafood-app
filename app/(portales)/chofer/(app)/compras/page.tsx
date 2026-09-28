@@ -25,7 +25,9 @@ export default function ComprasPage() {
   const [driverId, setDriverId] = useState<string | null>(null)
 
   const cargar = useCallback(async () => {
-    const { data: d } = await supabase.from('drivers').select('id').limit(1).maybeSingle()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    const { data: d } = await supabase.from('drivers').select('id').eq('profile_id', user.id).maybeSingle()
     if (!d) { setLoading(false); return }
     setDriverId(d.id)
     const { data } = await supabase.from('compras')

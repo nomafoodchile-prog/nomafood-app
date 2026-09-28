@@ -24,7 +24,9 @@ export default function MensajesPage() {
   const [busy, setBusy] = useState<string | null>(null)
 
   const cargar = useCallback(async () => {
-    const { data: d } = await supabase.from('drivers').select('id').limit(1).maybeSingle()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { setLoading(false); return }
+    const { data: d } = await supabase.from('drivers').select('id').eq('profile_id', user.id).maybeSingle()
     if (!d) { setLoading(false); return }
     setDriverId(d.id)
     const { data } = await supabase.from('driver_messages')
