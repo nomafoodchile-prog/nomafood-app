@@ -21,7 +21,12 @@ export async function POST(req: NextRequest) {
 
   const b = await req.json().catch(() => ({}))
   const action = String(b.action || '')
-  const pid = String(b.profile_id || '').trim()
+  let pid = String(b.profile_id || '').trim()
+  // Permite ubicar al operario por email (útil cuando no se tiene el UUID a mano)
+  if (!pid && b.email) {
+    const { data: prof } = await db.from('profiles').select('id').eq('email', String(b.email).trim().toLowerCase()).maybeSingle()
+    if (prof?.id) pid = String(prof.id)
+  }
   if (!pid) return NextResponse.json({ error: 'Falta el operario.' }, { status: 400 })
 
   // No permitir que un admin se elimine/edite a sí mismo por error
