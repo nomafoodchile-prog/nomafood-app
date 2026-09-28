@@ -22,14 +22,20 @@ async function requireAdmin() {
   return { db, user }
 }
 
-// GET — introspección: devuelve las columnas reales de la tabla drivers (una fila de muestra)
+// GET — introspección: prueba columnas candidatas en drivers (tabla vacía) para saber el esquema.
 export async function GET() {
   const g = await requireAdmin()
   if ('error' in g) return NextResponse.json({ error: g.error }, { status: g.status })
   const { db } = g
-  const { data, error } = await db.from('drivers').select('*').limit(1)
-  const cols = data && data[0] ? Object.keys(data[0]) : []
-  return NextResponse.json({ columnas: cols, muestra: data?.[0] || null, error: error?.message || null })
+  const CANDIDATAS = ['id', 'profile_id', 'user_id', 'auth_id', 'nombre', 'name', 'apellido',
+    'telefono', 'phone', 'email', 'correo', 'activo', 'active', 'patente', 'vehiculo', 'created_at']
+  const existen: string[] = []
+  for (const c of CANDIDATAS) {
+    const { error } = await db.from('drivers').select(c).limit(1)
+    if (!error) existen.push(c)
+  }
+  const { data: sample } = await db.from('drivers').select('*').limit(1)
+  return NextResponse.json({ columnas_existentes: existen, muestra: sample?.[0] || null })
 }
 
 // POST — crea un chofer con login (auth) + rol Chofer + ficha en drivers.
