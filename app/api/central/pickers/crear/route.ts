@@ -13,46 +13,24 @@ function slug(s: string) {
 }
 function genPass() { return 'nomma' + Math.floor(1000 + Math.random() * 9000) }
 
-async function requireAdmin() {
+// POST /api/central/pickers/crear
+// Un picker es un trabajador de rol "Armado": usuario Auth + profiles(role Armado) + operarios.
+export async function POST(req: NextRequest) {
   const { data: { user } } = await getServerSupabase().auth.getUser()
-  if (!user) return { error: 'No autenticado', status: 401 as const }
+  if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
   const db = createServerClient()
   const { data: me } = await db.from('profiles').select('role').eq('id', user.id).maybeSingle()
-  if (!ADMIN_ROLES.includes(String(me?.role || ''))) return { error: 'No autorizado', status: 403 as const }
-  return { db, user }
-}
-
-// GET — introspección: prueba columnas candidatas en operators.
-export async function GET() {
-  const g = await requireAdmin()
-  if ('error' in g) return NextResponse.json({ error: g.error }, { status: g.status })
-  const { db } = g
-  const CANDIDATAS = ['id', 'profile_id', 'user_id', 'nombre', 'name', 'apellido', 'area',
-    'shift', 'turno', 'token', 'activo', 'active', 'email', 'created_at']
-  const existen: string[] = []
-  for (const c of CANDIDATAS) {
-    const { error } = await db.from('operators').select(c).limit(1)
-    if (!error) existen.push(c)
-  }
-  const { data: sample } = await db.from('operators').select('*').limit(1)
-  return NextResponse.json({ columnas_existentes: existen, muestra: sample?.[0] || null })
-}
-
-// POST — crea un picker con login (auth) + rol Armado + ficha en operators.
-export async function POST(req: NextRequest) {
-  const g = await requireAdmin()
-  if ('error' in g) return NextResponse.json({ error: g.error }, { status: g.status })
-  const { db } = g
+  if (!ADMIN_ROLES.includes(String(me?.role || ''))) return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
 
   const b = await req.json().catch(() => ({}))
   const nombre = String(b.nombre || '').trim()
   if (!nombre) return NextResponse.json({ error: 'El nombre es obligatorio.' }, { status: 400 })
-  const apellido = b.apellido ? String(b.apellido).trim() : ''
-  const email = (b.email ? String(b.email).trim() : `${slug(nombre + (apellido ? '.' + apellido : ''))}@picker.nomafood.cl`).toLowerCase()
+  const turno = b.turno ? String(b.turno).trim() : null
+  const email = (b.email ? String(b.email).trim() : `${slug(nombre)}@picker.nomafood.cl`).toLowerCase()
   const password = b.password ? String(b.password) : genPass()
 
   const { data: created, error: cErr } = await db.auth.admin.createUser({
-    email, password, email_confirm: true, user_metadata: { full_name: nombre + (apellido ? ' ' + apellido : '') },
+    email, password, email_confirm: true, user_metadata: { full_name: nombre },
   })
   if (cErr || !created?.user) {
     const dup = String(cErr?.message || '').toLowerCase().includes('already')
@@ -60,14 +38,14 @@ export async function POST(req: NextRequest) {
   }
   const uid = created.user.id
 
-  await db.from('profiles').upsert({ id: uid, role: 'Armado', full_name: nombre + (apellido ? ' ' + apellido : ''), email }, { onConflict: 'id' })
+  await db.from('profiles').upsert({ id: uid, role: 'Armado', full_name: nombre, email }, { onConflict: 'id' })
 
-  const { error: oErr } = await db.from('operators')
-    .upsert({ profile_id: uid, nombre, apellido: apellido || null, activo: true }, { onConflict: 'profile_id' })
-  if (oErr) {
+  const { error: opErr } = await db.from('operarios')
+    .upsert({ profile_id: uid, area: 'Armado', turno_default: turno, activo: true }, { onConflict: 'profile_id' })
+  if (opErr) {
     await db.auth.admin.deleteUser(uid).catch(() => {})
-    return NextResponse.json({ error: 'No se pudo registrar el picker. ' + oErr.message }, { status: 500 })
+    return NextResponse.json({ error: 'No se pudo registrar el picker. ' + opErr.message }, { status: 500 })
   }
 
-  return NextResponse.json({ ok: true, nombre, apellido, email, password })
+  return NextResponse.json({ ok: true, nombre, email, password })
 }
