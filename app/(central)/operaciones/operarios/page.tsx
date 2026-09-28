@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Loader2, RefreshCw, ArrowLeft, Image as ImageIcon, CheckSquare, AlertTriangle, MessageSquare, UserPlus, X, Copy, Check, Pencil, Trash2 } from 'lucide-react'
+import { Loader2, RefreshCw, ArrowLeft, Image as ImageIcon, CheckSquare, AlertTriangle, MessageSquare, UserPlus, X, Copy, Check, Pencil, Trash2, KeyRound } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 
 type Row = Record<string, unknown>
@@ -36,6 +36,8 @@ export default function CentralOperariosPage() {
   const [asignarOpen, setAsignarOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const [borrando, setBorrando] = useState(false)
+  const [reseteando, setReseteando] = useState(false)
+  const [resetCred, setResetCred] = useState<{ email: string; password: string } | null>(null)
 
   const cargar = useCallback(async () => {
     const { data: o } = await supabase.from('operarios').select('profile_id, area, turno_default, activo')
@@ -68,6 +70,18 @@ export default function CentralOperariosPage() {
     if (!r.ok) { const e = await r.json().catch(() => ({})); alert(e.error || 'No se pudo eliminar.'); return }
     setSel(null); setLoading(true); cargar()
   }, [cargar])
+
+  const resetClave = useCallback(async (pid: string) => {
+    setReseteando(true); setResetCred(null)
+    const r = await fetch('/api/central/trabajadores/acceso', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ profile_id: pid }),
+    })
+    setReseteando(false)
+    const d = await r.json().catch(() => ({}))
+    if (!r.ok || !d.ok) { alert(d.error || 'No se pudo restablecer la contraseña.'); return }
+    setResetCred({ email: d.email, password: d.password })
+  }, [])
 
   // Tiempo real: refresca al cambiar tareas o cierres
   useEffect(() => {
@@ -119,12 +133,14 @@ export default function CentralOperariosPage() {
             <h1 className="text-2xl font-bold text-[#1a1a1a]">{nombre(sel)}</h1>
             <p className="text-sm text-gray-500">{m?.area || 'Sin área'} · {JORN_LBL[m?.estado || 'no_iniciado']?.l} · ingreso {hhmm(m?.ingreso)}</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <button onClick={() => resetClave(sel)} disabled={reseteando} className="flex items-center gap-1.5 text-sm font-semibold text-[#1b2a4a] border border-gray-200 rounded-lg px-3 py-2 hover:bg-gray-50 disabled:opacity-50"><KeyRound size={14} /> {reseteando ? 'Restableciendo…' : 'Restablecer clave'}</button>
             <button onClick={() => setEditOpen(true)} className="flex items-center gap-1.5 text-sm font-semibold text-[#1b2a4a] border border-gray-200 rounded-lg px-3 py-2 hover:bg-gray-50"><Pencil size={14} /> Editar</button>
             <button onClick={() => eliminarOperario(sel, nombre(sel))} disabled={borrando} className="flex items-center gap-1.5 text-sm font-semibold text-[#E24B4A] border border-red-200 rounded-lg px-3 py-2 hover:bg-red-50 disabled:opacity-50"><Trash2 size={14} /> Eliminar</button>
             <button onClick={() => setAsignarOpen(true)} className="flex items-center gap-2 text-sm font-semibold bg-[#c9a24e] text-[#1b2a4a] rounded-lg px-4 py-2 hover:bg-[#b8923f]"><CheckSquare size={15} /> Asignar tarea</button>
           </div>
         </div>
+        {resetCred && <CredencialesModal titulo="Contraseña restablecida" email={resetCred.email} password={resetCred.password} portalUrl="nommafood.cl/operario/login" onClose={() => setResetCred(null)} />}
         {asignarOpen && <AsignarTareaModal operarioId={sel} nombre={nombre(sel)} area={m?.area || ''} onClose={() => setAsignarOpen(false)} onDone={() => { setAsignarOpen(false); setLoading(true); cargar() }} />}
         {editOpen && <EditarOperarioModal profileId={sel} nombreActual={nombre(sel)} areaActual={m?.area || ''} turnoActual={S(ops.find(o => S(o.profile_id) === sel)?.turno_default)} activoActual={ops.find(o => S(o.profile_id) === sel)?.activo !== false} onClose={() => setEditOpen(false)} onDone={() => { setEditOpen(false); setLoading(true); cargar() }} />}
 
@@ -365,6 +381,33 @@ function EditarOperarioModal({ profileId, nombreActual, areaActual, turnoActual,
             {saving ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />} Guardar cambios
           </button>
           <p className="text-[11px] text-gray-400 text-center">El correo/contraseña no cambian aquí. Para restablecer la clave, usa el flujo de acceso.</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Modal reutilizable: muestra credenciales (correo + contraseña) para entregar ──
+function CredencialesModal({ titulo, email, password, portalUrl, onClose }: { titulo: string; email: string; password: string; portalUrl: string; onClose: () => void }) {
+  const [copiado, setCopiado] = useState(false)
+  return (
+    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl max-w-md w-full" onClick={e => e.stopPropagation()}>
+        <div className="p-5 border-b flex items-center justify-between">
+          <h2 className="font-bold text-[#1b2a4a]">🔑 {titulo}</h2>
+          <button onClick={onClose}><X className="w-5 h-5 text-gray-400" /></button>
+        </div>
+        <div className="p-5 space-y-4">
+          <p className="text-sm text-gray-600">Entrégale estas credenciales al trabajador. Entra en <b>{portalUrl}</b>.</p>
+          <div className="bg-[#f6f3ec] border border-[#e7ddc4] rounded-xl p-4 text-sm space-y-2">
+            <div className="flex justify-between gap-3"><span className="text-gray-500">Correo</span><span className="font-semibold text-[#1b2a4a] break-all">{email}</span></div>
+            <div className="flex justify-between gap-3"><span className="text-gray-500">Contraseña</span><span className="font-semibold text-[#1b2a4a]">{password}</span></div>
+          </div>
+          <button onClick={() => { navigator.clipboard?.writeText(`Entra en: https://${portalUrl}\nCorreo: ${email}\nContraseña: ${password}`); setCopiado(true); setTimeout(() => setCopiado(false), 2000) }}
+            className="w-full flex items-center justify-center gap-2 border border-gray-200 rounded-xl py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50">
+            {copiado ? <><Check size={15} className="text-green-600" /> Copiado</> : <><Copy size={15} /> Copiar credenciales</>}
+          </button>
+          <button onClick={onClose} className="w-full bg-[#c9a24e] text-[#1b2a4a] font-semibold rounded-xl py-2.5 text-sm hover:bg-[#b8923f]">Listo</button>
         </div>
       </div>
     </div>
