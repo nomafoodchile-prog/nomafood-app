@@ -30,9 +30,14 @@ export async function POST(req: NextRequest) {
   const { data: src, error: eSrc } = await q.limit(1).maybeSingle()
   if (eSrc || !src) return NextResponse.json({ error: 'No se encontró el producto de origen.' }, { status: 404 })
 
-  // Evitar duplicar si ya existe uno con ese nombre
+  // Si ya existe uno con ese nombre, solo actualiza sus descripciones (idempotente).
   const { data: ya } = await db.from('products').select('id').eq('nombre', nombre).maybeSingle()
-  if (ya?.id) return NextResponse.json({ ok: true, ya: true, id: ya.id })
+  if (ya?.id) {
+    if (b.descripcion !== undefined) {
+      await db.from('products').update({ descripcion: String(b.descripcion), descripcion_publica: String(b.descripcion) }).eq('id', ya.id)
+    }
+    return NextResponse.json({ ok: true, ya: true, id: ya.id })
+  }
 
   // 2) Copiar toda la ficha, cambiando lo justo
   const nuevo: Record<string, unknown> = { ...(src as Record<string, unknown>) }
@@ -40,7 +45,7 @@ export async function POST(req: NextRequest) {
   delete nuevo.created_at
   delete nuevo.updated_at
   nuevo.nombre = nombre
-  if (b.descripcion !== undefined) nuevo.descripcion = String(b.descripcion)
+  if (b.descripcion !== undefined) { nuevo.descripcion = String(b.descripcion); nuevo.descripcion_publica = String(b.descripcion) }
   nuevo.sku = 'NF-' + Math.random().toString(16).slice(2, 10).toUpperCase() // SKU único autogenerado (la BD lo exige)
   nuevo.foto_oficial_url = null     // cada sabor sube su propia foto
   if ('foto_empaque_url' in nuevo) nuevo.foto_empaque_url = null
