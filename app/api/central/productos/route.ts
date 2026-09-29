@@ -11,10 +11,11 @@ const SEGURIDAD = ['maneja_lote', 'maneja_vencimiento', 'requiere_fechado', 'req
 type Tipo = 'text' | 'number' | 'bool'
 interface Campo { col: string; tipo: Tipo }
 
-// Columnas editables (whitelist). NO incluye: marca (fija), factor_conversion
-// (calculado), estado_calidad (viene de lotes en Inventario).
+// Columnas editables (whitelist). NO incluye: factor_conversion (calculado),
+// estado_calidad (viene de lotes en Inventario).
 const CAMPOS: Campo[] = [
   { col: 'nombre', tipo: 'text' }, { col: 'sku', tipo: 'text' },
+  { col: 'marca', tipo: 'text' },
   { col: 'categoria', tipo: 'text' }, { col: 'subcategoria', tipo: 'text' },
   { col: 'tipo_producto', tipo: 'text' }, { col: 'estado_ciclo', tipo: 'text' },
   { col: 'descripcion', tipo: 'text' }, { col: 'foto_oficial_url', tipo: 'text' },
