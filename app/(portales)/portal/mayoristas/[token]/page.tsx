@@ -50,6 +50,7 @@ interface Producto {
   unidad: string
   categoria: string
   stock_actual: number
+  modalidad_produccion?: string
   imagen_url?: string
   descripcion?: string
 }
@@ -672,7 +673,8 @@ export default function PortalMayoristas({ params }: { params: { token: string }
                 {catalogoFiltrado.map(prod => {
                   const inCart = cart.find(i => i.producto_id === prod.id)
                   const isExpanded = expandedProduct === prod.id
-                  const sinStock = prod.stock_actual <= 0
+                  // "Contra pedido" = se produce a pedido → se puede ordenar aunque el stock sea 0.
+                  const sinStock = prod.stock_actual <= 0 && prod.modalidad_produccion !== 'contra_pedido'
 
                   return (
                     <div
