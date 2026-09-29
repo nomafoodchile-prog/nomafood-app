@@ -64,8 +64,13 @@ export default function OperarioTareaDetalle() {
     const { data: tpl } = await supabase.from('op_checklist_templates').select('items').eq('tipo', tipo).maybeSingle()
     setChecklist(((tpl as Row)?.items as { clave: string; texto: string }[]) || [])
     if (esProd(S((t as Row)?.tipo))) {
-      const { data: b } = await supabase.from('bodegas').select('id, nombre, tipo').order('nombre')
-      setBodegas((b as Row[]) || [])
+      // Las bodegas se leen vía API con service-role: la tabla tiene RLS solo-admin
+      // y el operario, leyéndola directo, obtendría lista vacía (no podría cerrar).
+      try {
+        const r = await fetch('/api/portal/operario/bodegas')
+        const j = await r.json() as { bodegas?: Row[] }
+        setBodegas(j.bodegas || [])
+      } catch { setBodegas([]) }
     }
     // Receta aprobada + pasos (O-C)
     const rvId = S((t as Row)?.receta_version_id)
