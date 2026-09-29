@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
   delete nuevo.updated_at
   nuevo.nombre = nombre
   if (b.descripcion !== undefined) nuevo.descripcion = String(b.descripcion)
-  nuevo.sku = null                 // se puede asignar luego; null evita choque de unicidad
+  nuevo.sku = 'NF-' + Math.random().toString(16).slice(2, 10).toUpperCase() // SKU único autogenerado (la BD lo exige)
   nuevo.foto_oficial_url = null     // cada sabor sube su propia foto
   if ('foto_empaque_url' in nuevo) nuevo.foto_empaque_url = null
   nuevo.stock_actual = 0
