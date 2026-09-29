@@ -11,6 +11,7 @@ type FT = 'text' | 'number' | 'textarea' | 'select' | 'toggle' | 'catalog'
 interface FD { k: string; label: string; t: FT; opts?: string[]; cat?: string }
 interface TabDef { id: string; label: string; fields: FD[]; tipos?: string[] }
 
+const MARCAS_PROD = ['NOMMA FOOD', 'Brotes Asiáticos', 'Aldea Vegetal']
 const UNIDADES = ['unidad', 'bandeja', 'caja', 'bolsa', 'pack', 'kilo', 'litro', 'docena']
 const TIPOS = ['terminado_fabricado', 'preelaboracion', 'materia_prima', 'envase_insumo', 'reventa', 'kit']
 const CICLO = ['borrador', 'en_configuracion', 'listo_operar', 'descontinuado']
@@ -31,6 +32,7 @@ const TABS: TabDef[] = [
   { id: 'general', label: 'General', fields: [
     { k: 'nombre', label: 'Nombre comercial', t: 'text' },
     { k: 'sku', label: 'SKU único', t: 'text' },
+    { k: 'marca', label: 'Marca', t: 'select', opts: MARCAS_PROD },
     { k: 'categoria', label: 'Categoría', t: 'catalog', cat: 'categoria' },
     { k: 'subcategoria', label: 'Subcategoría', t: 'catalog', cat: 'subcategoria' },
     { k: 'tipo_producto', label: 'Tipo de producto', t: 'select', opts: TIPOS },
@@ -270,7 +272,7 @@ export default function ProductosPage() {
         <div className="flex gap-4 items-start p-4 border-b border-gray-100">
           <div className="w-14 h-14 rounded-lg bg-[#c9a24e]/15 flex items-center justify-center text-[#c9a24e] text-xl font-bold flex-shrink-0">{String(form.nombre || '?').charAt(0)}</div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap"><span className="font-semibold text-[#1b2a4a]">{String(form.nombre)}</span><span className="font-mono text-xs text-gray-500 bg-gray-50 px-2 py-0.5 rounded">{String(form.sku || '—')}</span><span className="text-xs text-gray-400">Marca NOMMA FOOD</span></div>
+            <div className="flex items-center gap-2 flex-wrap"><span className="font-semibold text-[#1b2a4a]">{String(form.nombre)}</span><span className="font-mono text-xs text-gray-500 bg-gray-50 px-2 py-0.5 rounded">{String(form.sku || '—')}</span><span className="text-xs text-gray-400">Marca {String(form.marca || 'NOMMA FOOD')}</span></div>
             <p className="text-[11px] text-gray-400 mt-1.5 mb-1">Estados calculados; picking y calidad son provisionales hasta el módulo Inventario por lotes</p>
             <div className="flex gap-1.5 flex-wrap">
               <Pill kind="info" label={`Ciclo: ${lbl(String(form.estado_ciclo || 'borrador'))}`} />
