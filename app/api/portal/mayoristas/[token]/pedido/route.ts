@@ -48,13 +48,15 @@ export async function POST(
     if (idsStock.length) {
       const { data: stockRows } = await supabase
         .from('products')
-        .select('id, nombre, stock_actual')
+        .select('id, nombre, stock_actual, modalidad_produccion')
         .in('id', idsStock)
       const stockMap = new Map((stockRows || []).map((p: any) => [p.id, p]))
       const faltantes: string[] = []
       for (const it of body.items) {
         if (!it.producto_id) continue
         const p = stockMap.get(it.producto_id)
+        // Productos "contra pedido" se producen a pedido → no se limitan por stock.
+        if (p && String(p.modalidad_produccion) === 'contra_pedido') continue
         const disp = p ? Number(p.stock_actual) : 0
         if (!p || disp < Number(it.cantidad)) {
           faltantes.push(`${it.producto_nombre || p?.nombre || 'Producto'} (quedan ${Math.max(0, disp)})`)
