@@ -215,7 +215,10 @@ export default function PortalMayoristas({ params }: { params: { token: string }
   const loadData = useCallback(async () => {
     try {
       setOnline(navigator.onLine)
-      const res = await fetch(`/api/portal/mayoristas/${token}`)
+      // Catálogo mayorista SIEMPRE fresco: sin esto el navegador puede servir una
+      // versión cacheada del catálogo (precios/stock/productos viejos) y el cliente
+      // agregaría datos desfasados al carrito.
+      const res = await fetch(`/api/portal/mayoristas/${token}`, { cache: 'no-store' })
       if (!res.ok) {
         const d = await res.json().catch(() => ({}))
         setError(d.error || 'Token inválido o expirado')
