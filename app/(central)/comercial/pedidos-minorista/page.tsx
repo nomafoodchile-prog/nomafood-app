@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { ShoppingCart, Loader2, RefreshCw, X, MapPin, Phone, Mail, Package, Printer } from 'lucide-react'
+import { ShoppingCart, Loader2, RefreshCw, X, MapPin, Phone, Mail, Package, Printer, CheckCircle2 } from 'lucide-react'
 
 // Estados que representan un pedido PAGADO / activo (se puede imprimir su OC para armar).
 const PAGADO = ['processing', 'procesando', 'on-hold', 'completado', 'completed', 'pagado']
@@ -31,6 +31,7 @@ export default function PedidosMinorista() {
   const [marca, setMarca] = useState('todas')
   const [q, setQ] = useState('')
   const [sel, setSel] = useState<Pedido | null>(null)
+  const [marcando, setMarcando] = useState(false)
 
   const cargar = useCallback(async () => {
     setLoading(true)
@@ -46,6 +47,29 @@ export default function PedidosMinorista() {
     setLoading(false)
   }, [])
   useEffect(() => { cargar() }, [cargar])
+
+  // Marcar un pedido como pagado (processing). Resuelve el desfase cuando el pago
+  // se confirmó en la web pero la Central quedó en "pending" porque no llegó el
+  // aviso de cambio de estado. Deja el pedido listo para imprimir su OC.
+  const marcarPagado = useCallback(async (pedido: Pedido) => {
+    setMarcando(true)
+    try {
+      const res = await fetch('/api/central/pedidos-minorista', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: pedido.id, estado: 'processing' }),
+      })
+      const d = await res.json().catch(() => ({}))
+      if (!res.ok) { alert(d.error || 'No se pudo marcar como pagada.'); return }
+      // Actualiza en memoria para reflejar el cambio al instante.
+      setRows(prev => prev.map(r => r.id === pedido.id ? { ...r, estado: 'processing' } : r))
+      setSel(prev => prev && prev.id === pedido.id ? { ...prev, estado: 'processing' } : prev)
+    } catch {
+      alert('No se pudo marcar como pagada. Revisa tu conexión e intenta de nuevo.')
+    } finally {
+      setMarcando(false)
+    }
+  }, [])
 
   const filtered = useMemo(() => rows.filter(p => {
     const mM = marca === 'todas' || p.marca === marca
@@ -137,15 +161,31 @@ export default function PedidosMinorista() {
                 {sel.metodo_pago && <div className="text-xs text-gray-400 text-right">Pago: {sel.metodo_pago}</div>}
               </div>
             </div>
-            <div className="p-5 border-t">
-              <a
-                href={`/orden-compra-minorista/${sel.id}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full flex items-center justify-center gap-2 bg-[#c9a24e] hover:bg-[#b8923f] text-[#16233f] font-semibold py-2.5 rounded-xl transition-colors"
-              >
-                <Printer className="w-4 h-4" /> Imprimir orden de compra
-              </a>
+            <div className="p-5 border-t space-y-2">
+              {esPagado(sel.estado) ? (
+                <a
+                  href={`/orden-compra-minorista/${sel.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center justify-center gap-2 bg-[#c9a24e] hover:bg-[#b8923f] text-[#16233f] font-semibold py-2.5 rounded-xl transition-colors"
+                >
+                  <Printer className="w-4 h-4" /> Imprimir orden de compra
+                </a>
+              ) : (
+                <>
+                  <button
+                    onClick={() => marcarPagado(sel)}
+                    disabled={marcando}
+                    className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white font-semibold py-2.5 rounded-xl transition-colors"
+                  >
+                    {marcando ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                    Marcar como pagada
+                  </button>
+                  <p className="text-[11px] text-gray-400 text-center">
+                    Úsalo si ya recibiste el pago en la web pero aquí sigue pendiente. Quedará listo para imprimir su orden de compra.
+                  </p>
+                </>
+              )}
             </div>
           </div>
         </div>
