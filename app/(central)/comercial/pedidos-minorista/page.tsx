@@ -1,9 +1,10 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { ShoppingCart, Loader2, RefreshCw, X, MapPin, Phone, Mail, Package, Printer, CheckCircle2, Truck, Route } from 'lucide-react'
+import { ShoppingCart, Loader2, RefreshCw, X, MapPin, Phone, Mail, Package, Printer, CheckCircle2, Truck, Route, MessageCircle } from 'lucide-react'
 import RoutePlanner from './RoutePlanner'
 import RouteDetail from './RouteDetail'
+import WhatsAppPanel from './WhatsAppPanel'
 
 // Estados que representan un pedido PAGADO / activo (se puede imprimir su OC para armar).
 const PAGADO = ['processing', 'procesando', 'on-hold', 'completado', 'completed', 'pagado']
@@ -22,6 +23,7 @@ interface Pedido {
   items?: Item[]
 }
 interface RutaInfo { codigo: string; estado: string }
+interface Envio { id: string; tipo: string; created_at: string; estado: string }
 
 const fmt = (n: number) => '$' + Math.round(n || 0).toLocaleString('es-CL')
 const cuando = (iso: string) => new Date(iso).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' })
@@ -45,6 +47,21 @@ export default function PedidosMinorista() {
   const [planner, setPlanner] = useState<string[] | null>(null)
   const [verRuta, setVerRuta] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
+  // Comunicación WhatsApp
+  const [comms, setComms] = useState<Record<string, Envio[]>>({})
+  const [plantillas, setPlantillas] = useState<Record<string, Record<string, string>>>({})
+  const [waPedido, setWaPedido] = useState<Pedido | null>(null)
+
+  const cargarComms = useCallback(async () => {
+    try {
+      const res = await fetch('/api/central/comunicaciones')
+      const d = await res.json().catch(() => ({}))
+      setComms(d.porPedido || {})
+    } catch { /* la migración puede no estar aún */ }
+  }, [])
+  useEffect(() => {
+    fetch('/api/central/comunicaciones/plantillas').then(r => r.json()).then(d => setPlantillas(d.plantillas || {})).catch(() => {})
+  }, [])
 
   const cargarRutas = useCallback(async () => {
     try {
@@ -69,7 +86,16 @@ export default function PedidosMinorista() {
     }
     setLoading(false)
   }, [])
-  useEffect(() => { cargar(); cargarRutas() }, [cargar, cargarRutas])
+  useEffect(() => { cargar(); cargarRutas(); cargarComms() }, [cargar, cargarRutas, cargarComms])
+
+  const contactoBadge = (p: Pedido) => {
+    const envs = comms[p.id] || []
+    if (envs.length) {
+      const ultimo = envs[envs.length - 1]
+      return { cls: 'text-green-600', dot: '🟢', title: `Último: ${ultimo.tipo} · ${new Date(ultimo.created_at).toLocaleString('es-CL', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}` }
+    }
+    return { cls: 'text-gray-400', dot: '🟡', title: 'Sin contactar' }
+  }
 
   const despachoBadge = (p: Pedido) => {
     const ee = String(p.estado_entrega || '')
@@ -175,7 +201,9 @@ export default function PedidosMinorista() {
               <th className="text-left px-4 py-2">Pedido</th><th className="text-left px-4 py-2">Cliente</th>
               <th className="text-left px-4 py-2">Comuna</th><th className="text-right px-4 py-2">Total</th>
               <th className="text-left px-4 py-2">Estado</th><th className="text-left px-4 py-2">Fecha</th>
-              <th className="text-left px-4 py-2">Despacho</th><th className="text-right px-4 py-2">OC</th>
+              <th className="text-left px-4 py-2">Despacho</th>
+              <th className="text-center px-3 py-2">WhatsApp</th>
+              <th className="text-right px-4 py-2">OC</th>
             </tr></thead>
             <tbody>
               {filtered.map(p => (
@@ -196,6 +224,14 @@ export default function PedidosMinorista() {
                     if (p.route_id) return <button onClick={() => setVerRuta(p.route_id!)} className={`text-xs px-2 py-0.5 rounded-full whitespace-nowrap hover:ring-2 hover:ring-[#c9a24e]/40 ${b.cls}`} title="Ver ruta y mapa">{b.txt}</button>
                     return <span className={`text-xs px-2 py-0.5 rounded-full whitespace-nowrap ${b.cls}`}>{b.txt}</span>
                   })()}</td>
+                  <td className="px-3 py-2.5 text-center" onClick={e => e.stopPropagation()}>
+                    {(() => { const c = contactoBadge(p); return (
+                      <button onClick={() => setWaPedido(p)} title={c.title}
+                        className="inline-flex items-center gap-1 text-[#128C7E] hover:bg-green-50 rounded-lg px-2 py-1">
+                        <MessageCircle className="w-4 h-4" /><span className="text-[10px]">{c.dot}</span>
+                      </button>
+                    ) })()}
+                  </td>
                   <td className="px-4 py-2.5 text-right" onClick={e => e.stopPropagation()}>
                     {esPagado(p.estado) && (
                       <a href={`/orden-compra-minorista/${p.id}`} target="_blank" rel="noopener noreferrer" title="Imprimir orden de compra"
@@ -290,6 +326,13 @@ export default function PedidosMinorista() {
       {verRuta && <RouteDetail routeId={verRuta} onClose={() => setVerRuta(null)}
         onChanged={() => { setToast('Ruta actualizada'); setTimeout(() => setToast(null), 3000); cargar(); cargarRutas() }}
         onDeleted={() => { setVerRuta(null); setToast('Ruta deshecha · pedidos liberados'); setTimeout(() => setToast(null), 4000); cargar(); cargarRutas() }} />}
+
+      {waPedido && <WhatsAppPanel
+        pedido={{ id: waPedido.id, numero: waPedido.numero, marca: waPedido.marca, cliente_nombre: waPedido.cliente_nombre, cliente_telefono: waPedido.cliente_telefono, estado: waPedido.estado }}
+        plantillas={plantillas}
+        enviados={comms[waPedido.id] || []}
+        onClose={() => setWaPedido(null)}
+        onSent={() => { setToast('✓ WhatsApp registrado'); setTimeout(() => setToast(null), 3000); cargarComms() }} />}
 
       {toast && (
         <div className="fixed left-1/2 -translate-x-1/2 bottom-6 z-[60] bg-[#16233f] text-white px-5 py-3 rounded-xl shadow-2xl font-semibold text-sm flex items-center gap-2">
