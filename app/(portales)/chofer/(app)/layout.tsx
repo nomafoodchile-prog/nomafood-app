@@ -3,12 +3,13 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Home, Package, ShoppingCart, MessageCircle, User, Loader2 } from 'lucide-react'
+import { Home, Package, ShoppingCart, MessageCircle, User, Loader2, Truck } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 import { armAudioUnlock, notify } from '@/lib/notify'
 
 const NAV = [
   { href: '/chofer', label: 'Inicio', icon: Home },
+  { href: '/chofer/reparto', label: 'Reparto', icon: Truck },
   { href: '/chofer/entregas', label: 'Entregas', icon: Package },
   { href: '/chofer/compras', label: 'Compras', icon: ShoppingCart },
   { href: '/chofer/mensajes', label: 'Mensajes', icon: MessageCircle, key: 'mensajes' },
