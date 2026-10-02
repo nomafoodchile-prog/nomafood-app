@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
-import { Loader2, X, MapPin, Phone, User, Truck, Trash2, Save, Undo2, Plus, Building2 } from 'lucide-react'
+import { Loader2, X, MapPin, Phone, User, Truck, Trash2, Save, Undo2, Plus, Building2, Radio } from 'lucide-react'
+import { supabase } from '@/lib/supabase/client'
 
 const PlannerMap = dynamic(() => import('./PlannerMap'), { ssr: false })
 
@@ -52,6 +53,7 @@ export default function RouteDetail({ routeId, onClose, onDeleted, onChanged }: 
   const [mayPicker, setMayPicker] = useState(false)
   const [mayList, setMayList] = useState<MayPedido[] | null>(null)
   const [loadingMay, setLoadingMay] = useState(false)
+  const [driverPos, setDriverPos] = useState<{ lat: number; lng: number; updated_at?: string } | null>(null)
 
   const recargar = useCallback(async () => {
     setLoading(true)
@@ -69,6 +71,20 @@ export default function RouteDetail({ routeId, onClose, onDeleted, onChanged }: 
 
   useEffect(() => { recargar() }, [recargar])
   useEffect(() => { fetch('/api/central/rutas/choferes').then(r => r.json()).then(d => setChoferes(d.choferes || [])).catch(() => {}) }, [])
+
+  // Tracking en vivo: posición del chofer de esta ruta (realtime)
+  useEffect(() => {
+    const chofer = ruta?.chofer_id
+    if (!chofer) { setDriverPos(null); return }
+    let alive = true
+    supabase.from('driver_positions').select('lat, lng, updated_at').eq('driver_id', chofer).maybeSingle()
+      .then(({ data }) => { if (alive && data && data.lat != null) setDriverPos(data as any) })
+    const ch = supabase.channel('ruta-track-' + routeId)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'driver_positions', filter: `driver_id=eq.${chofer}` },
+        (payload: any) => { const n = payload.new; if (n && n.lat != null) setDriverPos({ lat: n.lat, lng: n.lng, updated_at: n.updated_at }) })
+      .subscribe()
+    return () => { alive = false; supabase.removeChannel(ch) }
+  }, [ruta?.chofer_id, routeId])
 
   const pedidoId = (s: Stop) => s.minorista_pedido_id || s.mayorista_pedido_id || s.id
   const toggleQuitar = (s: Stop) => setRemoved(prev => { const n = new Set(prev); const k = pedidoId(s); if (n.has(k)) n.delete(k); else n.add(k); return n })
@@ -240,7 +256,12 @@ export default function RouteDetail({ routeId, onClose, onDeleted, onChanged }: 
               </div>
 
               <div className="bg-white border rounded-xl p-2 min-h-[340px] relative isolate z-0">
-                <PlannerMap origin={origin} stops={mapStops} />
+                {driverPos && (
+                  <div className="absolute top-3 left-3 z-[5] bg-[#16233f] text-white text-[11px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-lg">
+                    <Radio className="w-3 h-3 text-[#c9a24e] animate-pulse" /> Chofer en vivo{driverPos.updated_at ? ` · ${hhmm(driverPos.updated_at)}` : ''}
+                  </div>
+                )}
+                <PlannerMap origin={origin} stops={mapStops} driver={driverPos ? { lat: driverPos.lat, lng: driverPos.lng, nombre: ruta.chofer?.nombre || 'Chofer' } : null} />
               </div>
             </div>
 
