@@ -2,27 +2,29 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
-import { Loader2, X, ArrowUp, ArrowDown, Trash2, MapPin, CheckCircle2, AlertTriangle } from 'lucide-react'
+import { Loader2, X, ArrowUp, ArrowDown, Trash2, MapPin, CheckCircle2, AlertTriangle, Plus, Building2 } from 'lucide-react'
 
 const PlannerMap = dynamic(() => import('./PlannerMap'), { ssr: false })
 
+type Tipo = 'minorista' | 'mayorista'
 interface PointStop {
-  origin: false; id: string; cliente: string | null; telefono: string | null
+  origin: false; tipo?: Tipo; id: string; cliente: string | null; telefono: string | null
   direccion: string | null; comuna: string | null; lat: number; lng: number; geo_status?: string
 }
 interface PointOrigin { origin: true; nombre: string; lat: number; lng: number }
 type Point = PointOrigin | PointStop
 interface Matrix { duration_s: number[][]; distance_m: number[][] }
-interface Faltante { id: string; cliente: string | null; direccion: string | null; comuna: string | null }
+interface Faltante { id: string; tipo?: Tipo; cliente: string | null; direccion: string | null; comuna: string | null }
 interface OptData {
   points: Point[]; order: number[]; matrix: Matrix
   origen: { nombre: string; lat: number; lng: number }
   serviceMin: number; horaSalida: string; faltan: Faltante[]; provider: string
 }
 interface Chofer { id: string; nombre: string; telefono: string | null }
+interface MayPedido { id: string; numero: string | null; cliente: string; direccion: string | null; total: number | null; bultos: number | null; tiene_coords: boolean }
 
 // Cada parada en la secuencia actual guarda su índice en points/matrix (pi).
-interface SeqStop { pi: number; id: string; cliente: string | null; direccion: string | null; comuna: string | null; lat: number; lng: number; etaMin?: number }
+interface SeqStop { pi: number; tipo: Tipo; id: string; cliente: string | null; direccion: string | null; comuna: string | null; lat: number; lng: number; etaMin?: number }
 
 const toMin = (hhmm: string) => { const [h, m] = (hhmm || '10:00').split(':').map(Number); return (h || 0) * 60 + (m || 0) }
 const fromMin = (t: number) => { const x = ((Math.round(t) % 1440) + 1440) % 1440; return `${String(Math.floor(x / 60)).padStart(2, '0')}:${String(x % 60).padStart(2, '0')}` }
@@ -45,20 +47,27 @@ export default function RoutePlanner({
   const [fixVals, setFixVals] = useState<Record<string, string>>({})
   const [fixing, setFixing] = useState<string | null>(null)
   const [dragPi, setDragPi] = useState<number | null>(null)
+  // Pedidos mayoristas sumados a la ruta
+  const [mayoristaIds, setMayoristaIds] = useState<string[]>([])
+  const [mayPicker, setMayPicker] = useState(false)
+  const [mayList, setMayList] = useState<MayPedido[] | null>(null)
+  const [loadingMay, setLoadingMay] = useState(false)
+  const [maySel, setMaySel] = useState<Set<string>>(new Set())
 
-  const optimizar = useCallback(async (silent?: boolean) => {
+  const optimizar = useCallback(async (silent?: boolean, mayOverride?: string[]) => {
     if (!silent) setLoading(true)
     setError(null)
+    const may = mayOverride ?? mayoristaIds
     try {
-      // 1) geocodificar los que no tengan coordenadas (automático)
-      await fetch('/api/central/rutas/geocodificar', {
+      // 1) geocodificar los minorista sin coordenadas (automático)
+      if (ids.length) await fetch('/api/central/rutas/geocodificar', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ids, soloFaltantes: true }),
       }).catch(() => {})
-      // 2) optimizar
+      // 2) optimizar (minorista + mayorista)
       const res = await fetch('/api/central/rutas/optimizar', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ids }),
+        body: JSON.stringify({ ids, mayorista_ids: may }),
       })
       const d = await res.json().catch(() => ({}))
       if (!res.ok) { setError(d.error || 'No se pudo calcular la ruta. ¿Corriste la migración SQL?'); setLoading(false); return }
@@ -69,14 +78,33 @@ export default function RoutePlanner({
       // construir secuencia inicial desde el orden óptimo (saltando el origen, índice 0)
       const s: SeqStop[] = (od.order || []).filter(i => i !== 0).map(pi => {
         const p = od.points[pi] as PointStop
-        return { pi, id: p.id, cliente: p.cliente, direccion: p.direccion, comuna: p.comuna, lat: p.lat, lng: p.lng }
+        return { pi, tipo: (p.tipo || 'minorista') as Tipo, id: p.id, cliente: p.cliente, direccion: p.direccion, comuna: p.comuna, lat: p.lat, lng: p.lng }
       })
       setSeq(s)
     } catch {
       setError('Error de conexión al calcular la ruta.')
     }
     setLoading(false)
-  }, [ids])
+  }, [ids, mayoristaIds])
+
+  const abrirPickerMay = async () => {
+    setMaySel(new Set(mayoristaIds))
+    setMayPicker(true)
+    if (mayList === null) {
+      setLoadingMay(true)
+      try {
+        const d = await fetch('/api/central/rutas/mayoristas-pendientes').then(r => r.json())
+        setMayList(d.pedidos || [])
+      } catch { setMayList([]) }
+      setLoadingMay(false)
+    }
+  }
+  const aplicarMay = () => {
+    const sel = Array.from(maySel)
+    setMayoristaIds(sel)
+    setMayPicker(false)
+    optimizar(true, sel)
+  }
 
   useEffect(() => { optimizar() }, [optimizar])
   useEffect(() => {
@@ -126,7 +154,7 @@ export default function RoutePlanner({
     try {
       const res = await fetch('/api/central/rutas/corregir-direccion', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, direccion: dir, comuna: f?.comuna || '' }),
+        body: JSON.stringify({ id, direccion: dir, comuna: f?.comuna || '', tipo: f?.tipo || 'minorista' }),
       })
       const d = await res.json().catch(() => ({}))
       if (!res.ok || !d.ok) { alert(d.error || 'No se pudo ubicar esa dirección.'); setFixing(null); return }
@@ -155,7 +183,7 @@ export default function RoutePlanner({
     setConfirming(true)
     const hoy = new Date().toISOString().slice(0, 10)
     const payload = {
-      stops: calc.stops.map(s => ({ pedido_id: s.id, eta: `${hoy}T${fromMin(s.etaMin || 0)}:00-03:00` })),
+      stops: calc.stops.map(s => ({ pedido_id: s.id, tipo: s.tipo, eta: `${hoy}T${fromMin(s.etaMin || 0)}:00-03:00` })),
       chofer_id: choferId || null,
       service_min: serviceMin,
       hora_salida: salida,
@@ -274,6 +302,11 @@ export default function RoutePlanner({
                   </label>
                 </div>
 
+                <button onClick={abrirPickerMay}
+                  className="w-full mb-3 flex items-center justify-center gap-1.5 border-2 border-dashed border-[#c9a24e]/60 text-[#8a6d22] rounded-xl py-2 text-sm font-semibold hover:bg-[#c9a24e]/10">
+                  <Plus className="w-4 h-4" /> Agregar pedidos mayoristas{mayoristaIds.length > 0 ? ` (${mayoristaIds.length})` : ''}
+                </button>
+
                 <div className="space-y-2">
                   {calc.stops.map((s, i) => (
                     <div key={s.pi} draggable
@@ -281,7 +314,10 @@ export default function RoutePlanner({
                       className="flex gap-2.5 items-center p-2.5 border rounded-xl bg-gray-50">
                       <div className="w-7 h-7 rounded-full bg-[#16233f] text-white font-bold grid place-items-center text-sm flex-none cursor-grab">{i + 1}</div>
                       <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-sm text-[#16233f] truncate">{s.cliente || 'Cliente'}</div>
+                        <div className="font-semibold text-sm text-[#16233f] truncate">
+                          {s.cliente || 'Cliente'}
+                          {s.tipo === 'mayorista' && <span className="ml-1.5 align-middle text-[9px] font-bold bg-[#16233f] text-white px-1.5 py-0.5 rounded-full">MAYORISTA</span>}
+                        </div>
                         <div className="text-[11px] text-gray-400 truncate">{[s.direccion, s.comuna].filter(Boolean).join(', ')}</div>
                       </div>
                       <div className="text-right flex-none">
@@ -321,6 +357,44 @@ export default function RoutePlanner({
           </div>
         )}
       </div>
+
+      {mayPicker && (
+        <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4" onClick={e => { e.stopPropagation(); setMayPicker(false) }}>
+          <div className="bg-white rounded-2xl max-w-md w-full max-h-[82vh] flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="p-4 border-b flex items-center justify-between">
+              <h3 className="font-bold text-[#16233f] flex items-center gap-2"><Building2 className="w-5 h-5" /> Pedidos mayoristas</h3>
+              <button onClick={() => setMayPicker(false)}><X className="w-5 h-5 text-gray-400" /></button>
+            </div>
+            <div className="p-3 overflow-auto flex-1">
+              {loadingMay ? (
+                <div className="py-10 text-center text-gray-400"><Loader2 className="w-5 h-5 animate-spin mx-auto" /></div>
+              ) : (mayList && mayList.length > 0) ? (
+                <div className="space-y-1.5">
+                  {mayList.map(m => {
+                    const on = maySel.has(m.id)
+                    return (
+                      <label key={m.id} className={`flex items-center gap-2.5 p-2.5 border rounded-xl cursor-pointer ${on ? 'bg-amber-50 border-[#c9a24e]' : ''}`}>
+                        <input type="checkbox" checked={on} onChange={() => setMaySel(prev => { const n = new Set(prev); if (n.has(m.id)) n.delete(m.id); else n.add(m.id); return n })} className="w-4 h-4 accent-[#16233f] flex-none" />
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-sm text-[#16233f] truncate">{m.cliente}{m.numero ? ` · #${m.numero}` : ''}</div>
+                          <div className="text-[11px] text-gray-400 truncate">{m.direccion || 'Sin dirección'}</div>
+                        </div>
+                        {!m.tiene_coords && <span className="text-[9px] text-amber-600 flex-none">por ubicar</span>}
+                      </label>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className="py-10 text-center text-gray-400 text-sm">No hay pedidos mayoristas disponibles para sumar.</div>
+              )}
+            </div>
+            <div className="p-4 border-t flex gap-2">
+              <button onClick={() => setMayPicker(false)} className="flex-1 py-2.5 rounded-xl border text-sm font-semibold text-gray-600">Cancelar</button>
+              <button onClick={aplicarMay} className="flex-1 py-2.5 rounded-xl bg-[#16233f] text-white text-sm font-bold">Agregar{maySel.size > 0 ? ` (${maySel.size})` : ''}</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

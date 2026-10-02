@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
   const { isAdmin, userId } = await getCentralUser()
   if (!isAdmin) return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
 
-  let body: { id?: string; direccion?: string; comuna?: string } = {}
+  let body: { id?: string; direccion?: string; comuna?: string; tipo?: string } = {}
   try { body = await req.json() } catch { /* vacío */ }
   const id = body.id
   const direccion = (body.direccion || '').trim()
@@ -28,13 +28,18 @@ export async function POST(req: NextRequest) {
   }
 
   const db = createServerClient()
-  const { error } = await db.from('minorista_pedidos').update({
-    lat: hit.lat, lng: hit.lng,
-    geo_status: 'corregida',
-    dir_normalizada: direccion + (body.comuna ? ', ' + body.comuna : ''),
-    geo_corregido_por: userId,
-    geo_corregido_at: new Date().toISOString(),
-  }).eq('id', id)
+  let error
+  if (body.tipo === 'mayorista') {
+    ({ error } = await db.from('mayorista_pedidos').update({ lat: hit.lat, lng: hit.lng }).eq('id', id))
+  } else {
+    ({ error } = await db.from('minorista_pedidos').update({
+      lat: hit.lat, lng: hit.lng,
+      geo_status: 'corregida',
+      dir_normalizada: direccion + (body.comuna ? ', ' + body.comuna : ''),
+      geo_corregido_por: userId,
+      geo_corregido_at: new Date().toISOString(),
+    }).eq('id', id))
+  }
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   return NextResponse.json({ ok: true, lat: hit.lat, lng: hit.lng, precision: hit.precision })
