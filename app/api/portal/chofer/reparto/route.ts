@@ -46,8 +46,28 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
   if (!driver) return NextResponse.json({ error: 'Usuario sin chofer asociado' }, { status: 403 })
 
-  let body: { stop_id?: string; estado?: string } = {}
+  let body: { stop_id?: string; estado?: string; action?: string; route_id?: string } = {}
   try { body = await req.json() } catch { /* vacío */ }
+
+  // Iniciar ruta: marca la salida REAL y recalcula las horas de llegada desde
+  // el momento real (desplaza las ETAs estimadas por la diferencia con lo planeado).
+  if (body.action === 'iniciar' && body.route_id) {
+    const { data: ruta } = await db.from('delivery_routes')
+      .select('id, chofer_id, hora_salida_plan, estado').eq('id', body.route_id).maybeSingle()
+    if (!ruta || ruta.chofer_id !== driver.id) return NextResponse.json({ error: 'Esa ruta no es tuya' }, { status: 403 })
+    const now = Date.now()
+    const plan = ruta.hora_salida_plan ? new Date(ruta.hora_salida_plan).getTime() : now
+    const deltaMs = now - plan
+    const { data: stops } = await db.from('delivery_route_stops').select('id, eta, estado_entrega').eq('route_id', body.route_id)
+    for (const s of stops || []) {
+      if (s.eta && !['entregado', 'no_entregado'].includes(String(s.estado_entrega))) {
+        await db.from('delivery_route_stops').update({ eta: new Date(new Date(s.eta).getTime() + deltaMs).toISOString() }).eq('id', s.id)
+      }
+    }
+    await db.from('delivery_routes').update({ estado: 'en_ruta' }).eq('id', body.route_id)
+    return NextResponse.json({ ok: true, iniciada: true })
+  }
+
   const stopId = body.stop_id
   const estado = String(body.estado || '')
   if (!stopId || !ESTADOS_OK.includes(estado)) {

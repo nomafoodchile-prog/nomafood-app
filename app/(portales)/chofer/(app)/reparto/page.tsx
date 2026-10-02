@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Loader2, Navigation, Phone, CheckCircle2, AlertTriangle, Truck, MapPin, PartyPopper } from 'lucide-react'
+import { Loader2, Navigation, Phone, CheckCircle2, AlertTriangle, Truck, MapPin, PartyPopper, Play } from 'lucide-react'
 
 interface Stop {
   id: string; orden: number; cliente_nombre: string | null; direccion: string | null; comuna: string | null
@@ -25,6 +25,7 @@ export default function ChoferReparto() {
   const [rutas, setRutas] = useState<Ruta[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState<string | null>(null)
+  const [iniciando, setIniciando] = useState<string | null>(null)
 
   const cargar = useCallback(async () => {
     try {
@@ -58,6 +59,19 @@ export default function ChoferReparto() {
     setSaving(null)
   }
 
+  const iniciar = async (routeId: string) => {
+    setIniciando(routeId)
+    try {
+      const res = await fetch('/api/portal/chofer/reparto', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'iniciar', route_id: routeId }),
+      })
+      if (!res.ok) { const d = await res.json().catch(() => ({})); alert(d.error || 'No se pudo iniciar la ruta.'); setIniciando(null); return }
+      await cargar()
+    } catch { alert('Error de conexión.') }
+    setIniciando(null)
+  }
+
   if (loading) {
     return <div className="py-24 flex justify-center"><Loader2 className="w-6 h-6 text-[#1b2a4a] animate-spin" /></div>
   }
@@ -88,6 +102,14 @@ export default function ChoferReparto() {
                 Salida {hhmm(ruta.hora_salida_plan)} · {(ruta.km_estimados || 0).toFixed(1)} km · {Math.floor(dur / 60)}h {dur % 60}m
               </div>
               <div className="mt-2 text-sm font-semibold text-[#c9a24e]">{hechas} de {total} entregas completadas</div>
+              {ruta.estado === 'en_ruta' ? (
+                <div className="mt-3 text-xs bg-white/10 rounded-lg py-1.5 text-center">● En ruta · horas reales desde tu salida</div>
+              ) : ruta.estado !== 'finalizada' ? (
+                <button onClick={() => iniciar(ruta.id)} disabled={iniciando === ruta.id}
+                  className="mt-3 w-full flex items-center justify-center gap-2 bg-[#c9a24e] text-[#1b2a4a] font-bold rounded-xl py-2.5 text-sm disabled:opacity-60">
+                  {iniciando === ruta.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />} Iniciar ruta
+                </button>
+              ) : null}
             </div>
 
             {todoListo && (
