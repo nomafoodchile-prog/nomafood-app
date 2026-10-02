@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ShoppingCart, Loader2, RefreshCw, X, MapPin, Phone, Mail, Package, Printer, CheckCircle2, Truck, Route } from 'lucide-react'
 import RoutePlanner from './RoutePlanner'
+import RouteDetail from './RouteDetail'
 
 // Estados que representan un pedido PAGADO / activo (se puede imprimir su OC para armar).
 const PAGADO = ['processing', 'procesando', 'on-hold', 'completado', 'completed', 'pagado']
@@ -42,6 +43,7 @@ export default function PedidosMinorista() {
   const [seleccion, setSeleccion] = useState<Set<string>>(new Set())
   const [rutasMap, setRutasMap] = useState<Record<string, RutaInfo>>({})
   const [planner, setPlanner] = useState<string[] | null>(null)
+  const [verRuta, setVerRuta] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
 
   const cargarRutas = useCallback(async () => {
@@ -189,7 +191,11 @@ export default function PedidosMinorista() {
                   <td className="px-4 py-2.5 text-right font-semibold">{fmt(p.total)}</td>
                   <td className="px-4 py-2.5"><span className={`text-xs px-2 py-0.5 rounded-full ${EST[p.estado] || 'noma-badge-gold'}`}>{p.estado}</span></td>
                   <td className="px-4 py-2.5 text-gray-500">{cuando(p.created_at)}</td>
-                  <td className="px-4 py-2.5">{(() => { const b = despachoBadge(p); return <span className={`text-xs px-2 py-0.5 rounded-full whitespace-nowrap ${b.cls}`}>{b.txt}</span> })()}</td>
+                  <td className="px-4 py-2.5" onClick={e => { if (p.route_id) e.stopPropagation() }}>{(() => {
+                    const b = despachoBadge(p)
+                    if (p.route_id) return <button onClick={() => setVerRuta(p.route_id!)} className={`text-xs px-2 py-0.5 rounded-full whitespace-nowrap hover:ring-2 hover:ring-[#c9a24e]/40 ${b.cls}`} title="Ver ruta y mapa">{b.txt}</button>
+                    return <span className={`text-xs px-2 py-0.5 rounded-full whitespace-nowrap ${b.cls}`}>{b.txt}</span>
+                  })()}</td>
                   <td className="px-4 py-2.5 text-right" onClick={e => e.stopPropagation()}>
                     {esPagado(p.estado) && (
                       <a href={`/orden-compra-minorista/${p.id}`} target="_blank" rel="noopener noreferrer" title="Imprimir orden de compra"
@@ -280,6 +286,8 @@ export default function PedidosMinorista() {
       )}
 
       {planner && <RoutePlanner ids={planner} onClose={() => setPlanner(null)} onConfirmed={onConfirmado} />}
+
+      {verRuta && <RouteDetail routeId={verRuta} onClose={() => setVerRuta(null)} />}
 
       {toast && (
         <div className="fixed left-1/2 -translate-x-1/2 bottom-6 z-[60] bg-[#16233f] text-white px-5 py-3 rounded-xl shadow-2xl font-semibold text-sm flex items-center gap-2">

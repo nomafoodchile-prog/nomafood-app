@@ -90,13 +90,15 @@ end $$;
 
 -- ── 5) Configuración (sin hardcodear): tiempo por parada, salida, origen ──
 --  Ajusta estos valores a tu bodega real desde Gerencia cuando quieras.
-insert into public.app_config (clave, valor) values
+insert into public.app_config (clave, valor)
+select v.clave, v.valor from (values
   ('despacho_service_min',   '8'),
   ('despacho_hora_salida',   '10:00'),
   ('despacho_origen_nombre', 'Centro de despacho'),
   ('despacho_origen_lat',    '-33.4015'),
   ('despacho_origen_lng',    '-70.7260')
-on conflict (clave) do nothing;
+) as v(clave, valor)
+where not exists (select 1 from public.app_config a where a.clave = v.clave);
 
 -- ── 6) RLS: la Central escribe vía service-role (bypassa RLS). El chofer
 --  solo puede VER su propia ruta y sus paradas (privacidad de clientes). ──

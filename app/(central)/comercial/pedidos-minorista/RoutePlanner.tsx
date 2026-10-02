@@ -36,6 +36,8 @@ export default function RoutePlanner({
   const [seq, setSeq] = useState<SeqStop[]>([])
   const [salida, setSalida] = useState('10:00')
   const [serviceMin, setServiceMin] = useState(8)
+  const [origenDir, setOrigenDir] = useState('')
+  const [savingOrigin, setSavingOrigin] = useState(false)
   const [choferes, setChoferes] = useState<Chofer[]>([])
   const [choferId, setChoferId] = useState('')
   const [confirming, setConfirming] = useState(false)
@@ -63,6 +65,7 @@ export default function RoutePlanner({
       const od = d as OptData
       setData(od); setFaltan(od.faltan || [])
       setSalida(od.horaSalida || '10:00'); setServiceMin(Number(od.serviceMin || 8))
+      setOrigenDir(od.origen?.nombre || '')
       // construir secuencia inicial desde el orden óptimo (saltando el origen, índice 0)
       const s: SeqStop[] = (od.order || []).filter(i => i !== 0).map(pi => {
         const p = od.points[pi] as PointStop
@@ -130,6 +133,21 @@ export default function RoutePlanner({
       await optimizar(true) // re-optimiza ya con la dirección corregida
     } catch { alert('Error al corregir la dirección.') }
     setFixing(null)
+  }
+
+  const aplicarOrigen = async () => {
+    if (!origenDir.trim()) return
+    setSavingOrigin(true)
+    try {
+      const res = await fetch('/api/central/rutas/config', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ origen_direccion: origenDir.trim(), hora_salida: salida, service_min: serviceMin }),
+      })
+      const d = await res.json().catch(() => ({}))
+      if (!res.ok || d.ok === false) { alert(d.error || 'No se pudo guardar la dirección de salida.'); setSavingOrigin(false); return }
+      await optimizar(true) // recalcula la ruta desde el nuevo origen
+    } catch { alert('Error al guardar la dirección de salida.') }
+    setSavingOrigin(false)
   }
 
   const confirmar = async () => {
@@ -226,6 +244,19 @@ export default function RoutePlanner({
               {/* Paradas */}
               <div className="bg-white border rounded-xl p-4">
                 <h3 className="font-semibold text-[#16233f] mb-2.5 text-sm">Paradas · arrastra o usa ▲▼ para reordenar</h3>
+                <div className="mb-3">
+                  <label className="text-[11px] font-bold uppercase text-gray-400">Salida desde (dirección de la fábrica)</label>
+                  <div className="flex gap-2 mt-1">
+                    <input value={origenDir} onChange={e => setOrigenDir(e.target.value)}
+                      placeholder="Ej: La Coruña 5008, Estación Central"
+                      className="flex-1 min-w-0 border rounded-lg px-2.5 py-1.5 text-sm" />
+                    <button onClick={aplicarOrigen} disabled={savingOrigin}
+                      className="px-3 py-1.5 rounded-lg bg-[#16233f] text-white text-xs font-semibold flex items-center gap-1.5 disabled:opacity-60 whitespace-nowrap">
+                      {savingOrigin ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <MapPin className="w-3.5 h-3.5" />} Aplicar
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-gray-400 mt-1">Se guarda como predeterminado y recalcula la ruta desde ahí.</p>
+                </div>
                 <div className="flex flex-wrap gap-2 items-end mb-3">
                   <label className="flex flex-col gap-1 text-[11px] font-bold uppercase text-gray-400">Salida fábrica
                     <input type="time" value={salida} onChange={e => setSalida(e.target.value)} className="border rounded-lg px-2 py-1.5 text-sm font-normal text-[#16233f]" />
