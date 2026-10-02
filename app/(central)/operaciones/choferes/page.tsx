@@ -124,7 +124,7 @@ export default function ChoferesPage() {
       <p className="text-xs text-gray-400 flex items-center gap-1"><Package size={13} /> Cada chofer entra en <b>nommafood.cl/chofer/login</b> y ve solo sus entregas. Los resultados se reflejan aquí en tiempo real.</p>
 
       {crearOpen && <CrearChoferModal onClose={() => setCrearOpen(false)} onCreated={() => { setCrearOpen(false); setLoading(true); cargar() }} />}
-      {editing && <EditarChoferModal driver={editing} onClose={() => setEditing(null)} onDone={() => { setEditing(null); setLoading(true); cargar() }} />}
+      {editing && <EditarChoferModal driver={editing} email={S(prof(editing.profile_id)?.email)} onClose={() => setEditing(null)} onDone={() => { setEditing(null); setLoading(true); cargar() }} />}
     </div>
   )
 }
@@ -199,12 +199,29 @@ function CrearChoferModal({ onClose, onCreated }: { onClose: () => void; onCreat
   )
 }
 
-function EditarChoferModal({ driver, onClose, onDone }: { driver: Row; onClose: () => void; onDone: () => void }) {
+function EditarChoferModal({ driver, email, onClose, onDone }: { driver: Row; email?: string; onClose: () => void; onDone: () => void }) {
   const [nombre, setNombre] = useState(S(driver.nombre))
   const [telefono, setTelefono] = useState(S(driver.telefono))
   const [activo, setActivo] = useState(driver.activo !== false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [resetting, setResetting] = useState(false)
+  const [nuevaPass, setNuevaPass] = useState<string | null>(null)
+  const [copiado, setCopiado] = useState(false)
+
+  async function resetearPass() {
+    if (!confirm('¿Generar una contraseña nueva para este chofer? La anterior dejará de funcionar.')) return
+    setResetting(true); setError(null)
+    try {
+      const r = await fetch('/api/central/choferes/gestionar', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'password', profile_id: driver.profile_id }),
+      })
+      const d = await r.json()
+      if (!r.ok || !d.ok) { setError(d.error || 'No se pudo resetear la contraseña'); return }
+      setNuevaPass(d.password)
+    } catch { setError('Error de conexión') } finally { setResetting(false) }
+  }
 
   async function guardar() {
     setSaving(true); setError(null)
@@ -234,6 +251,25 @@ function EditarChoferModal({ driver, onClose, onDone }: { driver: Row; onClose: 
           <button onClick={guardar} disabled={saving} className="w-full bg-[#c9a24e] text-[#1b2a4a] font-semibold rounded-xl py-2.5 text-sm hover:bg-[#b8923f] flex items-center justify-center gap-2 disabled:opacity-60">
             {saving ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />} Guardar cambios
           </button>
+
+          <div className="pt-3 mt-1 border-t">
+            <div className="text-xs font-medium text-gray-600 mb-2">Contraseña de acceso</div>
+            {nuevaPass ? (
+              <div className="bg-[#f6f3ec] border border-[#e7ddc4] rounded-xl p-3 text-sm space-y-2">
+                <p className="text-gray-600 text-xs">Entrégale estos datos al chofer. Entra en <b>nommafood.cl/chofer/login</b></p>
+                {email ? <div className="flex justify-between gap-3"><span className="text-gray-500">Correo</span><span className="font-semibold text-[#1b2a4a] break-all">{email}</span></div> : null}
+                <div className="flex justify-between gap-3"><span className="text-gray-500">Contraseña</span><span className="font-bold text-[#1b2a4a]">{nuevaPass}</span></div>
+                <button onClick={() => { navigator.clipboard?.writeText(`Portal Chofer NOMMA\nEntra en: https://nommafood.cl/chofer/login\nCorreo: ${email || ''}\nContraseña: ${nuevaPass}`); setCopiado(true); setTimeout(() => setCopiado(false), 2000) }}
+                  className="w-full flex items-center justify-center gap-2 border border-gray-200 bg-white rounded-xl py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
+                  {copiado ? <><Check size={15} className="text-green-600" /> Copiado</> : <><Copy size={15} /> Copiar credenciales</>}
+                </button>
+              </div>
+            ) : (
+              <button onClick={resetearPass} disabled={resetting} className="w-full flex items-center justify-center gap-2 border border-gray-200 rounded-xl py-2.5 text-sm font-semibold text-[#1b2a4a] hover:bg-gray-50 disabled:opacity-60">
+                {resetting ? <Loader2 size={15} className="animate-spin" /> : <RefreshCw size={15} />} Resetear contraseña
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
