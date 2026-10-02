@@ -239,7 +239,7 @@ export default function RouteDetail({ routeId, onClose, onDeleted, onChanged }: 
                 </div>
               </div>
 
-              <div className="bg-white border rounded-xl p-2 min-h-[340px]">
+              <div className="bg-white border rounded-xl p-2 min-h-[340px] relative isolate z-0">
                 <PlannerMap origin={origin} stops={mapStops} />
               </div>
             </div>
@@ -262,7 +262,7 @@ export default function RouteDetail({ routeId, onClose, onDeleted, onChanged }: 
       </div>
 
       {mayPicker && (
-        <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4" onClick={e => { e.stopPropagation(); setMayPicker(false) }}>
+        <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4" onClick={e => { e.stopPropagation(); setMayPicker(false) }}>
           <div className="bg-white rounded-2xl max-w-md w-full max-h-[82vh] flex flex-col" onClick={e => e.stopPropagation()}>
             <div className="p-4 border-b flex items-center justify-between">
               <h3 className="font-bold text-[#16233f] flex items-center gap-2"><Building2 className="w-5 h-5" /> Agregar mayoristas</h3>
