@@ -102,6 +102,23 @@ export async function POST(
     // Método de pago elegido en el checkout ('transferencia' o 'mercadopago')
     const metodoPago = body.metodo_pago === 'transferencia' ? 'transferencia' : 'mercadopago'
 
+    // Si el checkout no trae dirección, HEREDA la del cliente (ficha mayorista o
+    // su dirección guardada aprobada), para que el pedido no quede sin dirección.
+    let dirCliente: string | null = null
+    let telCliente: string | null = null
+    {
+      const { data: md } = await supabase.from('mayoristas').select('direccion, telefono').eq('id', mayorista.id).maybeSingle()
+      dirCliente = (md as { direccion?: string } | null)?.direccion || null
+      telCliente = (md as { telefono?: string } | null)?.telefono || null
+    }
+    if (!dirCliente) {
+      const { data: dd } = await supabase.from('mayorista_direcciones')
+        .select('direccion, telefono').eq('mayorista_id', mayorista.id).eq('estado', 'aprobada').eq('activo', true)
+        .order('created_at', { ascending: false }).limit(1).maybeSingle()
+      if (dd) { dirCliente = dirCliente || (dd as any).direccion || null; telCliente = telCliente || (dd as any).telefono || null }
+    }
+    const direccionFinal = (body.direccion_entrega && String(body.direccion_entrega).trim()) || dirCliente || null
+
     const pedidoBase = {
       mayorista_id:       mayorista.id,
       estado:             'pendiente_pago', // se confirma (pagado) al aprobar MP o al confirmar la transferencia
@@ -113,7 +130,8 @@ export async function POST(
       total:              total,
       notas:              body.notas || null,
       fecha_entrega_req:  body.fecha_entrega_req || null,
-      direccion_entrega:  body.direccion_entrega || null,
+      direccion_entrega:  direccionFinal,
+      telefono_entrega:   telCliente || null,
     }
 
     // Insert resiliente: si la columna metodo_pago aún no existe (SQL no corrido),
