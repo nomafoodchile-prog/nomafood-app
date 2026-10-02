@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
-import { Loader2, X, MapPin, Phone, User, Truck } from 'lucide-react'
+import { Loader2, X, MapPin, Phone, User, Truck, Trash2 } from 'lucide-react'
 
 const PlannerMap = dynamic(() => import('./PlannerMap'), { ssr: false })
 
@@ -31,10 +31,22 @@ const EE: Record<string, { cls: string; txt: string }> = {
   incidencia: { cls: 'bg-red-100 text-red-700', txt: 'Incidencia' },
 }
 
-export default function RouteDetail({ routeId, onClose }: { routeId: string; onClose: () => void }) {
+export default function RouteDetail({ routeId, onClose, onDeleted }: { routeId: string; onClose: () => void; onDeleted?: () => void }) {
   const [ruta, setRuta] = useState<Ruta | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState(false)
+
+  const deshacer = async () => {
+    if (!confirm('¿Deshacer esta ruta? Sus pedidos volverán a quedar "sin ruta" para poder armarla de nuevo. No se cancela ningún pedido.')) return
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/central/rutas/${routeId}`, { method: 'DELETE' })
+      const d = await res.json().catch(() => ({}))
+      if (!res.ok) { alert(d.error || 'No se pudo deshacer la ruta.'); setDeleting(false); return }
+      if (onDeleted) onDeleted(); else onClose()
+    } catch { alert('Error de conexión.'); setDeleting(false) }
+  }
 
   useEffect(() => {
     let alive = true
@@ -116,7 +128,11 @@ export default function RouteDetail({ routeId, onClose }: { routeId: string; onC
               </div>
             </div>
 
-            <div className="flex justify-end mt-4">
+            <div className="flex items-center justify-between gap-3 mt-4 flex-wrap">
+              <button onClick={deshacer} disabled={deleting}
+                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-red-200 text-red-600 text-sm font-semibold hover:bg-red-50 disabled:opacity-60">
+                {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />} Deshacer ruta
+              </button>
               <button onClick={onClose} className="px-5 py-2.5 rounded-xl bg-[#16233f] text-white text-sm font-semibold">Cerrar</button>
             </div>
           </div>
