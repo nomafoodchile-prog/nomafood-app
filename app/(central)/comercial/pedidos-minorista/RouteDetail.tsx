@@ -2,10 +2,11 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
-import { Loader2, X, MapPin, Phone, User, Truck, Trash2, Save, Undo2 } from 'lucide-react'
+import { Loader2, X, MapPin, Phone, User, Truck, Trash2, Save, Undo2, Plus, Building2 } from 'lucide-react'
 
 const PlannerMap = dynamic(() => import('./PlannerMap'), { ssr: false })
 
+interface MayPedido { id: string; numero: string | null; cliente: string; direccion: string | null; tiene_coords: boolean }
 interface Stop {
   id: string; orden: number; cliente_nombre: string | null; direccion: string | null; comuna: string | null
   telefono: string | null; lat: number | null; lng: number | null; eta: string | null; estado_entrega: string | null
@@ -47,6 +48,10 @@ export default function RouteDetail({ routeId, onClose, onDeleted, onChanged }: 
   const [choferSel, setChoferSel] = useState('')
   const [hora, setHora] = useState('10:00')
   const [removed, setRemoved] = useState<Set<string>>(new Set())
+  const [addMay, setAddMay] = useState<Set<string>>(new Set())
+  const [mayPicker, setMayPicker] = useState(false)
+  const [mayList, setMayList] = useState<MayPedido[] | null>(null)
+  const [loadingMay, setLoadingMay] = useState(false)
 
   const recargar = useCallback(async () => {
     setLoading(true)
@@ -56,7 +61,7 @@ export default function RouteDetail({ routeId, onClose, onDeleted, onChanged }: 
         setRuta(d.ruta)
         setChoferSel(d.ruta.chofer_id || '')
         setHora(horaDe(d.ruta.hora_salida_plan))
-        setRemoved(new Set())
+        setRemoved(new Set()); setAddMay(new Set())
       } else setError(d.error || 'No se pudo cargar la ruta')
     } catch { setError('Error de conexión') }
     setLoading(false)
@@ -68,19 +73,31 @@ export default function RouteDetail({ routeId, onClose, onDeleted, onChanged }: 
   const pedidoId = (s: Stop) => s.minorista_pedido_id || s.mayorista_pedido_id || s.id
   const toggleQuitar = (s: Stop) => setRemoved(prev => { const n = new Set(prev); const k = pedidoId(s); if (n.has(k)) n.delete(k); else n.add(k); return n })
 
-  const hayCambios = ruta ? (removed.size > 0 || choferSel !== (ruta.chofer_id || '') || hora !== horaDe(ruta.hora_salida_plan)) : false
+  const hayCambios = ruta ? (removed.size > 0 || addMay.size > 0 || choferSel !== (ruta.chofer_id || '') || hora !== horaDe(ruta.hora_salida_plan)) : false
+
+  const abrirPickerMay = async () => {
+    setMayPicker(true)
+    if (mayList === null) {
+      setLoadingMay(true)
+      try { const d = await fetch('/api/central/rutas/mayoristas-pendientes').then(r => r.json()); setMayList(d.pedidos || []) } catch { setMayList([]) }
+      setLoadingMay(false)
+    }
+  }
 
   const guardar = async () => {
     if (!ruta) return
-    if (removed.size >= ruta.stops.length) { alert('No puedes quitar todas las paradas. Si quieres eliminar la ruta completa, usa "Deshacer ruta".'); return }
+    if (removed.size >= ruta.stops.length + addMay.size) { alert('No puedes quitar todas las paradas. Si quieres eliminar la ruta completa, usa "Deshacer ruta".'); return }
     setSaving(true)
     try {
       const res = await fetch(`/api/central/rutas/${routeId}`, {
         method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ remove: Array.from(removed), chofer_id: choferSel || null, hora_salida: hora }),
+        body: JSON.stringify({ remove: Array.from(removed), add_mayorista: Array.from(addMay), chofer_id: choferSel || null, hora_salida: hora }),
       })
       const d = await res.json().catch(() => ({}))
       if (!res.ok) { alert(d.error || 'No se pudieron guardar los cambios.'); setSaving(false); return }
+      if (d.faltan && d.faltan.length) {
+        alert('Guardado. Pero estos pedidos NO tienen dirección ubicable y quedaron sin posición en el mapa: ' + d.faltan.map((f: any) => f.cliente).join(', ') + '. Agrégales la dirección de entrega en el pedido para incluirlos en la ruta.')
+      }
       if (onChanged) onChanged()
       await recargar()
     } catch { alert('Error de conexión.') }
@@ -151,6 +168,11 @@ export default function RouteDetail({ routeId, onClose, onDeleted, onChanged }: 
               <p className="text-[11px] text-gray-400 flex-1 min-w-[180px]">La hora de llegada es <b>estimada</b> según la salida. La hora real se registra cuando el chofer inicia la ruta y entrega.</p>
             </div>
 
+            <button onClick={abrirPickerMay}
+              className="w-full mb-3 flex items-center justify-center gap-1.5 border-2 border-dashed border-[#c9a24e]/60 text-[#8a6d22] rounded-xl py-2 text-sm font-semibold hover:bg-[#c9a24e]/10">
+              <Plus className="w-4 h-4" /> Agregar pedidos mayoristas{addMay.size > 0 ? ` (${addMay.size} por agregar — guarda para aplicar)` : ''}
+            </button>
+
             <div className="grid md:grid-cols-2 gap-4">
               <div className="bg-white border rounded-xl p-4">
                 <h3 className="font-semibold text-[#16233f] mb-1 text-sm flex items-center gap-1.5"><MapPin className="w-4 h-4 text-[#c9a24e]" /> Salida: {ruta.origen_nombre || 'Centro de despacho'}</h3>
@@ -202,6 +224,43 @@ export default function RouteDetail({ routeId, onClose, onDeleted, onChanged }: 
           </div>
         ) : null}
       </div>
+
+      {mayPicker && (
+        <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4" onClick={e => { e.stopPropagation(); setMayPicker(false) }}>
+          <div className="bg-white rounded-2xl max-w-md w-full max-h-[82vh] flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="p-4 border-b flex items-center justify-between">
+              <h3 className="font-bold text-[#16233f] flex items-center gap-2"><Building2 className="w-5 h-5" /> Agregar mayoristas</h3>
+              <button onClick={() => setMayPicker(false)}><X className="w-5 h-5 text-gray-400" /></button>
+            </div>
+            <div className="p-3 overflow-auto flex-1">
+              {loadingMay ? (
+                <div className="py-10 text-center text-gray-400"><Loader2 className="w-5 h-5 animate-spin mx-auto" /></div>
+              ) : (mayList && mayList.length > 0) ? (
+                <div className="space-y-1.5">
+                  {mayList.map(m => {
+                    const on = addMay.has(m.id)
+                    return (
+                      <label key={m.id} className={`flex items-center gap-2.5 p-2.5 border rounded-xl cursor-pointer ${on ? 'bg-amber-50 border-[#c9a24e]' : ''}`}>
+                        <input type="checkbox" checked={on} onChange={() => setAddMay(prev => { const n = new Set(prev); if (n.has(m.id)) n.delete(m.id); else n.add(m.id); return n })} className="w-4 h-4 accent-[#16233f] flex-none" />
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-sm text-[#16233f] truncate">{m.cliente}{m.numero ? ` · #${m.numero}` : ''}</div>
+                          <div className="text-[11px] text-gray-400 truncate">{m.direccion || 'Sin dirección — se necesita para ubicarlo'}</div>
+                        </div>
+                        {!m.direccion && <span className="text-[9px] text-red-500 flex-none">sin dirección</span>}
+                      </label>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className="py-10 text-center text-gray-400 text-sm">No hay pedidos mayoristas disponibles.</div>
+              )}
+            </div>
+            <div className="p-4 border-t">
+              <button onClick={() => setMayPicker(false)} className="w-full py-2.5 rounded-xl bg-[#16233f] text-white text-sm font-bold">Listo{addMay.size > 0 ? ` (${addMay.size})` : ''} · luego Guardar cambios</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
