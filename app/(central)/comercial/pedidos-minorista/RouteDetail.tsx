@@ -75,6 +75,29 @@ export default function RouteDetail({ routeId, onClose, onDeleted, onChanged }: 
 
   const hayCambios = ruta ? (removed.size > 0 || addMay.size > 0 || choferSel !== (ruta.chofer_id || '') || hora !== horaDe(ruta.hora_salida_plan)) : false
 
+  const [fixVals, setFixVals] = useState<Record<string, string>>({})
+  const [fixing, setFixing] = useState<string | null>(null)
+  const corregir = async (s: Stop) => {
+    const pid = s.minorista_pedido_id || s.mayorista_pedido_id || ''
+    const tipo = s.mayorista_pedido_id ? 'mayorista' : 'minorista'
+    const dir = (fixVals[pid] || '').trim()
+    if (!dir) return
+    setFixing(pid)
+    try {
+      const res = await fetch('/api/central/rutas/corregir-direccion', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: pid, direccion: dir, comuna: s.comuna || '', tipo }),
+      })
+      const d = await res.json().catch(() => ({}))
+      if (!res.ok || d.ok === false) { alert(d.error || 'No se pudo ubicar esa dirección.'); setFixing(null); return }
+      // Re-guarda la ruta para re-optimizar con la dirección ya ubicada
+      await fetch(`/api/central/rutas/${routeId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ hora_salida: hora }) }).catch(() => {})
+      if (onChanged) onChanged()
+      await recargar()
+    } catch { alert('Error de conexión.') }
+    setFixing(null)
+  }
+
   const abrirPickerMay = async () => {
     setMayPicker(true)
     if (mayList === null) {
@@ -181,22 +204,35 @@ export default function RouteDetail({ routeId, onClose, onDeleted, onChanged }: 
                   {ruta.stops.map(s => {
                     const ee = EE[String(s.estado_entrega || 'pendiente')] || EE.pendiente
                     const quitado = removed.has(pedidoId(s))
+                    const sinUbicar = s.lat == null || s.lng == null
                     return (
-                      <div key={s.id} className={`flex gap-2.5 items-center p-2.5 border rounded-xl ${quitado ? 'bg-red-50 opacity-60' : 'bg-gray-50'}`}>
-                        <div className={`w-7 h-7 rounded-full text-white font-bold grid place-items-center text-sm flex-none ${quitado ? 'bg-gray-300' : 'bg-[#16233f]'}`}>{s.orden}</div>
-                        <div className="flex-1 min-w-0">
-                          <div className={`font-semibold text-sm text-[#16233f] truncate flex items-center gap-1 ${quitado ? 'line-through' : ''}`}><User className="w-3 h-3 text-gray-400" />{s.cliente_nombre || 'Cliente'}</div>
-                          <div className="text-[11px] text-gray-400 truncate">{[s.direccion, s.comuna].filter(Boolean).join(', ')}</div>
-                          {s.telefono && <div className="text-[11px] text-gray-400 flex items-center gap-1"><Phone className="w-3 h-3" />{s.telefono}</div>}
+                      <div key={s.id}>
+                        <div className={`flex gap-2.5 items-center p-2.5 border rounded-xl ${quitado ? 'bg-red-50 opacity-60' : sinUbicar ? 'bg-amber-50 border-amber-200' : 'bg-gray-50'}`}>
+                          <div className={`w-7 h-7 rounded-full text-white font-bold grid place-items-center text-sm flex-none ${quitado ? 'bg-gray-300' : 'bg-[#16233f]'}`}>{s.orden}</div>
+                          <div className="flex-1 min-w-0">
+                            <div className={`font-semibold text-sm text-[#16233f] truncate flex items-center gap-1 ${quitado ? 'line-through' : ''}`}><User className="w-3 h-3 text-gray-400" />{s.cliente_nombre || 'Cliente'}</div>
+                            <div className="text-[11px] text-gray-400 truncate">{[s.direccion, s.comuna].filter(Boolean).join(', ') || 'Sin dirección'}</div>
+                            {s.telefono && <div className="text-[11px] text-gray-400 flex items-center gap-1"><Phone className="w-3 h-3" />{s.telefono}</div>}
+                          </div>
+                          <div className="text-right flex-none">
+                            {sinUbicar ? <div className="text-[10px] text-amber-600 font-semibold">a ubicar</div> : <><div className="font-bold text-sm text-[#16233f] tabular-nums">{hhmm(s.eta)}</div><div className="text-[9px] uppercase text-gray-400">est.</div></>}
+                            <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${ee.cls}`}>{ee.txt}</span>
+                          </div>
+                          <button onClick={() => toggleQuitar(s)} title={quitado ? 'Volver a incluir' : 'Sacar de la ruta'} className="flex-none text-gray-300 hover:text-red-500">
+                            {quitado ? <Undo2 className="w-4 h-4" /> : <X className="w-4 h-4" />}
+                          </button>
                         </div>
-                        <div className="text-right flex-none">
-                          <div className="font-bold text-sm text-[#16233f] tabular-nums">{hhmm(s.eta)}</div>
-                          <div className="text-[9px] uppercase text-gray-400">est.</div>
-                          <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${ee.cls}`}>{ee.txt}</span>
-                        </div>
-                        <button onClick={() => toggleQuitar(s)} title={quitado ? 'Volver a incluir' : 'Sacar de la ruta'} className="flex-none text-gray-300 hover:text-red-500">
-                          {quitado ? <Undo2 className="w-4 h-4" /> : <X className="w-4 h-4" />}
-                        </button>
+                        {sinUbicar && !quitado && (
+                          <div className="flex gap-2 mt-1 mb-1 px-1">
+                            <input value={fixVals[pedidoId(s)] || ''} onChange={e => setFixVals(v => ({ ...v, [pedidoId(s)]: e.target.value }))}
+                              placeholder="Escribe la dirección (calle, número, comuna)"
+                              className="flex-1 min-w-0 border rounded-lg px-2.5 py-1.5 text-sm" />
+                            <button onClick={() => corregir(s)} disabled={fixing === pedidoId(s)}
+                              className="px-3 py-1.5 rounded-lg bg-[#16233f] text-white text-xs font-semibold flex items-center gap-1.5 disabled:opacity-60 whitespace-nowrap">
+                              {fixing === pedidoId(s) ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <MapPin className="w-3.5 h-3.5" />} Ubicar
+                            </button>
+                          </div>
+                        )}
                       </div>
                     )
                   })}
