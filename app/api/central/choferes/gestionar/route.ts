@@ -40,6 +40,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true })
   }
 
+  if (action === 'password') {
+    const nueva = 'nomma' + Math.floor(1000 + Math.random() * 9000)
+    const { error } = await db.auth.admin.updateUserById(pid, { password: nueva })
+    if (error) return NextResponse.json({ error: 'No se pudo resetear la contraseña. ' + error.message }, { status: 500 })
+    return NextResponse.json({ ok: true, password: nueva })
+  }
+
   if (action === 'eliminar') {
     // Ubica la ficha driver del chofer para soltar sus pedidos antes de borrar.
     const { data: drv } = await db.from('drivers').select('id').eq('profile_id', pid).maybeSingle()
