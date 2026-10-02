@@ -9,8 +9,8 @@ import { useEffect, useRef } from 'react'
 export interface MapStop { orden: number; cliente: string | null; lat: number; lng: number }
 
 export default function PlannerMap({
-  origin, stops,
-}: { origin: { lat: number; lng: number; nombre?: string }; stops: MapStop[] }) {
+  origin, stops, driver,
+}: { origin: { lat: number; lng: number; nombre?: string }; stops: MapStop[]; driver?: { lat: number; lng: number; nombre?: string } | null }) {
   const elRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<any>(null)
   const layerRef = useRef<any>(null)
@@ -41,6 +41,19 @@ export default function PlannerMap({
 
     if (pts.length > 1) {
       L.polyline(pts, { color: '#c9a24e', weight: 3, opacity: 0.85, dashArray: '4 8' }).addTo(layerRef.current)
+    }
+
+    // Marcador del CHOFER en vivo (camión dorado con halo)
+    if (driver && driver.lat != null && driver.lng != null) {
+      const dIcon = L.divIcon({
+        html: '<div style="position:relative;width:34px;height:34px"><div style="position:absolute;inset:0;border-radius:50%;background:#c9a24e;opacity:.3;animation:nfpulse 1.6s ease-out infinite"></div><div style="position:absolute;inset:4px;background:#c9a24e;border-radius:50%;border:3px solid #16233f;display:flex;align-items:center;justify-content:center;font-size:14px">🚚</div></div><style>@keyframes nfpulse{0%{transform:scale(.6);opacity:.5}100%{transform:scale(1.8);opacity:0}}</style>',
+        className: '', iconSize: [34, 34], iconAnchor: [17, 17],
+      })
+      L.marker([driver.lat, driver.lng], { icon: dIcon, zIndexOffset: 1000 }).addTo(layerRef.current).bindPopup(driver.nombre || 'Chofer (en vivo)')
+      pts.push([driver.lat, driver.lng])
+    }
+
+    if (pts.length > 1) {
       mapRef.current.fitBounds(pts, { padding: [30, 30] })
     } else {
       mapRef.current.setView(pts[0] || [-33.45, -70.66], 12)
@@ -94,7 +107,7 @@ export default function PlannerMap({
     const L = (window as any).L
     if (L && mapRef.current) draw(L)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [origin, stops])
+  }, [origin, stops, driver])
 
   return <div ref={elRef} className="w-full h-full min-h-[340px] rounded-xl overflow-hidden" />
 }
