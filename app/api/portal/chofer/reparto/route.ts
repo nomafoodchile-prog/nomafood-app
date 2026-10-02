@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
 
   // La parada debe pertenecer a una ruta de ESTE chofer
   const { data: stop } = await db.from('delivery_route_stops')
-    .select('id, route_id, minorista_pedido_id').eq('id', stopId).maybeSingle()
+    .select('id, route_id, minorista_pedido_id, mayorista_pedido_id').eq('id', stopId).maybeSingle()
   if (!stop) return NextResponse.json({ error: 'Parada no encontrada' }, { status: 404 })
   const { data: ruta } = await db.from('delivery_routes')
     .select('id, chofer_id').eq('id', stop.route_id).maybeSingle()
@@ -70,9 +70,14 @@ export async function POST(req: NextRequest) {
   if (estado === 'entregado') upd.hora_entrega_real = now
   await db.from('delivery_route_stops').update(upd).eq('id', stopId)
 
-  // Refleja el estado en el pedido (para la columna Despacho de la Central)
+  // Refleja el estado en el pedido de origen (minorista o mayorista)
   if (stop.minorista_pedido_id) {
     await db.from('minorista_pedidos').update({ estado_entrega: estado }).eq('id', stop.minorista_pedido_id)
+  }
+  if (stop.mayorista_pedido_id) {
+    const may: Record<string, any> = { estado_entrega: estado }
+    if (estado === 'entregado') may.hora_entrega_real = now
+    await db.from('mayorista_pedidos').update(may).eq('id', stop.mayorista_pedido_id)
   }
 
   // Estado de la ruta: en_ruta al empezar; finalizada cuando no quedan pendientes
