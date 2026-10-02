@@ -1,16 +1,17 @@
 // Proveedor de ruteo OSRM (OpenStreetMap, gratis, sin API key).
-// Calcula: (a) el orden óptimo de paradas por RED VIAL (servicio "trip"),
-// y (b) la matriz de tiempos/distancias entre todos los puntos (servicio
-// "table") para poder recalcular al instante cuando se reordena a mano.
-// Si el servidor público no responde, cae a una estimación local (haversine
-// + vecino más cercano) para que la función nunca se caiga.
+// Estrategia de orden: "vecino más cercano desde el origen" + mejora 2-opt,
+// usando la matriz de TIEMPOS de viaje por calles reales (servicio "table" de
+// OSRM). Esto hace que la ruta salga de la fábrica hacia la parada más cercana
+// y avance de forma coherente (sin partir por la más lejana), que es lo que se
+// espera en un reparto. Si el servidor público no responde, cae a una
+// estimación local (haversine) para que la función nunca se caiga.
 
 export interface LatLng { lat: number; lng: number }
 export interface Matrix { duration_s: number[][]; distance_m: number[][] }
 export interface OptimizeResult {
   provider: string
   // índice 0 = origen (bodega); 1..n = paradas en el MISMO orden que `stops`
-  order: number[]            // orden óptimo de visita (empieza en 0 = origen)
+  order: number[]            // orden de visita (empieza en 0 = origen)
   matrix: Matrix
 }
 
@@ -29,8 +30,7 @@ export function haversineM(a: LatLng, b: LatLng): number {
   return 2 * R * Math.asin(Math.sqrt(s))
 }
 
-// Estimación local (respaldo): matriz por haversine + orden vecino-más-cercano
-function localEstimate(points: LatLng[]): OptimizeResult {
+function matrizLocal(points: LatLng[]): Matrix {
   const n = points.length
   const duration_s: number[][] = [], distance_m: number[][] = []
   for (let i = 0; i < n; i++) {
@@ -41,16 +41,7 @@ function localEstimate(points: LatLng[]): OptimizeResult {
       duration_s[i][j] = d / (SPEED_KMH * 1000 / 3600)
     }
   }
-  // vecino más cercano desde el origen (índice 0)
-  const order = [0]; const pool = new Set<number>()
-  for (let i = 1; i < n; i++) pool.add(i)
-  let cur = 0
-  while (pool.size) {
-    let best = -1, bd = Infinity
-    for (const j of pool) { if (distance_m[cur][j] < bd) { bd = distance_m[cur][j]; best = j } }
-    order.push(best); pool.delete(best); cur = best
-  }
-  return { provider: 'local-estimate', order, matrix: { duration_s, distance_m } }
+  return { duration_s, distance_m }
 }
 
 async function osrmTable(points: LatLng[], signal: AbortSignal): Promise<Matrix> {
@@ -62,43 +53,76 @@ async function osrmTable(points: LatLng[], signal: AbortSignal): Promise<Matrix>
   return { duration_s: j.durations, distance_m: j.distances }
 }
 
-async function osrmOrder(points: LatLng[], signal: AbortSignal): Promise<number[]> {
-  // source=first fija el origen; roundtrip=false => ruta abierta (no vuelve a la bodega)
-  const url = `${OSRM_BASE}/trip/v1/driving/${coordsParam(points)}?source=first&roundtrip=false`
-  const r = await fetch(url, { signal })
-  if (!r.ok) throw new Error('osrm trip ' + r.status)
-  const j = await r.json() as { code: string; waypoints: { waypoint_index: number }[] }
-  if (j.code !== 'Ok' || !Array.isArray(j.waypoints)) throw new Error('osrm trip code ' + j.code)
-  // waypoints viene en orden de ENTRADA; waypoint_index = su posición en el viaje óptimo
-  const order = j.waypoints
-    .map((w, inputIdx) => ({ inputIdx, pos: w.waypoint_index }))
-    .sort((a, b) => a.pos - b.pos)
-    .map(x => x.inputIdx)
+// Costo total de una ruta ABIERTA (no vuelve al origen) según la matriz de costo.
+function costoRuta(order: number[], cost: number[][]): number {
+  let t = 0
+  for (let i = 0; i < order.length - 1; i++) t += cost[order[i]][order[i + 1]]
+  return t
+}
+
+// Vecino más cercano desde el origen (índice 0).
+function vecinoMasCercano(cost: number[][], n: number): number[] {
+  const order = [0]
+  const pend = new Set<number>()
+  for (let i = 1; i < n; i++) pend.add(i)
+  let cur = 0
+  while (pend.size) {
+    let best = -1, bd = Infinity
+    for (const j of pend) { if (cost[cur][j] < bd) { bd = cost[cur][j]; best = j } }
+    order.push(best); pend.delete(best); cur = best
+  }
   return order
+}
+
+// Mejora 2-opt para una ruta ABIERTA, manteniendo fijo el origen en la posición 0.
+// Deshace cruces → ruta más coherente y corta, sin "saltos" raros.
+function dosOpt(order: number[], cost: number[][]): number[] {
+  const n = order.length
+  if (n < 4) return order
+  let best = order.slice()
+  let mejoró = true
+  let guard = 0
+  while (mejoró && guard++ < 50) {
+    mejoró = false
+    // i desde 1 para no mover el origen (posición 0)
+    for (let i = 1; i < n - 1; i++) {
+      for (let k = i + 1; k < n; k++) {
+        const a = best[i - 1], b = best[i], c = best[k], d = k + 1 < n ? best[k + 1] : -1
+        const antes = cost[a][b] + (d >= 0 ? cost[c][d] : 0)
+        const despues = cost[a][c] + (d >= 0 ? cost[b][d] : 0)
+        if (despues + 1e-6 < antes) {
+          const nuevo = best.slice(0, i).concat(best.slice(i, k + 1).reverse(), best.slice(k + 1))
+          best = nuevo; mejoró = true
+        }
+      }
+    }
+  }
+  return best
+}
+
+function ordenar(matrix: Matrix, n: number): number[] {
+  // Ordena por TIEMPO de viaje (duration), que refleja mejor las calles reales.
+  const cost = matrix.duration_s
+  const nn = vecinoMasCercano(cost, n)
+  const opt = dosOpt(nn, cost)
+  // Nos quedamos con la mejor de las dos por si acaso
+  return costoRuta(opt, cost) <= costoRuta(nn, cost) ? opt : nn
 }
 
 export async function optimizeRoute(origin: LatLng, stops: LatLng[]): Promise<OptimizeResult> {
   const points = [origin, ...stops]
+  const n = points.length
   if (stops.length === 0) return { provider: 'none', order: [0], matrix: { duration_s: [[0]], distance_m: [[0]] } }
-  if (stops.length === 1) {
-    // una sola parada: no hay nada que optimizar, pero igual pedimos distancia real
-    try {
-      const ctrl = new AbortController(); const to = setTimeout(() => ctrl.abort(), 8000)
-      const matrix = await osrmTable(points, ctrl.signal); clearTimeout(to)
-      return { provider: 'osrm', order: [0, 1], matrix }
-    } catch { return localEstimate(points) }
-  }
+
+  let matrix: Matrix
+  let provider: string
   try {
     const ctrl = new AbortController(); const to = setTimeout(() => ctrl.abort(), 9000)
-    const [order, matrix] = await Promise.all([
-      osrmOrder(points, ctrl.signal),
-      osrmTable(points, ctrl.signal),
-    ])
-    clearTimeout(to)
-    // garantiza que el origen quede primero
-    const ord = order[0] === 0 ? order : [0, ...order.filter(i => i !== 0)]
-    return { provider: 'osrm', order: ord, matrix }
+    matrix = await osrmTable(points, ctrl.signal); clearTimeout(to); provider = 'osrm'
   } catch {
-    return localEstimate(points)
+    matrix = matrizLocal(points); provider = 'local-estimate'
   }
+
+  const order = stops.length === 1 ? [0, 1] : ordenar(matrix, n)
+  return { provider, order, matrix }
 }
