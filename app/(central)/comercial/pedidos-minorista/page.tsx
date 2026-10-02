@@ -287,7 +287,8 @@ export default function PedidosMinorista() {
 
       {planner && <RoutePlanner ids={planner} onClose={() => setPlanner(null)} onConfirmed={onConfirmado} />}
 
-      {verRuta && <RouteDetail routeId={verRuta} onClose={() => setVerRuta(null)} />}
+      {verRuta && <RouteDetail routeId={verRuta} onClose={() => setVerRuta(null)}
+        onDeleted={() => { setVerRuta(null); setToast('Ruta deshecha · pedidos liberados'); setTimeout(() => setToast(null), 4000); cargar(); cargarRutas() }} />}
 
       {toast && (
         <div className="fixed left-1/2 -translate-x-1/2 bottom-6 z-[60] bg-[#16233f] text-white px-5 py-3 rounded-xl shadow-2xl font-semibold text-sm flex items-center gap-2">

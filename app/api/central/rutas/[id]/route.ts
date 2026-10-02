@@ -20,3 +20,29 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   const stops = ((ruta as any).stops || []).slice().sort((a: any, b: any) => a.orden - b.orden)
   return NextResponse.json({ ok: true, ruta: { ...ruta, stops } })
 }
+
+// DELETE /api/central/rutas/[id] → deshace una ruta: libera sus pedidos
+// (vuelven a "sin ruta" y seleccionables) y elimina la ruta y sus paradas.
+export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+  const { isAdmin } = await getCentralUser()
+  if (!isAdmin) return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
+  const db = createServerClient()
+
+  // Pedidos mayoristas que estaban en la ruta → volver a pendiente
+  const { data: stops } = await db.from('delivery_route_stops')
+    .select('mayorista_pedido_id').eq('route_id', params.id).not('mayorista_pedido_id', 'is', null)
+  const mayIds = (stops || []).map((s: any) => s.mayorista_pedido_id).filter(Boolean)
+  if (mayIds.length) await db.from('mayorista_pedidos').update({ estado_entrega: 'pendiente' }).in('id', mayIds)
+
+  // Pedidos minoristas de la ruta → liberar (sin ruta, sin chofer, pendiente)
+  await db.from('minorista_pedidos')
+    .update({ route_id: null, chofer_id: null, estado_entrega: 'pendiente' })
+    .eq('route_id', params.id)
+
+  // Borrar paradas y la ruta
+  await db.from('delivery_route_stops').delete().eq('route_id', params.id)
+  const { error } = await db.from('delivery_routes').delete().eq('id', params.id)
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  return NextResponse.json({ ok: true })
+}
