@@ -105,6 +105,7 @@ export default function SolicitudesAcceso() {
     setBusy(true)
     const { data: may } = await supabase.from('mayoristas').insert({
       nombre: sel.nombre, empresa: sel.empresa, email: sel.email, telefono: sel.telefono, rut: sel.rut, activo: true,
+      direccion: sel.direccion, comuna: sel.comuna, giro: sel.giro,
       marca: (sel.origen || '').toLowerCase().includes('brotes') ? 'Brotes Asiáticos' : 'NOMMA FOOD',
       notas: `Creado desde solicitud ${sel.numero}`,
     }).select('id, token').single()

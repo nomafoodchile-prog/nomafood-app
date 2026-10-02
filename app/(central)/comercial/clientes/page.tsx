@@ -16,7 +16,11 @@ interface Cliente {
   estado: string
   contacto?: string
   marca?: string
+  direccion?: string
+  comuna?: string
+  giro?: string
 }
+const FORM_VACIO = { empresa: '', rut: '', email: '', telefono: '', contacto: '', estado: 'Activo', direccion: '', comuna: '', giro: '' }
 
 // Datos de marca para el mensaje que se copia y se envía al cliente.
 // Brotes usa su dominio propio (mayoristas.brotesasiaticos.cl); NOMMA, nommafood.cl.
@@ -45,7 +49,14 @@ export default function ClientesPage() {
   const [saving, setSaving] = useState(false)
   const [busqueda, setBusqueda] = useState('')
   const [filtroEstado, setFiltroEstado] = useState<'Todos' | 'Activo' | 'Inactivo'>('Todos')
-  const [form, setForm] = useState({ empresa: '', rut: '', email: '', telefono: '', contacto: '', estado: 'Activo' })
+  const [form, setForm] = useState(FORM_VACIO)
+  const [editId, setEditId] = useState<string | null>(null)
+  const abrirNuevo = () => { setEditId(null); setForm(FORM_VACIO); setShowForm(true) }
+  const abrirEditar = (c: Cliente) => {
+    setEditId(c.id)
+    setForm({ empresa: c.empresa || '', rut: c.rut || '', email: c.email || '', telefono: c.telefono || '', contacto: c.contacto || '', estado: c.estado || 'Activo', direccion: c.direccion || '', comuna: c.comuna || c.ciudad || '', giro: c.giro || '' })
+    setShowForm(true)
+  }
   // Interruptor de compras del portal (marcha blanca)
   const [pedOn, setPedOn] = useState<boolean | null>(null)
   const [pedSaving, setPedSaving] = useState(false)
@@ -120,17 +131,17 @@ export default function ClientesPage() {
     setSaving(true)
     try {
       const res = await fetch('/api/central/clientes', {
-        method: 'POST',
+        method: editId ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify(editId ? { ...form, id: editId } : form),
       })
       const d = await res.json()
-      if (!res.ok || !d.ok) throw new Error(d.error || 'No se pudo crear')
-      setShowForm(false)
-      setForm({ empresa: '', rut: '', email: '', telefono: '', contacto: '', estado: 'Activo' })
+      if (!res.ok || !d.ok) throw new Error(d.error || 'No se pudo guardar')
+      setShowForm(false); setEditId(null)
+      setForm(FORM_VACIO)
       cargar()
     } catch (e: any) {
-      alert(e?.message || 'Error al crear el cliente')
+      alert(e?.message || 'Error al guardar el cliente')
     } finally {
       setSaving(false)
     }
@@ -144,7 +155,7 @@ export default function ClientesPage() {
           <h1 className="text-2xl font-bold text-[#1a1a1a]">Clientes</h1>
           <p className="text-sm text-gray-500 mt-0.5">Gestión de clientes y cuentas — Alma Libre Grupo SpA</p>
         </div>
-        <button onClick={() => setShowForm(true)} className="noma-btn-primary text-sm flex items-center gap-2">
+        <button onClick={abrirNuevo} className="noma-btn-primary text-sm flex items-center gap-2">
           <Plus size={16} />
           Nuevo cliente
         </button>
@@ -259,7 +270,10 @@ export default function ClientesPage() {
                     <td className="py-3 px-4 hidden sm:table-cell">
                       {c.estado === 'Activo' ? <span className="noma-badge-green">Activo</span> : <span className="noma-badge-gray">Inactivo</span>}
                     </td>
-                    <td className="py-3 px-4 text-right">
+                    <td className="py-3 px-4 text-right whitespace-nowrap">
+                      <button onClick={() => abrirEditar(c)} title="Editar datos del cliente" className="inline-flex items-center gap-1.5 text-xs font-semibold border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-600 hover:border-[#c9a24e] hover:text-[#1b2a4a] mr-1.5">
+                        Editar
+                      </button>
                       <button onClick={() => abrirClave(c)} title="Definir contraseña de acceso" className="inline-flex items-center gap-1.5 text-xs font-semibold border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-600 hover:border-[#c9a24e] hover:text-[#1b2a4a]">
                         <KeyRound size={13} /> Contraseña
                       </button>
@@ -278,10 +292,11 @@ export default function ClientesPage() {
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowForm(false)} />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-5">
-              <h3 className="font-bold text-[#1a1a1a]">Nuevo cliente</h3>
+              <h3 className="font-bold text-[#1a1a1a]">{editId ? 'Editar cliente' : 'Nuevo cliente'}</h3>
               <button onClick={() => setShowForm(false)} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100"><X size={16} /></button>
             </div>
-            <p className="text-xs text-gray-500 mb-4">Crea un cliente manualmente. Nota: esto no genera su acceso al portal (eso se hace aprobando su solicitud).</p>
+            {!editId && <p className="text-xs text-gray-500 mb-4">Crea un cliente manualmente. Nota: esto no genera su acceso al portal (eso se hace aprobando su solicitud).</p>}
+            <p className="text-[11px] text-gray-400 mb-4">Con la dirección y el teléfono cargados aquí, los pedidos de este cliente ya salen listos para despacho (sin asignar dirección a mano).</p>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1">Razón social *</label>
@@ -289,30 +304,44 @@ export default function ClientesPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">RUT</label>
-                  <input type="text" value={form.rut} onChange={e => setForm(f => ({ ...f, rut: e.target.value }))} className="noma-input" placeholder="76.123.456-7" />
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">RUT empresa *</label>
+                  <input type="text" value={form.rut} onChange={e => setForm(f => ({ ...f, rut: e.target.value }))} className="noma-input" placeholder="76.123.456-7" required />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">Estado</label>
-                  <select value={form.estado} onChange={e => setForm(f => ({ ...f, estado: e.target.value }))} className="noma-input">
-                    <option value="Activo">Activo</option>
-                    <option value="Inactivo">Inactivo</option>
-                  </select>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Giro</label>
+                  <input type="text" value={form.giro} onChange={e => setForm(f => ({ ...f, giro: e.target.value }))} className="noma-input" placeholder="Ej: Cafetería, Restaurante" />
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">Email</label>
-                <input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} className="noma-input" placeholder="compras@empresa.cl" />
+                <label className="block text-xs font-semibold text-gray-600 mb-1">Dirección de despacho *</label>
+                <input type="text" value={form.direccion} onChange={e => setForm(f => ({ ...f, direccion: e.target.value }))} className="noma-input" placeholder="Calle, número, depto/local" required />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">Teléfono</label>
-                  <input type="tel" value={form.telefono} onChange={e => setForm(f => ({ ...f, telefono: e.target.value }))} className="noma-input" placeholder="+56 9 1234 5678" />
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Comuna</label>
+                  <input type="text" value={form.comuna} onChange={e => setForm(f => ({ ...f, comuna: e.target.value }))} className="noma-input" placeholder="Comuna" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Teléfono contacto *</label>
+                  <input type="tel" value={form.telefono} onChange={e => setForm(f => ({ ...f, telefono: e.target.value }))} className="noma-input" placeholder="+56 9 1234 5678" required />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Email</label>
+                  <input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} className="noma-input" placeholder="compras@empresa.cl" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 mb-1">Contacto principal</label>
                   <input type="text" value={form.contacto} onChange={e => setForm(f => ({ ...f, contacto: e.target.value }))} className="noma-input" placeholder="Nombre contacto" />
                 </div>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">Estado</label>
+                <select value={form.estado} onChange={e => setForm(f => ({ ...f, estado: e.target.value }))} className="noma-input">
+                  <option value="Activo">Activo</option>
+                  <option value="Inactivo">Inactivo</option>
+                </select>
               </div>
               <div className="flex gap-2 pt-2">
                 <button type="button" onClick={() => setShowForm(false)} className="flex-1 py-2 rounded-lg border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors">Cancelar</button>
