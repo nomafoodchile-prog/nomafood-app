@@ -9,12 +9,13 @@ type Row = Record<string, unknown>
 // Envía las campañas PROGRAMADAS cuya hora ya llegó. Lo llama un cron
 // (Supabase pg_cron o Vercel Cron). Protegido con CRON_SECRET.
 async function procesar(req: NextRequest) {
+  // Fail-closed: si no hay secreto configurado, NO se procesa nada (evita que
+  // el cron quede abierto si la variable se borra del entorno por accidente).
   const secret = process.env.CRON_SECRET
-  if (secret) {
-    const auth = req.headers.get('authorization')
-    const q = new URL(req.url).searchParams.get('secret')
-    if (auth !== `Bearer ${secret}` && q !== secret) return NextResponse.json({ error: 'no autorizado' }, { status: 401 })
-  }
+  if (!secret) return NextResponse.json({ error: 'cron no configurado' }, { status: 503 })
+  const auth = req.headers.get('authorization')
+  const q = new URL(req.url).searchParams.get('secret')
+  if (auth !== `Bearer ${secret}` && q !== secret) return NextResponse.json({ error: 'no autorizado' }, { status: 401 })
   const db = createServerClient()
   const base = process.env.NEXT_PUBLIC_APP_URL || new URL(req.url).origin
   const ahora = new Date().toISOString()
