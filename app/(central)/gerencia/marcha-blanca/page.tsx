@@ -168,22 +168,22 @@ const MODULOS: ModuleInfo[] = [
   },
   // Portales
   {
-    nombre: 'Portal Operario', url: '/portal/operario/demo', status: 'parcial', datos: 'mock', porcentaje: 45,
+    nombre: 'Portal Operario', url: '/operario/login', status: 'listo', datos: 'real', porcentaje: 100,
     icono: <ChefHat size={16} />, seccion: 'Portales',
-    ok: ['UI de tareas del día', 'Botón iniciar/finalizar', 'Timer', 'Estado de tareas'],
-    falta: ['Conexión Supabase', 'Auth por token real', 'Incidencias con foto', 'Reporte diario', 'Asistencia GeoVictoria']
+    ok: ['Login con correo/clave', 'Tareas del día con datos reales', 'Receta + ingredientes escalados por tandas', 'Inicio/término + tiempos', 'Foto final obligatoria', 'Incidencias', 'Limpieza'],
+    falta: ['Asistencia GeoVictoria']
   },
   {
-    nombre: 'Portal Chofer', url: '/portal/chofer/demo', status: 'parcial', datos: 'mock', porcentaje: 40,
+    nombre: 'Portal Chofer', url: '/chofer/login', status: 'listo', datos: 'real', porcentaje: 100,
     icono: <Truck size={16} />, seccion: 'Portales',
-    ok: ['UI ruta del día', 'Lista de entregas', 'Botón Waze', 'Estado de pedidos'],
-    falta: ['Conexión Supabase', 'Auth por token real', 'Foto de entrega', 'Rendición gastos', 'Incidencias']
+    ok: ['Login con correo/clave', 'Cada chofer ve SOLO sus entregas', 'Ruta del día', 'Foto/firma de entrega', 'Rendición de gastos', 'Mensajes con la Central'],
+    falta: ['Tracking GPS en vivo en la Central']
   },
   {
-    nombre: 'Portal Picker', url: '/portal/picker/demo', status: 'parcial', datos: 'mock', porcentaje: 40,
+    nombre: 'Portal Picker', url: '/picker/login', status: 'listo', datos: 'real', porcentaje: 100,
     icono: <Package size={16} />, seccion: 'Portales',
-    ok: ['UI pedidos por armar', 'Checklist de productos', 'Estado del pedido'],
-    falta: ['Conexión Supabase', 'Auth por token real', 'Ubicaciones bodega', 'Foto en caso de error']
+    ok: ['Login con correo/clave', 'Pedidos asignados', 'Confirmación de ítems', 'Marca pedido armado', 'Se refleja en la Central'],
+    falta: []
   },
   {
     nombre: 'Portal Mayoristas', url: '/mayoristas', status: 'parcial', datos: 'mock', porcentaje: 35,
@@ -299,9 +299,9 @@ const CHECKLIST: ChecklistItem[] = [
   {
     categoria: '4. Portales de Rol',
     items: [
-      { texto: 'Portal Operario funcional con datos reales', ok: false, critico: true },
-      { texto: 'Portal Chofer funcional con datos reales', ok: false, critico: true },
-      { texto: 'Portal Picker funcional con datos reales', ok: false, critico: true },
+      { texto: 'Portal Operario funcional con datos reales', ok: true, critico: true },
+      { texto: 'Portal Chofer funcional con datos reales', ok: true, critico: true },
+      { texto: 'Portal Picker funcional con datos reales', ok: true, critico: true },
       { texto: 'Portales optimizados para celular', ok: true, critico: true },
       { texto: 'Auth por token en portales de rol', ok: false, critico: true },
     ]
