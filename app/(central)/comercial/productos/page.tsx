@@ -1,7 +1,8 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Search, Loader2, RefreshCw, Plus, Check, ArrowLeft, ChevronDown, ChevronRight, FileText } from 'lucide-react'
+import { Search, Loader2, RefreshCw, Plus, Check, ArrowLeft, ChevronDown, ChevronRight, FileText, Upload } from 'lucide-react'
+import Link from 'next/link'
 import { supabase } from '@/lib/supabase/client'
 import { ProveedoresProducto } from '@/components/central/ProveedoresProducto'
 
@@ -219,6 +220,7 @@ export default function ProductosPage() {
           <div><h1 className="text-2xl font-bold text-[#1a1a1a]">Productos</h1><p className="text-sm text-gray-500 mt-0.5">Maestro de productos · {lista.length} productos</p></div>
           <div className="flex gap-2">
             <button onClick={() => { setLoading(true); cargarLista() }} className="flex items-center gap-2 text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-2 hover:border-[#c9a24e]"><RefreshCw size={15} /> Actualizar</button>
+            <Link href="/comercial/productos-carga" className="flex items-center gap-2 text-sm text-[#1b2a4a] border border-[#c9a24e]/50 bg-[#f5efdf]/40 rounded-lg px-3 py-2 hover:border-[#c9a24e]"><Upload size={15} /> Carga rápida (Excel)</Link>
             <button onClick={() => setNuevo({ tipo_producto: 'terminado_fabricado' })} className="noma-btn-primary flex items-center gap-2 text-sm"><Plus size={16} /> Agregar producto</button>
           </div>
         </div>
