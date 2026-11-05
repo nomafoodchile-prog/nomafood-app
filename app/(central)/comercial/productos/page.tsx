@@ -118,6 +118,7 @@ export default function ProductosPage() {
   const [cats, setCats] = useState<Record<string, string[]>>({})
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [filtroTipo, setFiltroTipo] = useState('todos')
   const [sel, setSel] = useState<string | null>(null)
   const [form, setForm] = useState<Row>({})
   const [hist, setHist] = useState<AuditRow[]>([])
@@ -211,7 +212,9 @@ export default function ProductosPage() {
   const tipoActual = String(form.tipo_producto || 'terminado_fabricado')
   const tabsVisibles = TABS.filter(t => !t.tipos || t.tipos.includes(tipoActual))
   const tabActual = tabsVisibles.find(t => t.id === tab) || tabsVisibles[0]
-  const filtrados = lista.filter(p => !search || String(p.nombre || '').toLowerCase().includes(search.toLowerCase()) || String(p.sku || '').toLowerCase().includes(search.toLowerCase()))
+  const filtrados = lista.filter(p =>
+    (filtroTipo === 'todos' || String(p.tipo_producto) === filtroTipo) &&
+    (!search || String(p.nombre || '').toLowerCase().includes(search.toLowerCase()) || String(p.sku || '').toLowerCase().includes(search.toLowerCase())))
 
   if (!sel) {
     return (
@@ -239,7 +242,18 @@ export default function ProductosPage() {
             </div>
           </div>
         )}
-        <div className="noma-card !p-4"><div className="relative"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" /><input className="noma-input pl-9" placeholder="Buscar por nombre o SKU..." value={search} onChange={e => setSearch(e.target.value)} /></div></div>
+        <div className="noma-card !p-4 space-y-3">
+          <div className="relative"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" /><input className="noma-input pl-9" placeholder="Buscar por nombre o SKU..." value={search} onChange={e => setSearch(e.target.value)} /></div>
+          <div className="flex flex-wrap gap-2">
+            {[{ k: 'todos', label: 'Todos' }, ...TIPOS.map(t => ({ k: t, label: lbl(t) }))]
+              .filter(f => f.k === 'todos' || lista.some(p => String(p.tipo_producto) === f.k))
+              .map(f => {
+                const n = f.k === 'todos' ? lista.length : lista.filter(p => String(p.tipo_producto) === f.k).length
+                const activo = filtroTipo === f.k
+                return <button key={f.k} onClick={() => setFiltroTipo(f.k)} className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${activo ? 'bg-[#1b2a4a] text-white border-[#1b2a4a]' : 'bg-white text-gray-600 border-gray-200 hover:border-[#c9a24e]'}`}>{f.label} <span className={activo ? 'text-white/70' : 'text-gray-400'}>({n})</span></button>
+              })}
+          </div>
+        </div>
         <div className="noma-card !p-0 overflow-hidden"><div className="overflow-x-auto"><table className="w-full text-sm">
           <thead className="border-b border-gray-100 bg-gray-50/50"><tr>
             <th className="text-left py-3 px-4 text-xs font-semibold text-gray-400 uppercase">SKU</th>
