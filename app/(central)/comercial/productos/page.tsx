@@ -119,6 +119,7 @@ export default function ProductosPage() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [filtroTipo, setFiltroTipo] = useState('todos')
+  const [filtroCat, setFiltroCat] = useState('todas')
   const [sel, setSel] = useState<string | null>(null)
   const [form, setForm] = useState<Row>({})
   const [hist, setHist] = useState<AuditRow[]>([])
@@ -137,7 +138,7 @@ export default function ProductosPage() {
   }, [])
 
   const cargarLista = useCallback(async () => {
-    const { data } = await supabase.from('products').select('id, sku, nombre, tipo_producto, estado_ciclo, precio, activo, stock_actual, modalidad_produccion, visible_catalogo, receta_estado').order('categoria').order('nombre')
+    const { data } = await supabase.from('products').select('id, sku, nombre, tipo_producto, categoria, estado_ciclo, precio, activo, stock_actual, modalidad_produccion, visible_catalogo, receta_estado').order('categoria').order('nombre')
     setLista((data as Row[]) || [])
     setLoading(false)
   }, [])
@@ -212,8 +213,10 @@ export default function ProductosPage() {
   const tipoActual = String(form.tipo_producto || 'terminado_fabricado')
   const tabsVisibles = TABS.filter(t => !t.tipos || t.tipos.includes(tipoActual))
   const tabActual = tabsVisibles.find(t => t.id === tab) || tabsVisibles[0]
+  const categoriasPresentes = Array.from(new Set(lista.map(p => String(p.categoria || '').trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'es'))
   const filtrados = lista.filter(p =>
     (filtroTipo === 'todos' || String(p.tipo_producto) === filtroTipo) &&
+    (filtroCat === 'todas' || String(p.categoria || '').trim() === filtroCat) &&
     (!search || String(p.nombre || '').toLowerCase().includes(search.toLowerCase()) || String(p.sku || '').toLowerCase().includes(search.toLowerCase())))
 
   if (!sel) {
@@ -253,6 +256,16 @@ export default function ProductosPage() {
                 return <button key={f.k} onClick={() => setFiltroTipo(f.k)} className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${activo ? 'bg-[#1b2a4a] text-white border-[#1b2a4a]' : 'bg-white text-gray-600 border-gray-200 hover:border-[#c9a24e]'}`}>{f.label} <span className={activo ? 'text-white/70' : 'text-gray-400'}>({n})</span></button>
               })}
           </div>
+          {categoriasPresentes.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <span className="text-[11px] uppercase tracking-wide text-gray-400 font-semibold">Categoría:</span>
+              {[{ k: 'todas', label: 'Todas' }, ...categoriasPresentes.map(c => ({ k: c, label: c }))].map(f => {
+                const n = f.k === 'todas' ? lista.length : lista.filter(p => String(p.categoria || '').trim() === f.k).length
+                const activo = filtroCat === f.k
+                return <button key={f.k} onClick={() => setFiltroCat(f.k)} className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${activo ? 'bg-[#c9a24e] text-white border-[#c9a24e]' : 'bg-white text-gray-600 border-gray-200 hover:border-[#c9a24e]'}`}>{f.label} <span className={activo ? 'text-white/80' : 'text-gray-400'}>({n})</span></button>
+              })}
+            </div>
+          )}
         </div>
         <div className="noma-card !p-0 overflow-hidden"><div className="overflow-x-auto"><table className="w-full text-sm">
           <thead className="border-b border-gray-100 bg-gray-50/50"><tr>

@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Check, Loader2, Upload, Copy, AlertTriangle, CheckCircle2, Table } from 'lucide-react'
+import { ArrowLeft, Check, Loader2, Upload, Copy, AlertTriangle, CheckCircle2, Table, Tag } from 'lucide-react'
+import { CATEGORIAS_INSUMO } from '@/lib/categorias'
 
 type Fila = { nombre: string; tipo: string; unidad: string; categoria: string; costo: string; stock_min: string; stock_max: string; vence: string }
 type Res = { fila: number; nombre: string; estado: 'creado' | 'duplicado' | 'error'; detalle?: string }
@@ -11,10 +12,10 @@ const COLS = ['Nombre', 'Tipo', 'Unidad', 'Categoría', 'Costo ($)', 'Stock mín
 // Plantilla con ejemplos (separada por TAB para pegar directo en Excel/Sheets).
 const PLANTILLA = [
   COLS.join('\t'),
-  ['Harina sin gluten', 'materia prima', 'kilo', 'Secos', '1200', '10', '50', 'sí'].join('\t'),
-  ['Aceite maravilla', 'materia prima', 'litro', 'Líquidos', '2300', '5', '20', 'sí'].join('\t'),
-  ['Caja cartón 20x20', 'envase', 'unidad', 'Empaque', '180', '100', '500', 'no'].join('\t'),
-  ['Bebida lata (reventa)', 'reventa', 'unidad', 'Reventa', '600', '24', '120', 'no'].join('\t'),
+  ['Proteína de soya texturizada', 'materia prima', 'kilo', 'Proteínas vegetales', '3500', '10', '50', 'sí'].join('\t'),
+  ['Salsa de soya', 'materia prima', 'litro', 'Salsas y líquidos', '2300', '5', '20', 'sí'].join('\t'),
+  ['Aceite vegetal', 'materia prima', 'litro', 'Aceites y grasas', '2000', '5', '20', 'sí'].join('\t'),
+  ['Bolsa al vacío', 'envase', 'unidad', 'Paquetería', '80', '100', '500', 'no'].join('\t'),
 ].join('\n')
 
 const S = (v: unknown) => v === null || v === undefined ? '' : String(v).trim()
@@ -105,9 +106,21 @@ export default function CargaInsumosPage() {
           <li><strong>Solo el Nombre es obligatorio.</strong> Lo demás es opcional (si lo dejas vacío, el sistema usa un valor por defecto).</li>
           <li><strong>Tipo:</strong> escribe <em>materia prima</em>, <em>envase</em> o <em>reventa</em>. Si lo dejas vacío, queda como materia prima.</li>
           <li><strong>Unidad:</strong> kilo, litro o unidad (también vale kg, lt, un). Si lo dejas vacío, queda "unidad".</li>
+          <li><strong>Categoría:</strong> usa una de las de abajo (así todo queda ordenado y filtrable). Si escribes una variante, el sistema la reconoce.</li>
           <li><strong>Costo:</strong> lo que te cuesta comprarlo (opcional, sin puntos ni $: 1200).</li>
           <li><strong>¿Vence?:</strong> escribe <em>sí</em> o <em>no</em> (si vence, el sistema le pedirá lote y fecha al recibirlo).</li>
         </ul>
+
+        {/* Categorías de la fábrica (lista fija para que el equipo las use igual) */}
+        <div className="mt-4 rounded-lg border border-[#c9a24e]/30 bg-[#f5efdf]/30 p-3">
+          <div className="flex items-center gap-2 text-sm font-medium text-[#1b2a4a]"><Tag size={15} /> Categorías de la fábrica</div>
+          <p className="text-xs text-gray-500 mt-1">Copia una de estas en la columna <strong>Categoría</strong> (cópialas igual para que todo quede ordenado):</p>
+          <div className="flex flex-wrap gap-1.5 mt-2">
+            {CATEGORIAS_INSUMO.map(c => (
+              <span key={c} className="text-xs px-2.5 py-1 rounded-full bg-white border border-[#c9a24e]/40 text-[#1b2a4a]">{c}</span>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Paso 2 — pegar */}
@@ -118,7 +131,7 @@ export default function CargaInsumosPage() {
           value={texto}
           onChange={e => setTexto(e.target.value)}
           rows={8}
-          placeholder={'Harina sin gluten\tmateria prima\tkilo\tSecos\t1200\t10\t50\tsí\nAceite maravilla\tmateria prima\tlitro\tLíquidos\t2300\t5\t20\tsí'}
+          placeholder={'Proteína de soya texturizada\tmateria prima\tkilo\tProteínas vegetales\t3500\t10\t50\tsí\nSalsa de soya\tmateria prima\tlitro\tSalsas y líquidos\t2300\t5\t20\tsí'}
           className="noma-input mt-3 font-mono text-xs w-full"
         />
         {filas.length > 0 && (

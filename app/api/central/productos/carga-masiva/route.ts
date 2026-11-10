@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSupabase } from '@/lib/supabase/auth-server'
 import { createServerClient } from '@/lib/supabase/server'
+import { normalizarCategoria } from '@/lib/categorias'
 
 export const runtime = 'nodejs'
 
@@ -108,7 +109,7 @@ export async function POST(req: NextRequest) {
       nombre,
       sku,
       tipo_producto: tipo,
-      categoria: clean(f.categoria, 120) || null,
+      categoria: normalizarCategoria(clean(f.categoria, 120)) || null,
       unidad_inventario: unidad,
       unidad,                        // columna legacy sincronizada
       unidad_venta: null,            // insumo no vendible
