@@ -90,7 +90,7 @@ export async function cargarInsumos(db: DB, filas: FilaInsumo[]): Promise<CargaR
 
     const { error } = await db.from('products').insert({
       nombre, sku, tipo_producto: tipo, categoria: categoria || null,
-      marca: clean(f.marca, 120) || null, unidades_por_caja: numOrNull(f.unidades_por_caja),
+      marca: clean(f.marca, 120) || null, cantidad_por_unidad_venta: numOrNull(f.unidades_por_caja),
       unidad_inventario: unidad, unidad, unidad_venta: null, estado_ciclo: 'borrador', visible_catalogo: false,
       precio: costo, stock_actual: 0, stock_min: numOrNull(f.stock_min), stock_max: numOrNull(f.stock_max),
       maneja_vencimiento: vence, maneja_lote: vence, activo: true,
