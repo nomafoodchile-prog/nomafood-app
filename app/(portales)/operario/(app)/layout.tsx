@@ -27,17 +27,21 @@ export default function OperarioAppLayout({ children }: { children: React.ReactN
     supabase.auth.getSession().then(({ data }) => {
       if (!active) return
       if (!data.session) router.replace('/operario/login')
-      else {
-        setReady(true)
-        // ¿Está autorizado a cargar datos? Si sí, aparece la pestaña "Cargar".
-        fetch('/api/portal/operario/carga').then(r => r.json()).then(d => { if (active) setPuedeCargar(Boolean(d.autorizado)) }).catch(() => {})
-      }
+      else setReady(true)
     })
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
       if (!session) router.replace('/operario/login')
     })
     return () => { active = false; sub.subscription.unsubscribe() }
   }, [router])
+
+  // Revisa el permiso de carga al abrir y cada vez que cambia de pestaña,
+  // así aparece "Cargar" apenas la jefatura lo active (sin tener que cerrar sesión).
+  useEffect(() => {
+    let active = true
+    fetch('/api/portal/operario/carga').then(r => r.json()).then(d => { if (active) setPuedeCargar(Boolean(d.autorizado)) }).catch(() => {})
+    return () => { active = false }
+  }, [pathname])
 
   const navItems = puedeCargar ? [...NAV, NAV_CARGA] : NAV
 
