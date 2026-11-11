@@ -46,13 +46,16 @@ export default function CentralOperariosPage() {
   }, [])
 
   async function toggleCarga(pid: string, permitido: boolean) {
+    // Cambio optimista: el interruptor reacciona al instante; si falla, se devuelve solo.
+    setCargaIds(prev => permitido ? Array.from(new Set([...prev, pid])) : prev.filter(x => x !== pid))
     setTogglingCarga(true)
+    const revertir = () => setCargaIds(prev => permitido ? prev.filter(x => x !== pid) : Array.from(new Set([...prev, pid])))
     try {
       const r = await fetch('/api/central/operarios/carga-permiso', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ profile_id: pid, permitido }) })
       const d = await r.json()
       if (r.ok && Array.isArray(d.ids)) setCargaIds(d.ids.map(String))
-      else if (!r.ok) alert(d.error || 'No se pudo cambiar el permiso.')
-    } catch { alert('No se pudo cambiar el permiso. Revisa tu internet.') } finally { setTogglingCarga(false) }
+      else { revertir(); alert(d.error || 'No se pudo cambiar el permiso.') }
+    } catch { revertir(); alert('No se pudo cambiar el permiso. Revisa tu internet.') } finally { setTogglingCarga(false) }
   }
 
   const cargar = useCallback(async () => {
