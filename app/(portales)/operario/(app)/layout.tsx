@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Home, ClipboardList, ChefHat, SprayCan, CalendarDays, User, Loader2 } from 'lucide-react'
+import { Home, ClipboardList, ChefHat, SprayCan, CalendarDays, User, Loader2, PackagePlus } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 
 const NAV = [
@@ -14,24 +14,32 @@ const NAV = [
   { href: '/operario/asistencia', label: 'Asistencia', icon: CalendarDays },
   { href: '/operario/perfil', label: 'Perfil', icon: User },
 ]
+const NAV_CARGA = { href: '/operario/cargar', label: 'Cargar', icon: PackagePlus }
 
 export default function OperarioAppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
   const [ready, setReady] = useState(false)
+  const [puedeCargar, setPuedeCargar] = useState(false)
 
   useEffect(() => {
     let active = true
     supabase.auth.getSession().then(({ data }) => {
       if (!active) return
       if (!data.session) router.replace('/operario/login')
-      else setReady(true)
+      else {
+        setReady(true)
+        // ¿Está autorizado a cargar datos? Si sí, aparece la pestaña "Cargar".
+        fetch('/api/portal/operario/carga').then(r => r.json()).then(d => { if (active) setPuedeCargar(Boolean(d.autorizado)) }).catch(() => {})
+      }
     })
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
       if (!session) router.replace('/operario/login')
     })
     return () => { active = false; sub.subscription.unsubscribe() }
   }, [router])
+
+  const navItems = puedeCargar ? [...NAV, NAV_CARGA] : NAV
 
   if (!ready) {
     return (
@@ -50,7 +58,7 @@ export default function OperarioAppLayout({ children }: { children: React.ReactN
 
       <nav className="fixed bottom-0 inset-x-0 bg-[#1b2a4a] text-white">
         <div className="max-w-md mx-auto flex justify-around py-2.5 px-2">
-          {NAV.map(item => {
+          {navItems.map(item => {
             const active = isActive(item.href)
             return (
               <Link

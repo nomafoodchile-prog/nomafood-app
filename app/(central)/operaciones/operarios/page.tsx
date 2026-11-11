@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Loader2, RefreshCw, ArrowLeft, Image as ImageIcon, CheckSquare, AlertTriangle, MessageSquare, UserPlus, X, Copy, Check, Pencil, Trash2, KeyRound } from 'lucide-react'
+import { Loader2, RefreshCw, ArrowLeft, Image as ImageIcon, CheckSquare, AlertTriangle, MessageSquare, UserPlus, X, Copy, Check, Pencil, Trash2, KeyRound, PackagePlus } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 
 type Row = Record<string, unknown>
@@ -38,8 +38,25 @@ export default function CentralOperariosPage() {
   const [borrando, setBorrando] = useState(false)
   const [reseteando, setReseteando] = useState(false)
   const [resetCred, setResetCred] = useState<{ email: string; password: string } | null>(null)
+  const [cargaIds, setCargaIds] = useState<string[]>([])
+  const [togglingCarga, setTogglingCarga] = useState(false)
+
+  const cargarPermisos = useCallback(async () => {
+    try { const r = await fetch('/api/central/operarios/carga-permiso'); const d = await r.json(); if (Array.isArray(d.ids)) setCargaIds(d.ids.map(String)) } catch { /* ignora */ }
+  }, [])
+
+  async function toggleCarga(pid: string, permitido: boolean) {
+    setTogglingCarga(true)
+    try {
+      const r = await fetch('/api/central/operarios/carga-permiso', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ profile_id: pid, permitido }) })
+      const d = await r.json()
+      if (r.ok && Array.isArray(d.ids)) setCargaIds(d.ids.map(String))
+      else if (!r.ok) alert(d.error || 'No se pudo cambiar el permiso.')
+    } catch { alert('No se pudo cambiar el permiso. Revisa tu internet.') } finally { setTogglingCarga(false) }
+  }
 
   const cargar = useCallback(async () => {
+    cargarPermisos()
     const { data: o } = await supabase.from('operarios').select('profile_id, area, turno_default, activo')
     const lista = (o as Row[]) || []
     setOps(lista)
@@ -143,6 +160,22 @@ export default function CentralOperariosPage() {
         {resetCred && <CredencialesModal titulo="Contraseña restablecida" email={resetCred.email} password={resetCred.password} portalUrl="nommafood.cl/operario/login" onClose={() => setResetCred(null)} />}
         {asignarOpen && <AsignarTareaModal operarioId={sel} nombre={nombre(sel)} area={m?.area || ''} onClose={() => setAsignarOpen(false)} onDone={() => { setAsignarOpen(false); setLoading(true); cargar() }} />}
         {editOpen && <EditarOperarioModal profileId={sel} nombreActual={nombre(sel)} areaActual={m?.area || ''} turnoActual={S(ops.find(o => S(o.profile_id) === sel)?.turno_default)} activoActual={ops.find(o => S(o.profile_id) === sel)?.activo !== false} onClose={() => setEditOpen(false)} onDone={() => { setEditOpen(false); setLoading(true); cargar() }} />}
+
+        {/* Permiso: cargar datos desde su portal */}
+        <div className="bg-white border border-gray-100 rounded-xl p-4 flex items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-semibold text-[#1b2a4a] flex items-center gap-2"><PackagePlus size={16} /> Cargar datos desde su portal</p>
+            <p className="text-xs text-gray-500 mt-0.5">Si lo activas, este trabajador verá la pestaña “Cargar” en su portal para ingresar insumos.</p>
+          </div>
+          <button
+            onClick={() => toggleCarga(sel, !cargaIds.includes(sel))}
+            disabled={togglingCarga}
+            className={`w-12 h-7 rounded-full relative transition-colors shrink-0 disabled:opacity-50 ${cargaIds.includes(sel) ? 'bg-green-500' : 'bg-gray-300'}`}
+            aria-label="Activar carga de datos"
+          >
+            <span className={`absolute top-0.5 w-6 h-6 bg-white rounded-full shadow transition-all ${cargaIds.includes(sel) ? 'left-[22px]' : 'left-0.5'}`} />
+          </button>
+        </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <Metric label="Tareas" value={`${m?.done ?? 0}/${m?.asignadas ?? 0}`} />
