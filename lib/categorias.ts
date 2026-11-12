@@ -10,6 +10,8 @@ export const CATEGORIAS_INSUMO = [
   'Aceites y grasas',
   'Vegetales y frescos',
   'Lácteos y derivados / sustitutos',
+  'Harinas',
+  'Snack Aldea Vegetal',
   'Paquetería',
   'Limpieza',
 ] as const
@@ -29,6 +31,8 @@ reg('Salsas y líquidos', ['salsa', 'salsas', 'liquido', 'liquidos', 'salsas y l
 reg('Aceites y grasas', ['aceite', 'aceites', 'grasa', 'grasas', 'aceites y grasas'])
 reg('Vegetales y frescos', ['vegetal', 'vegetales', 'fresco', 'frescos', 'verdura', 'verduras', 'vegetales y frescos'])
 reg('Lácteos y derivados / sustitutos', ['lacteo', 'lacteos', 'lacteos y derivados', 'sustituto', 'sustitutos', 'lacteos y derivados / sustitutos', 'lacteos y sustitutos'])
+reg('Harinas', ['harina', 'harinas', 'harina de trigo', 'harina sin gluten', 'premezcla', 'premezclas'])
+reg('Snack Aldea Vegetal', ['snack', 'snacks', 'snack aldea', 'snack aldea vegetal', 'aldea vegetal', 'snacks aldea'])
 reg('Paquetería', ['paqueteria', 'paquete', 'empaque', 'empaques', 'envase', 'envases', 'bolsa', 'caja'])
 reg('Limpieza', ['limpieza', 'aseo', 'sanitizante', 'sanitizantes', 'desinfectante', 'desinfectantes'])
 
