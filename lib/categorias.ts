@@ -12,6 +12,7 @@ export const CATEGORIAS_INSUMO = [
   'Lácteos y derivados / sustitutos',
   'Harinas',
   'Snack Aldea Vegetal',
+  'Insumos asiáticos (reventa Brotes)',
   'Paquetería',
   'Limpieza',
 ] as const
@@ -33,6 +34,7 @@ reg('Vegetales y frescos', ['vegetal', 'vegetales', 'fresco', 'frescos', 'verdur
 reg('Lácteos y derivados / sustitutos', ['lacteo', 'lacteos', 'lacteos y derivados', 'sustituto', 'sustitutos', 'lacteos y derivados / sustitutos', 'lacteos y sustitutos'])
 reg('Harinas', ['harina', 'harinas', 'harina de trigo', 'harina sin gluten', 'premezcla', 'premezclas'])
 reg('Snack Aldea Vegetal', ['snack', 'snacks', 'snack aldea', 'snack aldea vegetal', 'aldea vegetal', 'snacks aldea'])
+reg('Insumos asiáticos (reventa Brotes)', ['insumos asiaticos', 'insumo asiatico', 'asiatico', 'asiaticos', 'reventa brotes', 'insumo asiatico reventa brotes', 'insumos asiaticos reventa brotes', 'brotes'])
 reg('Paquetería', ['paqueteria', 'paquete', 'empaque', 'empaques', 'envase', 'envases', 'bolsa', 'caja'])
 reg('Limpieza', ['limpieza', 'aseo', 'sanitizante', 'sanitizantes', 'desinfectante', 'desinfectantes'])
 
@@ -41,4 +43,15 @@ export function normalizarCategoria(valor: string | null | undefined): string {
   const t = (valor ?? '').toString().trim()
   if (!t) return ''
   return ALIAS[sinAcentos(t)] || t
+}
+
+// Tipo de producto según la categoría (el resto queda como materia prima).
+// Así los trabajadores solo eligen categoría y el sistema pone el tipo correcto.
+const CATEGORIA_TIPO: Record<string, string> = {
+  'Paquetería': 'envase_insumo',
+  'Snack Aldea Vegetal': 'terminado_fabricado',
+  'Insumos asiáticos (reventa Brotes)': 'reventa',
+}
+export function tipoDeCategoria(cat: string | null | undefined): string {
+  return CATEGORIA_TIPO[normalizarCategoria(cat)] || 'materia_prima'
 }

@@ -121,7 +121,7 @@ export default function CargarInsumosPage() {
   return (
     <div className="p-4 space-y-4">
       <div>
-        <h1 className="text-xl font-bold text-[#1b2a4a] flex items-center gap-2"><Package size={20} /> Cargar insumos</h1>
+        <h1 className="text-xl font-bold text-[#1b2a4a] flex items-center gap-2"><Package size={20} /> Cargar productos</h1>
         <p className="text-sm text-gray-500 mt-0.5">Agrega los productos uno por uno y al final presiona Guardar. Fácil y rápido.</p>
       </div>
 
@@ -198,7 +198,7 @@ export default function CargarInsumosPage() {
             ))}
           </ul>
           <button onClick={guardar} disabled={guardando} className="w-full mt-3 bg-[#c9a24e] text-[#1b2a4a] rounded-xl py-3 text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-60 active:scale-[0.99]">
-            {guardando ? <Loader2 size={17} className="animate-spin" /> : <Check size={17} />} Guardar {lista.length} insumo(s)
+            {guardando ? <Loader2 size={17} className="animate-spin" /> : <Check size={17} />} Guardar {lista.length} producto(s)
           </button>
         </div>
       )}

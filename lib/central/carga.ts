@@ -2,7 +2,7 @@
 // Lo usan tanto la Central (admin) como el Portal Operario (trabajadores autorizados).
 // Tres cargas: Insumos/Productos, Inventario inicial (lotes) y Recetas (+ ingredientes).
 import { createServerClient } from '@/lib/supabase/server'
-import { normalizarCategoria } from '@/lib/categorias'
+import { normalizarCategoria, tipoDeCategoria } from '@/lib/categorias'
 
 type DB = ReturnType<typeof createServerClient>
 export type Auth = { id: string; email: string | null }
@@ -61,10 +61,6 @@ const UNIDAD_ALIAS: Record<string, string> = {
 
 export type FilaInsumo = { nombre?: unknown; tipo?: unknown; unidad?: unknown; categoria?: unknown; costo?: unknown; stock_min?: unknown; stock_max?: unknown; vence?: unknown; marca?: unknown; unidades_por_caja?: unknown }
 
-// Si no indican tipo, se deduce de la categoría (Paquetería = envase; el resto = materia prima).
-function tipoDesdeCategoria(cat: string): string {
-  return norm(cat) === norm('Paquetería') ? 'envase_insumo' : 'materia_prima'
-}
 
 export async function cargarInsumos(db: DB, filas: FilaInsumo[]): Promise<CargaResp> {
   const { data: existentes } = await db.from('products').select('nombre')
@@ -81,12 +77,13 @@ export async function cargarInsumos(db: DB, filas: FilaInsumo[]): Promise<CargaR
 
     const categoria = normalizarCategoria(clean(f.categoria, 120))
     const tipoRaw = norm(f.tipo)
-    const tipo = (TIPOS as readonly string[]).includes(tipoRaw) ? tipoRaw : (TIPO_ALIAS[tipoRaw] || tipoDesdeCategoria(categoria))
+    const tipo = (TIPOS as readonly string[]).includes(tipoRaw) ? tipoRaw : (TIPO_ALIAS[tipoRaw] || tipoDeCategoria(categoria))
     const uRaw = norm(f.unidad)
     const unidad = UNIDADES.includes(uRaw) ? uRaw : (UNIDAD_ALIAS[uRaw] || 'unidad')
     const costo = numOrNull(f.costo) ?? 0
     const vence = f.vence === undefined || clean(f.vence) === '' ? tipo === 'materia_prima' : esSi(f.vence)
-    const sku = `${tipo === 'envase_insumo' ? 'ENV' : tipo === 'reventa' ? 'REV' : 'INS'}-${Date.now().toString(36).toUpperCase()}${i.toString(36).toUpperCase()}`
+    const prefijo = tipo === 'envase_insumo' ? 'ENV' : tipo === 'reventa' ? 'REV' : tipo === 'terminado_fabricado' ? 'PT' : 'INS'
+    const sku = `${prefijo}-${Date.now().toString(36).toUpperCase()}${i.toString(36).toUpperCase()}`
 
     const { error } = await db.from('products').insert({
       nombre, sku, tipo_producto: tipo, categoria: categoria || null,
