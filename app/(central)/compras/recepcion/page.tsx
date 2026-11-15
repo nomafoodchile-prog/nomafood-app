@@ -1,13 +1,21 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
-import { Loader2, RefreshCw, Plus, Trash2, ArrowLeft, PackageCheck } from 'lucide-react'
+import { useCallback, useEffect, useState, type ChangeEvent } from 'react'
+import { Loader2, RefreshCw, Plus, Trash2, ArrowLeft, PackageCheck, Camera, ImageUp, Check } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 
 type Row = Record<string, unknown>
 const S = (v: unknown) => v === null || v === undefined ? '' : String(v)
 const N = (v: unknown) => { const n = Number(v); return Number.isNaN(n) ? 0 : n }
 const fecha = (v: unknown) => v ? new Date(String(v)).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: '2-digit' }) : '—'
+
+async function subirFoto(file: File, etiqueta: string): Promise<string> {
+  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
+  const path = `recepciones/${Date.now()}-${etiqueta}.${ext}`
+  const { error } = await supabase.storage.from('evidencias').upload(path, file, { upsert: true })
+  if (error) throw error
+  return supabase.storage.from('evidencias').getPublicUrl(path).data.publicUrl
+}
 
 interface Linea { product_id: string; cantidad_pedida: string; cantidad_recibida: string; lote_codigo: string; fecha_vencimiento: string; precio_unitario: string; estado_calidad: string; unidad: string }
 const nuevaLinea = (): Linea => ({ product_id: '', cantidad_pedida: '', cantidad_recibida: '', lote_codigo: '', fecha_vencimiento: '', precio_unitario: '', estado_calidad: 'disponible', unidad: '' })
@@ -30,6 +38,21 @@ export default function RecepcionPage() {
   const [bodegaId, setBodegaId] = useState('')
   const [obs, setObs] = useState('')
   const [lineas, setLineas] = useState<Linea[]>([nuevaLinea()])
+  const [facturaUrl, setFacturaUrl] = useState('')
+  const [mercaUrl, setMercaUrl] = useState('')
+  const [subF, setSubF] = useState(false)
+  const [subM, setSubM] = useState(false)
+
+  async function onFoto(e: ChangeEvent<HTMLInputElement>, cual: 'factura' | 'merca') {
+    const f = e.target.files?.[0]; if (!f) return
+    setError(null)
+    const setSub = cual === 'factura' ? setSubF : setSubM
+    const setUrl = cual === 'factura' ? setFacturaUrl : setMercaUrl
+    setSub(true)
+    try { setUrl(await subirFoto(f, cual)) }
+    catch { setError('No se pudo subir la foto. Reintenta.') }
+    finally { setSub(false) }
+  }
 
   const cargar = useCallback(async () => {
     const [r, p, b, pr, sc] = await Promise.all([
@@ -51,6 +74,7 @@ export default function RecepcionPage() {
 
   function resetForm() {
     setProveedorId(''); setSolicitudId(''); setBodegaId(''); setObs(''); setLineas([nuevaLinea()]); setError(null)
+    setFacturaUrl(''); setMercaUrl('')
   }
 
   async function prefillDesdeSolicitud(id: string) {
@@ -69,10 +93,12 @@ export default function RecepcionPage() {
     if (!bodegaId) { setError('Elige la bodega/cámara de destino'); return }
     const items = lineas.filter(l => l.product_id && N(l.cantidad_recibida) > 0)
     if (items.length === 0) { setError('Agrega al menos una línea con producto y cantidad'); return }
+    if (subF || subM) { setError('Espera a que terminen de subir las fotos'); return }
     setSaving(true)
+    const observaciones = [obs.trim(), mercaUrl ? `Foto mercadería: ${mercaUrl}` : ''].filter(Boolean).join(' | ')
     const r = await fetch('/api/central/recepciones', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'crear', proveedor_id: proveedorId, solicitud_id: solicitudId || null, bodega_id: bodegaId, observaciones: obs, items }),
+      body: JSON.stringify({ action: 'crear', proveedor_id: proveedorId, solicitud_id: solicitudId || null, bodega_id: bodegaId, documento_url: facturaUrl || null, observaciones, items }),
     })
     const d = await r.json() as Row
     setSaving(false)
@@ -119,6 +145,22 @@ export default function RecepcionPage() {
           <button onClick={() => setLineas(ls => [...ls, nuevaLinea()])} className="flex items-center gap-1 text-sm text-[#c9a24e] font-medium"><Plus size={15} /> Agregar línea</button>
 
           <div><label className="text-xs text-gray-500">Observaciones</label><textarea className="noma-input mt-1" rows={2} value={obs} onChange={e => setObs(e.target.value)} /></div>
+
+          <div>
+            <label className="text-xs text-gray-500">Fotos (opcional: factura y mercadería)</label>
+            <div className="flex gap-3 mt-1 flex-wrap">
+              <label className={`flex-1 min-w-[160px] max-w-xs rounded-lg border-2 border-dashed py-3 flex items-center justify-center gap-2 text-sm cursor-pointer ${facturaUrl ? 'border-green-400 text-green-700 bg-green-50' : 'border-gray-300 text-gray-500 hover:border-[#c9a24e]'}`}>
+                {subF ? <Loader2 size={16} className="animate-spin" /> : facturaUrl ? <Check size={16} /> : <Camera size={16} />}
+                {subF ? 'Subiendo…' : facturaUrl ? 'Factura ✓' : 'Foto factura'}
+                <input type="file" accept="image/*" className="hidden" onChange={e => onFoto(e, 'factura')} />
+              </label>
+              <label className={`flex-1 min-w-[160px] max-w-xs rounded-lg border-2 border-dashed py-3 flex items-center justify-center gap-2 text-sm cursor-pointer ${mercaUrl ? 'border-green-400 text-green-700 bg-green-50' : 'border-gray-300 text-gray-500 hover:border-[#c9a24e]'}`}>
+                {subM ? <Loader2 size={16} className="animate-spin" /> : mercaUrl ? <Check size={16} /> : <ImageUp size={16} />}
+                {subM ? 'Subiendo…' : mercaUrl ? 'Mercadería ✓' : 'Foto mercadería'}
+                <input type="file" accept="image/*" className="hidden" onChange={e => onFoto(e, 'merca')} />
+              </label>
+            </div>
+          </div>
 
           <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
             <button onClick={guardar} disabled={saving} className="noma-btn-primary text-sm flex items-center gap-2">{saving ? <Loader2 size={15} className="animate-spin" /> : <PackageCheck size={16} />} Registrar recepción</button>
