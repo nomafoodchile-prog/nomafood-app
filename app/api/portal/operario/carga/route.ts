@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSupabase } from '@/lib/supabase/auth-server'
 import { createServerClient } from '@/lib/supabase/server'
 import { esAutorizado } from '@/lib/central/carga-permiso'
-import { cargarInsumos, cargarInventario, cargarRecetas, cargarSalidas, type FilaInsumo, type FilaInventario, type FilaReceta, type FilaSalida } from '@/lib/central/carga'
+import { cargarInsumos, cargarInventario, cargarRecetas, cargarSalidas, cargarRecepcion, type FilaInsumo, type FilaInventario, type FilaReceta, type FilaSalida, type PayloadRecepcion } from '@/lib/central/carga'
 import { CATEGORIAS_INSUMO } from '@/lib/categorias'
 
 export const runtime = 'nodejs'
@@ -21,13 +21,19 @@ export async function GET() {
   if (!u) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
   const db = createServerClient()
   const autorizado = await esAutorizado(db, u.id)
-  if (!autorizado) return NextResponse.json({ autorizado: false, categorias: [], unidades: UNIDADES, existentes: [] })
-  const { data } = await db.from('products').select('nombre, categoria, marca').eq('activo', true).order('nombre')
+  if (!autorizado) return NextResponse.json({ autorizado: false, categorias: [], unidades: UNIDADES, existentes: [], proveedores: [], bodegas: [] })
+  const [{ data }, { data: provs }, { data: bods }] = await Promise.all([
+    db.from('products').select('nombre, categoria, marca').eq('activo', true).order('nombre'),
+    db.from('proveedores').select('id, nombre').order('nombre'),
+    db.from('bodegas').select('id, nombre').order('nombre'),
+  ])
   return NextResponse.json({
     autorizado: true,
     categorias: CATEGORIAS_INSUMO,
     unidades: UNIDADES,
     existentes: (data || []).map(p => ({ nombre: String(p.nombre || ''), categoria: String(p.categoria || ''), marca: String(p.marca || '') })),
+    proveedores: (provs || []).map(p => ({ id: String(p.id), nombre: String(p.nombre || '') })),
+    bodegas: (bods || []).map(b => ({ id: String(b.id), nombre: String(b.nombre || '') })),
   })
 }
 
@@ -41,11 +47,18 @@ export async function POST(req: NextRequest) {
   let body: Record<string, unknown> = {}
   try { body = await req.json() as Record<string, unknown> } catch { /* sin body */ }
   const tipo = String(body.tipo || 'insumos')
-  const filas = Array.isArray(body.filas) ? body.filas : []
-  if (filas.length === 0) return NextResponse.json({ error: 'No hay nada para guardar.' }, { status: 400 })
-  if (filas.length > 500) return NextResponse.json({ error: 'Máximo 500 por carga. Divide la lista.' }, { status: 400 })
 
   try {
+    // Recepción de mercadería: payload distinto (proveedor + bodega + items + fotos)
+    if (tipo === 'recepcion') {
+      const r = await cargarRecepcion(db, u, body as PayloadRecepcion)
+      return NextResponse.json(r, { status: r.ok ? 200 : 400 })
+    }
+
+    const filas = Array.isArray(body.filas) ? body.filas : []
+    if (filas.length === 0) return NextResponse.json({ error: 'No hay nada para guardar.' }, { status: 400 })
+    if (filas.length > 500) return NextResponse.json({ error: 'Máximo 500 por carga. Divide la lista.' }, { status: 400 })
+
     if (tipo === 'inventario') return NextResponse.json(await cargarInventario(db, u, filas as FilaInventario[]))
     if (tipo === 'salida') return NextResponse.json(await cargarSalidas(db, u, filas as FilaSalida[]))
     if (tipo === 'recetas') return NextResponse.json(await cargarRecetas(db, u, filas as FilaReceta[]))

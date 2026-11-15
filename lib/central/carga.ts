@@ -195,6 +195,66 @@ export async function cargarSalidas(db: DB, auth: Auth, lineas: FilaSalida[]): P
 }
 
 // ====================================================================
+// 2c) RECEPCIÓN DE MERCADERÍA (entrada por compra, con proveedor + fotos).
+//     Crea la recepción (numero, documento_url=factura, observaciones con foto
+//     de mercadería) y por cada ítem: lote + entrada_compra + recepcion_items.
+// ====================================================================
+export type ItemRecepcion = { producto?: unknown; cantidad?: unknown; lote?: unknown; vencimiento?: unknown }
+export type PayloadRecepcion = { proveedor_id?: unknown; bodega_id?: unknown; documento_url?: unknown; observaciones?: unknown; items?: unknown }
+export type RecepcionResp = { ok: true; numero: string; creados: number; errores: number; resultados: Resultado[] } | { ok: false; error: string }
+
+export async function cargarRecepcion(db: DB, auth: Auth, payload: PayloadRecepcion): Promise<RecepcionResp> {
+  const proveedorId = clean(payload.proveedor_id)
+  const bodegaId = clean(payload.bodega_id)
+  if (!proveedorId) return { ok: false, error: 'Elige el proveedor.' }
+  if (!bodegaId) return { ok: false, error: 'Elige la bodega/cámara de destino.' }
+  const items = Array.isArray(payload.items) ? (payload.items as ItemRecepcion[]) : []
+  if (items.length === 0) return { ok: false, error: 'Agrega al menos un producto recibido.' }
+
+  const prods = await mapaProductos(db)
+  const { count } = await db.from('recepciones').select('id', { count: 'exact', head: true })
+  const numero = 'RC-' + String((count ?? 0) + 1).padStart(6, '0')
+  const { data: rec, error: eRec } = await db.from('recepciones').insert({
+    numero, proveedor_id: proveedorId, bodega_id: bodegaId,
+    documento_url: clean(payload.documento_url, 500) || null,
+    observaciones: clean(payload.observaciones, 1000) || null,
+    usuario_id: auth.id, usuario_email: auth.email,
+  }).select('id').single()
+  if (eRec || !rec) return { ok: false, error: eRec?.message || 'No se pudo crear la recepción' }
+
+  const resultados: Resultado[] = []
+  for (let i = 0; i < items.length; i++) {
+    const it = items[i]; const nfila = i + 1
+    const nombre = clean(it.producto, 160)
+    if (!nombre) { resultados.push({ fila: nfila, nombre: '', estado: 'error', detalle: 'Falta el producto' }); continue }
+    const p = prods.get(norm(nombre))
+    if (!p) { resultados.push({ fila: nfila, nombre, estado: 'error', detalle: 'No existe ese producto. Cárgalo en Productos.' }); continue }
+    const qty = numOrNull(it.cantidad)
+    if (qty === null || qty <= 0) { resultados.push({ fila: nfila, nombre, estado: 'error', detalle: 'Cantidad inválida' }); continue }
+    const unidad = p.unidad_inventario || null
+    const lcode = clean(it.lote, 60) || null
+    const vence = fechaONull(it.vencimiento)
+
+    const { data: lote } = await db.from('inventario_lotes').insert({
+      product_id: p.id, lote_codigo: lcode, es_externo: true, fecha_vencimiento: vence, bodega_id: bodegaId, unidad,
+      stock_inicial: qty, stock_disponible: qty, estado: 'disponible', usuario_id: auth.id,
+    }).select('id').single()
+    if (lote) {
+      await db.from('inventario_movimientos').insert({
+        lote_id: lote.id, product_id: p.id, tipo_movimiento: 'entrada_compra', cantidad: qty, unidad,
+        motivo: `Recepción ${numero}`, bodega_destino_id: bodegaId, compra_id: rec.id, usuario_id: auth.id, usuario_email: auth.email,
+      })
+    }
+    await db.from('recepcion_items').insert({
+      recepcion_id: rec.id, product_id: p.id, cantidad_recibida: qty, lote_codigo: lcode,
+      fecha_vencimiento: vence, estado_calidad: 'disponible', unidad, precio_unitario: null,
+    })
+    resultados.push({ fila: nfila, nombre, estado: 'creado' })
+  }
+  return { ok: true, numero, creados: resultados.filter(r => r.estado === 'creado').length, errores: resultados.filter(r => r.estado === 'error').length, resultados }
+}
+
+// ====================================================================
 // 3) RECETAS (agrupa por "Receta"; crea receta + versión 1 borrador + ingredientes)
 //    No sobreescribe recetas que ya existen (las marca como duplicado).
 // ====================================================================
