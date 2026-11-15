@@ -1,8 +1,9 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { Loader2, Plus, Trash2, Check, Package, Lightbulb, AlertCircle, PartyPopper, SpellCheck } from 'lucide-react'
+import { Loader2, Plus, Trash2, Check, Package, Lightbulb, AlertCircle, PartyPopper, SpellCheck, Boxes } from 'lucide-react'
 import { corregirSeguro, sugerirOrtografia } from '@/lib/ortografia'
+import InventarioForm from './InventarioForm'
 
 type Existente = { nombre: string; categoria: string; marca: string }
 type Item = { nombre: string; categoria: string; unidad: string; unidades_por_caja: string; marca: string }
@@ -27,6 +28,7 @@ function lev(a: string, b: string): number {
 
 export default function CargarInsumosPage() {
   const [cargando, setCargando] = useState(true)
+  const [vista, setVista] = useState<'productos' | 'inventario'>('productos')
   const [autorizado, setAutorizado] = useState(false)
   const [categorias, setCategorias] = useState<string[]>([])
   const [unidades, setUnidades] = useState<string[]>([])
@@ -129,6 +131,15 @@ export default function CargarInsumosPage() {
 
   return (
     <div className="p-4 space-y-4">
+      {/* Pestañas: Productos / Inventario */}
+      <div className="flex gap-2">
+        <button onClick={() => setVista('productos')} className={`flex-1 rounded-xl py-2.5 text-sm font-semibold flex items-center justify-center gap-2 ${vista === 'productos' ? 'bg-[#1b2a4a] text-white' : 'bg-white text-gray-500 border border-gray-200'}`}><Package size={16} /> Productos</button>
+        <button onClick={() => setVista('inventario')} className={`flex-1 rounded-xl py-2.5 text-sm font-semibold flex items-center justify-center gap-2 ${vista === 'inventario' ? 'bg-[#1b2a4a] text-white' : 'bg-white text-gray-500 border border-gray-200'}`}><Boxes size={16} /> Inventario</button>
+      </div>
+
+      {vista === 'inventario' && <InventarioForm existentes={existentes} unidades={unidades} />}
+
+      {vista === 'productos' && (<>
       <div>
         <h1 className="text-xl font-bold text-[#1b2a4a] flex items-center gap-2"><Package size={20} /> Cargar productos</h1>
         <p className="text-sm text-gray-500 mt-0.5">Agrega los productos uno por uno y al final presiona Guardar. Fácil y rápido.</p>
@@ -237,6 +248,7 @@ export default function CargarInsumosPage() {
           {res.creados > 0 && <p className="text-xs text-green-700 mt-2">¡Listo! Quedaron guardados. Puedes seguir agregando más.</p>}
         </div>
       )}
+      </>)}
     </div>
   )
 }
