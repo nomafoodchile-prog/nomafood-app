@@ -1,14 +1,16 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { Loader2, Plus, Trash2, Check, Package, Lightbulb, AlertCircle, PartyPopper } from 'lucide-react'
+import { Loader2, Plus, Trash2, Check, Package, Lightbulb, AlertCircle, PartyPopper, SpellCheck } from 'lucide-react'
+import { corregirSeguro, sugerirOrtografia } from '@/lib/ortografia'
 
 type Existente = { nombre: string; categoria: string; marca: string }
 type Item = { nombre: string; categoria: string; unidad: string; unidades_por_caja: string; marca: string }
 type Res = { fila: number; nombre: string; estado: 'creado' | 'duplicado' | 'error'; detalle?: string }
 
 const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim()
-const limpiarNombre = (s: string) => { const t = s.trim().replace(/\s+/g, ' '); return t ? t.charAt(0).toUpperCase() + t.slice(1) : t }
+// Arregla tildes/mayúsculas de palabras conocidas y deja la primera en mayúscula.
+const limpiarNombre = (s: string) => corregirSeguro(s)
 
 // Distancia de edición (para detectar "escribió parecido")
 function lev(a: string, b: string): number {
@@ -69,6 +71,13 @@ export default function CargarInsumosPage() {
     scored.sort((a, b) => a.score - b.score)
     return Array.from(new Set(scored.map(s => s.nombre))).slice(0, 3)
   }, [nombreNorm, existentes])
+
+  // Corrección de ortografía (diccionario de insumos): arregla palabras mal escritas.
+  const correccionOrto = useMemo(() => {
+    if (nombreNorm.length < 3) return null
+    const s = sugerirOrtografia(nombre)
+    return s && norm(s) !== nombreNorm ? s : null
+  }, [nombre, nombreNorm])
 
   function agregar() {
     setAviso(null); setRes(null)
@@ -149,6 +158,12 @@ export default function CargarInsumosPage() {
               <div className="flex flex-wrap gap-1.5 mt-1">
                 {sugerencias.map(s => <button key={s} type="button" onClick={() => setNombre(s)} className="text-xs px-2.5 py-1 rounded-full bg-[#f5efdf] border border-[#c9a24e]/40 text-[#1b2a4a]">{s}</button>)}
               </div>
+            </div>
+          )}
+          {correccionOrto && (
+            <div className="mt-2">
+              <p className="text-[11px] text-gray-400 flex items-center gap-1"><SpellCheck size={12} /> ¿Lo escribo bien? Toca para corregir:</p>
+              <button type="button" onClick={() => setNombre(correccionOrto)} className="text-xs px-2.5 py-1 mt-1 rounded-full bg-green-50 border border-green-300 text-green-800 font-medium">{correccionOrto}</button>
             </div>
           )}
         </div>

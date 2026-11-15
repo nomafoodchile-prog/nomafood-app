@@ -3,6 +3,7 @@
 // Tres cargas: Insumos/Productos, Inventario inicial (lotes) y Recetas (+ ingredientes).
 import { createServerClient } from '@/lib/supabase/server'
 import { normalizarCategoria, tipoDeCategoria } from '@/lib/categorias'
+import { corregirSeguro } from '@/lib/ortografia'
 
 type DB = ReturnType<typeof createServerClient>
 export type Auth = { id: string; email: string | null }
@@ -70,7 +71,7 @@ export async function cargarInsumos(db: DB, filas: FilaInsumo[]): Promise<CargaR
 
   for (let i = 0; i < filas.length; i++) {
     const f = filas[i]; const nfila = i + 1
-    const nombre = clean(f.nombre, 160)
+    const nombre = corregirSeguro(clean(f.nombre, 160))
     if (!nombre) { resultados.push({ fila: nfila, nombre: '', estado: 'error', detalle: 'Falta el nombre' }); continue }
     const key = norm(nombre)
     if (yaExiste.has(key) || vistos.has(key)) { resultados.push({ fila: nfila, nombre, estado: 'duplicado', detalle: 'Ya existe un insumo con ese nombre' }); continue }
