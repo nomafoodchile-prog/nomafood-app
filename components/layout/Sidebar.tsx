@@ -34,6 +34,7 @@ import {
   AlertTriangle,
   BarChart3,
   Ship,
+  TrendingUp,
 } from 'lucide-react'
 import { Logo } from './Logo'
 import { supabase } from '@/lib/supabase/client'
@@ -98,6 +99,7 @@ const navItems: NavItem[] = [
     label: 'Finanzas',
     icon: DollarSign,
     children: [
+      { label: 'Proyección de ventas', href: '/finanzas/proyeccion', icon: TrendingUp },
       { label: 'Caja', href: '/finanzas/caja', icon: CreditCard },
       { label: 'Estado de resultados', href: '/finanzas/estado-resultados', icon: DollarSign },
       { label: 'Cartolas del banco', href: '/finanzas/cartolas', icon: ClipboardList },
