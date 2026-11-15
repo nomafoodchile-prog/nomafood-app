@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSupabase } from '@/lib/supabase/auth-server'
 import { createServerClient } from '@/lib/supabase/server'
 import { esAutorizado } from '@/lib/central/carga-permiso'
-import { cargarInsumos, cargarInventario, cargarRecetas, type FilaInsumo, type FilaInventario, type FilaReceta } from '@/lib/central/carga'
+import { cargarInsumos, cargarInventario, cargarRecetas, cargarSalidas, type FilaInsumo, type FilaInventario, type FilaReceta, type FilaSalida } from '@/lib/central/carga'
 import { CATEGORIAS_INSUMO } from '@/lib/categorias'
 
 export const runtime = 'nodejs'
@@ -47,6 +47,7 @@ export async function POST(req: NextRequest) {
 
   try {
     if (tipo === 'inventario') return NextResponse.json(await cargarInventario(db, u, filas as FilaInventario[]))
+    if (tipo === 'salida') return NextResponse.json(await cargarSalidas(db, u, filas as FilaSalida[]))
     if (tipo === 'recetas') return NextResponse.json(await cargarRecetas(db, u, filas as FilaReceta[]))
     return NextResponse.json(await cargarInsumos(db, filas as FilaInsumo[]))
   } catch (e) {

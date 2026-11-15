@@ -1,9 +1,10 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { Loader2, Plus, Trash2, Check, Package, Lightbulb, AlertCircle, PartyPopper, SpellCheck, Boxes } from 'lucide-react'
+import { Loader2, Plus, Trash2, Check, Package, Lightbulb, AlertCircle, PartyPopper, SpellCheck, Boxes, PackageMinus } from 'lucide-react'
 import { corregirSeguro, sugerirOrtografia } from '@/lib/ortografia'
 import InventarioForm from './InventarioForm'
+import SalidaForm from './SalidaForm'
 
 type Existente = { nombre: string; categoria: string; marca: string }
 type Item = { nombre: string; categoria: string; unidad: string; unidades_por_caja: string; marca: string }
@@ -28,7 +29,7 @@ function lev(a: string, b: string): number {
 
 export default function CargarInsumosPage() {
   const [cargando, setCargando] = useState(true)
-  const [vista, setVista] = useState<'productos' | 'inventario'>('productos')
+  const [vista, setVista] = useState<'productos' | 'inventario' | 'salida'>('productos')
   const [autorizado, setAutorizado] = useState(false)
   const [categorias, setCategorias] = useState<string[]>([])
   const [unidades, setUnidades] = useState<string[]>([])
@@ -131,13 +132,15 @@ export default function CargarInsumosPage() {
 
   return (
     <div className="p-4 space-y-4">
-      {/* Pestañas: Productos / Inventario */}
-      <div className="flex gap-2">
-        <button onClick={() => setVista('productos')} className={`flex-1 rounded-xl py-2.5 text-sm font-semibold flex items-center justify-center gap-2 ${vista === 'productos' ? 'bg-[#1b2a4a] text-white' : 'bg-white text-gray-500 border border-gray-200'}`}><Package size={16} /> Productos</button>
-        <button onClick={() => setVista('inventario')} className={`flex-1 rounded-xl py-2.5 text-sm font-semibold flex items-center justify-center gap-2 ${vista === 'inventario' ? 'bg-[#1b2a4a] text-white' : 'bg-white text-gray-500 border border-gray-200'}`}><Boxes size={16} /> Inventario</button>
+      {/* Pestañas: Productos / Inventario / Sacar */}
+      <div className="flex gap-1.5">
+        <button onClick={() => setVista('productos')} className={`flex-1 rounded-xl py-2.5 text-xs font-semibold flex items-center justify-center gap-1.5 ${vista === 'productos' ? 'bg-[#1b2a4a] text-white' : 'bg-white text-gray-500 border border-gray-200'}`}><Package size={15} /> Productos</button>
+        <button onClick={() => setVista('inventario')} className={`flex-1 rounded-xl py-2.5 text-xs font-semibold flex items-center justify-center gap-1.5 ${vista === 'inventario' ? 'bg-[#1b2a4a] text-white' : 'bg-white text-gray-500 border border-gray-200'}`}><Boxes size={15} /> Inventario</button>
+        <button onClick={() => setVista('salida')} className={`flex-1 rounded-xl py-2.5 text-xs font-semibold flex items-center justify-center gap-1.5 ${vista === 'salida' ? 'bg-[#1b2a4a] text-white' : 'bg-white text-gray-500 border border-gray-200'}`}><PackageMinus size={15} /> Sacar</button>
       </div>
 
       {vista === 'inventario' && <InventarioForm existentes={existentes} unidades={unidades} />}
+      {vista === 'salida' && <SalidaForm existentes={existentes} />}
 
       {vista === 'productos' && (<>
       <div>

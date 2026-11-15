@@ -141,6 +141,60 @@ export async function cargarInventario(db: DB, auth: Auth, lineas: FilaInventari
 }
 
 // ====================================================================
+// 2b) SALIDA DE BODEGA (consumo). Descuenta cantidad del stock del producto,
+//     tomando de los lotes que vencen antes (FIFO). Registra salida_consumo.
+//     Este mismo motor lo reutiliza el descuento automático por receta.
+// ====================================================================
+export type FilaSalida = { producto?: unknown; cantidad?: unknown; motivo?: unknown }
+
+type Lote = { id: string; stock_disponible: number | null; bodega_id: string | null; unidad: string | null }
+
+// Descuenta `cantidad` de un producto ya resuelto. Devuelve lo descontado y lo que faltó.
+export async function consumirProducto(db: DB, auth: Auth, productId: string, cantidad: number, motivo: string): Promise<{ descontado: number; falta: number }> {
+  const { data: lotes } = await db.from('inventario_lotes')
+    .select('id, stock_disponible, bodega_id, unidad')
+    .eq('product_id', productId).gt('stock_disponible', 0)
+    .order('fecha_vencimiento', { ascending: true, nullsFirst: false })
+    .order('created_at', { ascending: true })
+  let restante = cantidad
+  for (const l of (lotes as Lote[] | null) || []) {
+    if (restante <= 0) break
+    const disp = Number(l.stock_disponible || 0)
+    const take = Math.min(restante, disp)
+    if (take <= 0) continue
+    const nuevo = disp - take
+    await db.from('inventario_movimientos').insert({
+      lote_id: l.id, product_id: productId, tipo_movimiento: 'salida_consumo', cantidad: take, unidad: l.unidad,
+      motivo, bodega_origen_id: l.bodega_id, usuario_id: auth.id, usuario_email: auth.email,
+    })
+    await db.from('inventario_lotes').update({ stock_disponible: nuevo, estado: nuevo <= 0 ? 'agotado' : 'disponible' }).eq('id', l.id)
+    restante -= take
+  }
+  return { descontado: cantidad - Math.max(restante, 0), falta: Math.max(restante, 0) }
+}
+
+export async function cargarSalidas(db: DB, auth: Auth, lineas: FilaSalida[]): Promise<CargaResp> {
+  const prods = await mapaProductos(db)
+  const resultados: Resultado[] = []
+  for (let i = 0; i < lineas.length; i++) {
+    const f = lineas[i]; const nfila = i + 1
+    const nombre = clean(f.producto, 160)
+    if (!nombre) { resultados.push({ fila: nfila, nombre: '', estado: 'error', detalle: 'Falta el producto' }); continue }
+    const p = prods.get(norm(nombre))
+    if (!p) { resultados.push({ fila: nfila, nombre, estado: 'error', detalle: 'No existe ese producto.' }); continue }
+    const cant = numOrNull(f.cantidad)
+    if (cant === null || cant <= 0) { resultados.push({ fila: nfila, nombre, estado: 'error', detalle: 'Cantidad inválida' }); continue }
+    const motivo = clean(f.motivo, 160) || 'Consumo de producción'
+
+    const { descontado, falta } = await consumirProducto(db, auth, p.id, cant, motivo)
+    if (descontado <= 0) { resultados.push({ fila: nfila, nombre, estado: 'error', detalle: 'No hay stock de este producto en bodega.' }); continue }
+    const detalle = falta > 0 ? `Se descontó ${descontado}; faltaron ${falta} (no había suficiente stock)` : `Descontado ${descontado}`
+    resultados.push({ fila: nfila, nombre, estado: 'creado', detalle })
+  }
+  return resumen(resultados)
+}
+
+// ====================================================================
 // 3) RECETAS (agrupa por "Receta"; crea receta + versión 1 borrador + ingredientes)
 //    No sobreescribe recetas que ya existen (las marca como duplicado).
 // ====================================================================
