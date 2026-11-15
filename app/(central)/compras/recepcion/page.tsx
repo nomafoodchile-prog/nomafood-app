@@ -148,16 +148,31 @@ export default function RecepcionPage() {
           <th className="text-left py-3 px-4 text-xs font-semibold text-gray-400 uppercase">Proveedor</th>
           <th className="text-left py-3 px-4 text-xs font-semibold text-gray-400 uppercase hidden md:table-cell">Bodega</th>
           <th className="text-left py-3 px-4 text-xs font-semibold text-gray-400 uppercase">Fecha</th>
+          <th className="text-left py-3 px-4 text-xs font-semibold text-gray-400 uppercase">Fotos</th>
         </tr></thead>
         <tbody className="divide-y divide-gray-50">
-          {loading ? <tr><td colSpan={4} className="py-12 text-center"><Loader2 className="w-5 h-5 text-[#1b2a4a] animate-spin mx-auto" /></td></tr>
-          : recs.length === 0 ? <tr><td colSpan={4} className="py-12 text-center text-gray-400 text-sm">Sin recepciones aún. Usa <strong>Nueva recepción</strong>.</td></tr>
+          {loading ? <tr><td colSpan={5} className="py-12 text-center"><Loader2 className="w-5 h-5 text-[#1b2a4a] animate-spin mx-auto" /></td></tr>
+          : recs.length === 0 ? <tr><td colSpan={5} className="py-12 text-center text-gray-400 text-sm">Sin recepciones aún. Usa <strong>Nueva recepción</strong>.</td></tr>
           : recs.map(r => (
             <tr key={S(r.id)} className="hover:bg-gray-50">
               <td className="py-3 px-4 font-mono font-medium text-[#1b2a4a]">{S(r.numero)}</td>
               <td className="py-3 px-4 text-[#1a1a1a]">{S((r.proveedor as Row)?.nombre)}</td>
               <td className="py-3 px-4 text-gray-500 text-xs hidden md:table-cell">{S((r.bodega as Row)?.nombre)}</td>
               <td className="py-3 px-4 text-gray-500 text-xs">{fecha(r.created_at)}</td>
+              <td className="py-3 px-4">
+                {(() => {
+                  const fact = S(r.documento_url)
+                  const m = String(r.observaciones || '').match(/Foto mercader[ií]a:\s*(\S+)/i)
+                  const merca = m ? m[1] : ''
+                  if (!fact && !merca) return <span className="text-xs text-gray-300">—</span>
+                  return (
+                    <div className="flex items-center gap-1.5">
+                      {fact && <a href={fact} target="_blank" rel="noopener noreferrer" title="Factura"><img src={fact} alt="Factura" className="w-9 h-9 object-cover rounded border border-gray-200 hover:border-[#c9a24e]" /></a>}
+                      {merca && <a href={merca} target="_blank" rel="noopener noreferrer" title="Mercadería"><img src={merca} alt="Mercadería" className="w-9 h-9 object-cover rounded border border-gray-200 hover:border-[#c9a24e]" /></a>}
+                    </div>
+                  )
+                })()}
+              </td>
             </tr>
           ))}
         </tbody>
