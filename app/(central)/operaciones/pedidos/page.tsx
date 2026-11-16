@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Search, Filter, Loader2, RefreshCw, PackageOpen, Trash2, List, CalendarDays, ChevronLeft, ChevronRight, CreditCard, Copy, X, CheckCircle2 } from 'lucide-react'
+import { Search, Filter, Loader2, RefreshCw, PackageOpen, Trash2, List, CalendarDays, ChevronLeft, ChevronRight, CreditCard, Copy, X, CheckCircle2, FileCheck } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 
 interface Pedido {
@@ -54,6 +54,7 @@ function badge(estado: string): { t: string; c: string } {
 
 export default function PedidosPage() {
   const [pedidos, setPedidos] = useState<Pedido[]>([])
+  const [comprobantes, setComprobantes] = useState<Record<string, { url?: string; at?: string }>>({})
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [search, setSearch] = useState('')
@@ -69,6 +70,10 @@ export default function PedidosPage() {
       .order('created_at', { ascending: false })
       .limit(200)
     setPedidos((data as unknown as Pedido[]) || [])
+    try {
+      const rc = await fetch('/api/central/pedidos/comprobantes')
+      if (rc.ok) { const jc = await rc.json(); setComprobantes(jc.comprobantes || {}) }
+    } catch { /* sin comprobantes */ }
     setLoading(false)
     setRefreshing(false)
   }, [])
@@ -317,6 +322,11 @@ export default function PedidosPage() {
                       </td>
                       <td className="py-3 px-4">
                         <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${e.c}`}>{e.t}</span>
+                        {comprobantes[p.id]?.url && (
+                          <a href={comprobantes[p.id].url} target="_blank" rel="noreferrer" className="mt-1 flex items-center gap-1 text-[11px] font-medium text-green-600 hover:underline" title="Comprobante de pago enviado por el cliente">
+                            <FileCheck size={12} /> Ver comprobante
+                          </a>
+                        )}
                       </td>
                       <td className="py-3 px-4 text-right font-semibold text-[#1a1a1a]">{clp(p.total)}</td>
                       <td className="py-3 px-4 text-right">

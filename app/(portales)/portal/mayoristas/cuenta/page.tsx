@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState, type CSSProperties } from 'react'
 import { useRouter } from 'next/navigation'
-import { Sprout, Loader2, LogOut, ShoppingBag, Package, Tag, ArrowRight, Clock } from 'lucide-react'
+import { Sprout, Loader2, LogOut, ShoppingBag, Package, Tag, ArrowRight, Clock, Upload, CheckCircle2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 
 const TEMAS = {
@@ -18,7 +18,7 @@ function fecha(iso: string | null) { return iso ? new Date(iso).toLocaleDateStri
 function estadoCliente(p: Pedido): { t: string; c: string } {
   if (p.estado_entrega === 'entregado' || p.estado === 'entregado') return { t: 'Entregado', c: 'bg-green-100 text-green-700' }
   if (['cargado', 'en_ruta', 'llego_cliente'].includes(p.estado_entrega)) return { t: 'En camino', c: 'bg-blue-100 text-blue-700' }
-  const m: Record<string, string> = { confirmado: 'Confirmado', pagado: 'Pagado', en_preparacion: 'En preparación', listo_para_despacho: 'Listo para despacho', asignado: 'En despacho', borrador: 'Borrador', cancelado: 'Cancelado' }
+  const m: Record<string, string> = { pendiente_pago: 'Pendiente de pago', confirmado: 'Confirmado', pagado: 'Pagado', en_preparacion: 'En preparación', listo_para_despacho: 'Listo para despacho', asignado: 'En despacho', borrador: 'Borrador', cancelado: 'Cancelado' }
   return { t: m[p.estado] || p.estado, c: 'bg-[var(--c-cream)] text-[var(--c-primary)]' }
 }
 
@@ -29,6 +29,26 @@ export default function CuentaMayorista() {
   const [loading, setLoading] = useState(true)
   const [noCuenta, setNoCuenta] = useState(false)
   const [marcaKey, setMarcaKey] = useState<'nomma' | 'brotes'>('nomma')
+  const [subiendo, setSubiendo] = useState<string | null>(null)
+  const [enviados, setEnviados] = useState<Set<string>>(new Set())
+  const [errComp, setErrComp] = useState<Record<string, string>>({})
+
+  async function subirComprobante(pedidoId: string, file: File | undefined) {
+    if (!file) return
+    setSubiendo(pedidoId); setErrComp(m => ({ ...m, [pedidoId]: '' }))
+    try {
+      const { data: s } = await supabase.auth.getSession()
+      const token = s.session?.access_token
+      if (!token) { setErrComp(m => ({ ...m, [pedidoId]: 'Tu sesión expiró, vuelve a entrar.' })); return }
+      const fd = new FormData(); fd.append('pedido_id', pedidoId); fd.append('file', file)
+      const r = await fetch('/api/portal/mayoristas/comprobante', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: fd })
+      const d = await r.json().catch(() => ({}))
+      if (!r.ok) { setErrComp(m => ({ ...m, [pedidoId]: d.error || 'No se pudo subir.' })); return }
+      setEnviados(prev => new Set(prev).add(pedidoId))
+    } catch {
+      setErrComp(m => ({ ...m, [pedidoId]: 'Revisa tu internet e intenta de nuevo.' }))
+    } finally { setSubiendo(null) }
+  }
 
   const cargar = useCallback(async () => {
     const { data: s } = await supabase.auth.getSession()
@@ -96,10 +116,30 @@ export default function CuentaMayorista() {
             <div className="space-y-2">
               {activos.map(p => {
                 const e = estadoCliente(p)
+                const pendiente = p.estado === 'pendiente_pago'
                 return (
-                  <div key={p.id} className="bg-white rounded-2xl border border-gray-100 p-4 flex items-center justify-between">
-                    <div><p className="font-semibold text-[var(--c-primary)] text-sm">{p.numero_pedido}</p><p className="text-xs text-gray-400 flex items-center gap-1"><Clock size={11} /> {p.fecha_entrega_req ? `Entrega ${fecha(p.fecha_entrega_req)} · ` : ''}{clp(p.total)}</p></div>
-                    <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${e.c}`}>{e.t}</span>
+                  <div key={p.id} className="bg-white rounded-2xl border border-gray-100 p-4">
+                    <div className="flex items-center justify-between">
+                      <div><p className="font-semibold text-[var(--c-primary)] text-sm">{p.numero_pedido}</p><p className="text-xs text-gray-400 flex items-center gap-1"><Clock size={11} /> {p.fecha_entrega_req ? `Entrega ${fecha(p.fecha_entrega_req)} · ` : ''}{clp(p.total)}</p></div>
+                      <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${e.c}`}>{e.t}</span>
+                    </div>
+                    {pendiente && (
+                      <div className="mt-3 pt-3 border-t border-gray-100">
+                        {enviados.has(p.id) ? (
+                          <p className="text-xs font-medium text-green-700 flex items-center gap-1.5"><CheckCircle2 size={14} /> Comprobante enviado. Estamos verificando tu pago. 🙌</p>
+                        ) : (
+                          <>
+                            <p className="text-[11px] text-gray-500 mb-2">¿Ya pagaste por transferencia? Sube tu comprobante y lo confirmamos.</p>
+                            <label className={`inline-flex items-center gap-2 text-xs font-semibold px-3 py-2 rounded-xl cursor-pointer ${subiendo === p.id ? 'bg-gray-100 text-gray-400' : 'bg-[var(--c-primary)] text-white hover:bg-[var(--c-primary-h)]'}`}>
+                              {subiendo === p.id ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} className="text-[var(--c-accent)]" />}
+                              {subiendo === p.id ? 'Subiendo…' : 'Subir comprobante'}
+                              <input type="file" accept="image/*,application/pdf" hidden disabled={subiendo === p.id} onChange={ev => subirComprobante(p.id, ev.target.files?.[0])} />
+                            </label>
+                            {errComp[p.id] && <p className="text-[11px] text-red-600 mt-2">{errComp[p.id]}</p>}
+                          </>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )
               })}
