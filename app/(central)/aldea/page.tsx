@@ -215,7 +215,7 @@ export default function AldeaCentralPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-[#1a1a1a] flex items-center gap-2"><Sprout className="text-[#c9a24e]" size={22} /> Aldea Vegetal</h1>
+        <h1 className="text-2xl font-bold text-[#1a1a1a] flex items-center gap-2"><Sprout className="text-[#c9a24e]" size={22} /> Brotes Asian Street</h1>
         <p className="text-sm text-gray-500 mt-0.5">Solicitudes e incidencias de las cafeterías.</p>
       </div>
 
@@ -504,7 +504,7 @@ export default function AldeaCentralPage() {
                 <div className="bg-white rounded-lg p-2 text-xs font-mono text-[#1a1a1a] space-y-0.5">
                   <div>Correo: {okUser.email}</div><div>Clave: {okUser.password}</div><div>Portal: nommafood.cl/portal/aldea/login</div>
                 </div>
-                <button type="button" onClick={() => navigator.clipboard?.writeText(`Portal Aldea Vegetal: https://nommafood.cl/portal/aldea/login\nCorreo: ${okUser.email}\nContraseña: ${okUser.password}`)} className="mt-2 text-xs font-semibold text-[#c9a24e] flex items-center gap-1"><Copy size={12} /> Copiar datos</button>
+                <button type="button" onClick={() => navigator.clipboard?.writeText(`Portal Brotes Asian Street: https://nommafood.cl/portal/aldea/login\nCorreo: ${okUser.email}\nContraseña: ${okUser.password}`)} className="mt-2 text-xs font-semibold text-[#c9a24e] flex items-center gap-1"><Copy size={12} /> Copiar datos</button>
               </div>
             )}
             <div className="grid grid-cols-2 gap-3">

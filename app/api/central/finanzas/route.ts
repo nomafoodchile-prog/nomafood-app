@@ -136,6 +136,22 @@ export async function POST(req: NextRequest) {
       })
     }
 
+    // Ingresos: pedidos minoristas pagados (processing/completed = pagado en la web)
+    const { data: pedsMin } = await db.from('minorista_pedidos')
+      .select('id, numero, total, created_at, estado, metodo_pago, cliente_nombre, marca')
+      .in('estado', ['processing', 'completed'])
+    for (const p of (pedsMin as Row[] | null) || []) {
+      if (yaHay.has(S(p.id)) || N(p.total) <= 0) continue
+      const mp = S(p.metodo_pago).toLowerCase()
+      const medio = mp.includes('transf') ? 'transferencia' : mp.includes('efect') ? 'efectivo' : 'mercado_pago'
+      nuevos.push({
+        fecha: S(p.created_at).slice(0, 10) || hoyCl(), tipo: 'ingreso', categoria: 'Ventas',
+        descripcion: `Pedido minorista ${S(p.numero)} · ${S(p.cliente_nombre) || 'Cliente'}${p.marca ? ` (${S(p.marca)})` : ''}`,
+        monto: N(p.total), medio, origen: 'minorista', estado: 'conciliado',
+        ref_tipo: 'pedido_minorista', ref_id: S(p.id), creado_por: auth.id, creado_email: auth.email,
+      })
+    }
+
     // Egresos: recepciones de mercadería (suma de líneas)
     const { data: recs } = await db.from('recepciones').select('id, numero, created_at, proveedor:proveedores(nombre)')
     const { data: items } = await db.from('recepcion_items').select('recepcion_id, cantidad_recibida, precio_unitario')

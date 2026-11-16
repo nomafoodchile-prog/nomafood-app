@@ -208,7 +208,7 @@ export default function AldeaDashboard() {
               ? <button onClick={() => setVista(vista === 'recepcion' ? 'pedidos' : 'inicio')} className="w-9 h-9 rounded-lg bg-white/10 grid place-items-center"><ArrowLeft size={17} /></button>
               : <div className="w-9 h-9 rounded-lg bg-[#c9a24e] text-[#16233f] grid place-items-center font-bold" style={{ fontFamily: 'Georgia, serif' }}>A</div>}
             <div>
-              <p className="font-bold text-sm leading-tight">{vista === 'inicio' ? (ses?.organizacion?.nombre || 'Aldea Vegetal') : TITULO[vista]}</p>
+              <p className="font-bold text-sm leading-tight">{vista === 'inicio' ? (ses?.organizacion?.nombre || 'Brotes Asian Street') : TITULO[vista]}</p>
               <p className="text-[11px] text-white/60">{vista === 'inicio' ? 'Portal de abastecimiento' : sucNombre}</p>
             </div>
           </div>
