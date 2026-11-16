@@ -99,6 +99,31 @@ export async function enviarPedidoRecibido(p: {
   return enviar(p.to, '✅ ¡Tu pedido fue recibido con éxito!', html, 'recibido')
 }
 
+// ── 1b) Pago confirmado (al marcar "Confirmar pago" en la central) ────────────
+export async function enviarPagoConfirmado(p: {
+  to: string; nombre?: string | null; numero?: string | null; total?: number | null; medio?: string | null
+}): Promise<{ ok: boolean; id?: string; error?: string }> {
+  const nombre = esc(String(p.nombre || '').split(' ')[0] || 'Hola')
+  const ref = p.numero ? esc(p.numero) : null
+  const medio = p.medio ? esc(p.medio) : null
+  const cuerpo = `
+    <div style="text-align:center;font-size:40px;line-height:1;margin-bottom:8px;">💸</div>
+    <h1 style="margin:0 0 6px;font-size:22px;font-weight:800;color:#1b2a4a;text-align:center;">¡Confirmamos tu pago!</h1>
+    <p style="margin:0 0 20px;font-size:15px;line-height:1.6;color:#4a5164;text-align:center;">
+      ${nombre}, recibimos tu pago correctamente${ref ? ` del pedido <strong>${ref}</strong>` : ''}. Ya comenzamos a preparar tu pedido y te avisaremos cuando vaya <strong>en ruta</strong>. 🚚
+    </p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#faf8f2;border:1px solid #efe9db;border-radius:12px;margin-bottom:8px;">
+      ${ref ? `<tr><td style="padding:14px 18px;border-bottom:1px solid #efe9db;font-size:13px;color:#7a8296;">N° de pedido</td><td style="padding:14px 18px;border-bottom:1px solid #efe9db;font-size:14px;font-weight:700;color:#1b2a4a;text-align:right;">${ref}</td></tr>` : ''}
+      ${medio ? `<tr><td style="padding:14px 18px;border-bottom:1px solid #efe9db;font-size:13px;color:#7a8296;">Medio de pago</td><td style="padding:14px 18px;border-bottom:1px solid #efe9db;font-size:14px;font-weight:700;color:#1b2a4a;text-align:right;">${medio}</td></tr>` : ''}
+      ${p.total ? `<tr><td style="padding:14px 18px;font-size:13px;color:#7a8296;">Monto pagado</td><td style="padding:14px 18px;font-size:16px;font-weight:800;color:#c9a24e;text-align:right;">${clp(p.total)}</td></tr>` : ''}
+    </table>
+    <p style="margin:18px 0 0;font-size:13px;line-height:1.6;color:#7a8296;text-align:center;">
+      ¡Gracias por tu confianza! 🌱
+    </p>`
+  const html = layout({ titulo: 'Pago confirmado', preheader: 'Confirmamos tu pago. Ya preparamos tu pedido.', cuerpo })
+  return enviar(p.to, '💸 ¡Confirmamos tu pago!', html, 'pago_confirmado')
+}
+
 // ── 2) Pedido en ruta (cuando sale a despacho) ────────────────────────────────
 export async function enviarPedidoEnRuta(p: {
   to: string; nombre?: string | null; numero?: string | null; chofer?: string | null; telefono?: string | null
