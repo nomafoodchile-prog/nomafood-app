@@ -137,10 +137,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Ingresos: pedidos minoristas pagados (processing/completed = pagado en la web)
-    const { data: pedsMin, error: eMin } = await db.from('minorista_pedidos')
+    const { data: pedsMin } = await db.from('minorista_pedidos')
       .select('id, numero, total, created_at, estado, metodo_pago, cliente_nombre, marca')
       .in('estado', ['processing', 'completed'])
-    const _dbg = { minErr: eMin?.message || null, minCount: (pedsMin || []).length, mayCount: (peds || []).length, yaHay: yaHay.size }
     for (const p of (pedsMin as Row[] | null) || []) {
       if (yaHay.has(S(p.id)) || N(p.total) <= 0) continue
       const mp = S(p.metodo_pago).toLowerCase()
@@ -177,7 +176,7 @@ export async function POST(req: NextRequest) {
       const { error } = await db.from('fin_movimientos').insert(nuevos)
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     }
-    return NextResponse.json({ ok: true, creados: nuevos.length, _dbg })
+    return NextResponse.json({ ok: true, creados: nuevos.length })
   }
 
   // ── Cartola: crear (parseada) + conciliación automática ──────────
