@@ -41,17 +41,19 @@ export async function GET() {
 
   const resultados = []
   for (const t of TABLAS) {
-    // conteo total
+    // conteo total (rápido, head)
     const { count } = await db.from(t.tabla).select('id', { count: 'exact', head: true })
-    // traer filas (acotado) y filtrar en JS
-    const { data, error } = await db.from(t.tabla).select(['id', ...t.cols].join(', ')).limit(3000)
+    // filtro en el SERVIDOR: solo filas que ya coinciden con alguna palabra/correo demo
+    const términos = [...PATRONES, ...EMAIL_DEMO]
+    const orExpr = t.cols.flatMap(c => términos.map(p => `${c}.ilike.*${p}*`)).join(',')
+    const { data, error } = await db.from(t.tabla).select(['id', ...t.cols].join(', ')).or(orExpr).limit(100)
     if (error) { resultados.push({ tabla: t.tabla, etiqueta: t.etiqueta, total: count ?? null, error: error.message, sospechosas: [] }); continue }
     const sospechosas = []
     for (const r of ((data as unknown as Row[] | null) || [])) {
       const motivo = pareceDemo(t.cols.map(c => S((r as Row)[c])))
-      if (motivo) sospechosas.push({ id: S((r as Row).id), muestra: t.cols.map(c => S((r as Row)[c])).filter(Boolean).join(' · '), motivo })
+      sospechosas.push({ id: S((r as Row).id), muestra: t.cols.map(c => S((r as Row)[c])).filter(Boolean).join(' · '), motivo: motivo || 'coincidencia' })
     }
-    resultados.push({ tabla: t.tabla, etiqueta: t.etiqueta, total: count ?? null, sospechosas: sospechosas.slice(0, 50), sospechosasTotal: sospechosas.length })
+    resultados.push({ tabla: t.tabla, etiqueta: t.etiqueta, total: count ?? null, sospechosas, sospechosasTotal: sospechosas.length })
   }
 
   return NextResponse.json({ ok: true, resultados })
