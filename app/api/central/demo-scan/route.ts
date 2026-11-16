@@ -47,7 +47,7 @@ export async function GET() {
     const { data, error } = await db.from(t.tabla).select(['id', ...t.cols].join(', ')).limit(3000)
     if (error) { resultados.push({ tabla: t.tabla, etiqueta: t.etiqueta, total: count ?? null, error: error.message, sospechosas: [] }); continue }
     const sospechosas = []
-    for (const r of (data as Row[] | null) || []) {
+    for (const r of ((data as unknown as Row[] | null) || [])) {
       const motivo = pareceDemo(t.cols.map(c => S((r as Row)[c])))
       if (motivo) sospechosas.push({ id: S((r as Row).id), muestra: t.cols.map(c => S((r as Row)[c])).filter(Boolean).join(' · '), motivo })
     }
