@@ -1,75 +1,58 @@
-import {
-  Sun, Moon, Calendar, ShoppingCart, Factory, DollarSign, FileWarning,
-  ClipboardList, ChefHat, PackageCheck, Truck, CheckCircle2, AlertTriangle,
-  ChevronRight, Circle, Users,
-} from 'lucide-react'
+'use client'
+
+import { useEffect, useState } from 'react'
+import { Sun, Moon, Calendar, ShoppingCart, DollarSign, TrendingDown, HandCoins, Loader2, Store, ShoppingBag } from 'lucide-react'
 import Link from 'next/link'
-import { operationsDemo } from '@/lib/operations'
-import { initialFinancialSnapshots, initialReceivables, receivableComputedStatus } from '@/lib/finance'
 import { Panel } from '@/components/central/Panel'
-import { AlertasDashboard } from '@/components/central/AlertasDashboard'
 import { KpiCard } from '@/components/central/KpiCard'
 import { SalesChart, type SalesPoint } from '@/components/central/SalesChart'
 
 function currency(n: number) {
   return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(n || 0)
 }
-
 const MESES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
 
-const ESTADO_PEDIDO: Record<string, string> = {
-  Confirmado: 'noma-badge-blue', Reservado: 'noma-badge-gray',
-  'En produccion': 'noma-badge-gold', Armado: 'noma-badge-gold', Despachado: 'noma-badge-green',
+type Reciente = { id: string; tipo: 'may' | 'min'; numero: string; cliente: string; total: number; estado: string; fecha: string }
+type Data = {
+  kpis: { pedidosHoy: number; ventasMes: number; porCobrar: number; porCobrarN: number; porPagar: number; saldoMes: number }
+  serie: { key: string; ingresos: number; egresos: number }[]
+  recientes: Reciente[]
 }
 
+const BADGE: Record<string, { t: string; c: string }> = {
+  pendiente_pago: { t: 'Pend. pago', c: 'bg-orange-100 text-orange-700' },
+  pagado: { t: 'Pagado', c: 'bg-green-100 text-green-700' },
+  en_preparacion: { t: 'En preparación', c: 'bg-[#f5f0e8] text-[#c9a24e]' },
+  listo_para_despacho: { t: 'Listo', c: 'bg-blue-50 text-blue-700' },
+  asignado: { t: 'En despacho', c: 'bg-blue-50 text-blue-700' },
+  entregado: { t: 'Entregado', c: 'bg-green-100 text-green-700' },
+  cancelado: { t: 'Cancelado', c: 'bg-gray-100 text-gray-500' },
+  processing: { t: 'Pagado', c: 'bg-green-100 text-green-700' },
+  completed: { t: 'Completado', c: 'bg-green-100 text-green-700' },
+  pending: { t: 'Pend. pago', c: 'bg-orange-100 text-orange-700' },
+  'on-hold': { t: 'En espera', c: 'bg-amber-50 text-amber-700' },
+  nuevo: { t: 'Nuevo', c: 'bg-gray-100 text-gray-600' },
+}
+function badge(estado: string) { return BADGE[estado] || { t: estado, c: 'bg-gray-100 text-gray-600' } }
+function fechaCorta(iso: string) { return iso ? new Date(iso).toLocaleDateString('es-CL', { day: '2-digit', month: 'short' }) : '—' }
+
 export default function DashboardPage() {
-  const { orders, productionOrders, pickingTasks, dispatches, catalogItems, operators } = operationsDemo
+  const [data, setData] = useState<Data | null>(null)
+  const [cargando, setCargando] = useState(true)
 
-  // KPIs
-  const lastSnapshot = initialFinancialSnapshots[initialFinancialSnapshots.length - 1]
-  const prevSnapshot = initialFinancialSnapshots[initialFinancialSnapshots.length - 2]
-  const ventasDeltaPct = prevSnapshot?.income
-    ? Math.round(((lastSnapshot.income - prevSnapshot.income) / prevSnapshot.income) * 100)
-    : 0
-  const prodDone = productionOrders.filter(p => p.status === 'Completada').length
-  const prodPct = productionOrders.length ? Math.round((prodDone / productionOrders.length) * 100) : 0
-  const vencidas = initialReceivables.filter(r => receivableComputedStatus(r) === 'Vencida')
-  const criticos = catalogItems.filter(i => i.stock < i.minimumStock)
-
-  // Flujo operativo
-  const flujo = [
-    { icon: ClipboardList, label: 'Pedidos', value: orders.length, done: false },
-    { icon: ChefHat, label: 'Producción', value: productionOrders.length, done: false },
-    { icon: PackageCheck, label: 'Picking', value: pickingTasks.length, done: false },
-    { icon: Truck, label: 'Despacho', value: dispatches.filter(d => d.status !== 'Entregado').length, done: false },
-    { icon: CheckCircle2, label: 'Entregados', value: dispatches.filter(d => d.status === 'Entregado').length, done: true },
-  ]
-
-  // Alertas y pendientes
-  const alertas = [
-    criticos.length && { icon: AlertTriangle, text: `${criticos.length} productos con stock crítico`, tone: 'red' as const, href: '/operaciones/inventario' },
-    vencidas.length && { icon: FileWarning, text: `${vencidas.length} facturas vencidas`, tone: 'red' as const, href: '/finanzas/cobranza' },
-    productionOrders.filter(p => p.status !== 'Completada').length && { icon: ClipboardList, text: `${productionOrders.filter(p => p.status !== 'Completada').length} órdenes de producción en curso`, tone: 'gold' as const, href: '/operaciones/produccion' },
-    dispatches.filter(d => d.status === 'En ruta').length && { icon: Truck, text: `${dispatches.filter(d => d.status === 'En ruta').length} despachos en ruta`, tone: 'navy' as const, href: '/operaciones/despachos' },
-  ].filter(Boolean) as { icon: React.ElementType; text: string; tone: 'red' | 'gold' | 'navy'; href: string }[]
-
-  // Serie Ventas y gastos (últimos 6 meses)
-  const salesData: SalesPoint[] = initialFinancialSnapshots.slice(-6).map(s => ({
-    mes: MESES[Number(s.month.split('-')[1]) - 1] ?? s.month,
-    ventas: s.income,
-    gastos: s.expenses,
-  }))
-
-  const recentOrders = orders.slice(0, 5)
-
-  // Equipo conectado (operadores por área)
-  const equipo = Object.entries(
-    operators.reduce<Record<string, number>>((acc, o) => { acc[o.area] = (acc[o.area] || 0) + 1; return acc }, {})
-  )
+  useEffect(() => {
+    fetch('/api/central/dashboard').then(r => r.json()).then(j => { if (j?.kpis) setData(j) }).catch(() => {}).finally(() => setCargando(false))
+  }, [])
 
   const now = new Date()
   const saludo = now.getHours() < 12 ? 'Buenos días' : now.getHours() < 20 ? 'Buenas tardes' : 'Buenas noches'
   const fecha = now.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+
+  const salesData: SalesPoint[] = (data?.serie || []).map(s => ({
+    mes: MESES[Number(s.key.split('-')[1]) - 1] ?? s.key,
+    ventas: s.ingresos,
+    gastos: s.egresos,
+  }))
 
   return (
     <div className="space-y-6">
@@ -91,78 +74,80 @@ export default function DashboardPage() {
         </span>
       </div>
 
-      {/* KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <KpiCard icon={ShoppingCart} label="Pedidos de hoy" value={orders.length} tone="gold" detailHref="/operaciones/pedidos" trend={{ text: `${dispatches.filter(d => d.status !== 'Entregado').length} por despachar`, tone: 'muted' }} />
-        <KpiCard icon={Factory} label="Producción" value={`${prodPct}%`} tone="navy" detailHref="/operaciones/produccion" trend={{ text: `${prodDone}/${productionOrders.length} completadas`, tone: 'muted' }} />
-        <KpiCard icon={DollarSign} label="Ventas del mes" value={currency(lastSnapshot?.income ?? 0)} tone="green" detailHref="/finanzas/balance" trend={{ text: `${ventasDeltaPct >= 0 ? '+' : ''}${ventasDeltaPct}% vs mes anterior`, tone: ventasDeltaPct >= 0 ? 'pos' : 'neg' }} />
-        <KpiCard icon={FileWarning} label="Facturas vencidas" value={vencidas.length} tone="red" detailHref="/finanzas/cobranza" trend={{ text: 'requieren gestión', tone: 'muted' }} />
-      </div>
+      {cargando ? (
+        <div className="min-h-[40vh] flex items-center justify-center"><Loader2 className="w-6 h-6 text-[#1b2a4a] animate-spin" /></div>
+      ) : !data ? (
+        <div className="bg-white rounded-2xl shadow-card p-8 text-center text-gray-400 text-sm">No se pudieron cargar los datos. Recarga la página.</div>
+      ) : (
+        <>
+          {/* KPIs reales */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <KpiCard icon={ShoppingCart} label="Pedidos de hoy" value={data.kpis.pedidosHoy} tone="gold" detailHref="/operaciones/pedidos" trend={{ text: 'mayoristas + minoristas', tone: 'muted' }} />
+            <KpiCard icon={DollarSign} label="Ventas del mes" value={currency(data.kpis.ventasMes)} tone="green" detailHref="/finanzas/caja" trend={{ text: `Saldo ${currency(data.kpis.saldoMes)}`, tone: data.kpis.saldoMes >= 0 ? 'pos' : 'neg' }} />
+            <KpiCard icon={HandCoins} label="Por cobrar" value={currency(data.kpis.porCobrar)} tone="navy" detailHref="/operaciones/pedidos" trend={{ text: `${data.kpis.porCobrarN} pedido(s) pend. pago`, tone: 'muted' }} />
+            <KpiCard icon={TrendingDown} label="Por pagar" value={currency(data.kpis.porPagar)} tone="red" detailHref="/finanzas/caja" trend={{ text: 'egresos pendientes', tone: 'muted' }} />
+          </div>
 
-      {/* Flujo operativo + Alertas */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Panel title="Flujo operativo de hoy" className="lg:col-span-2">
-          <div className="flex items-center justify-between gap-1 overflow-x-auto pb-1">
-            {flujo.map((f, i) => (
-              <div key={f.label} className="flex items-center gap-1 flex-shrink-0">
-                <div className="flex flex-col items-center gap-1.5 w-[74px]">
-                  <div className={`w-14 h-14 rounded-full flex items-center justify-center ${f.done ? 'bg-green-100' : 'bg-[#c9a24e]/12'}`}>
-                    <f.icon size={22} className={f.done ? 'text-green-600' : 'text-[#c9a24e]'} />
+          {/* Ventas/gastos + Pedidos recientes */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <Panel title="Ventas y gastos" className="lg:col-span-2" action={<span className="text-xs text-gray-400">Últimos 6 meses</span>}>
+              {salesData.some(s => s.ventas || s.gastos) ? <SalesChart data={salesData} /> : <p className="text-sm text-gray-400 py-10 text-center">Aún no hay movimientos de caja para graficar.</p>}
+            </Panel>
+
+            <Panel title="Pedidos recientes" actionHref="/operaciones/pedidos" actionLabel="Ver todos">
+              <div className="space-y-3">
+                {data.recientes.length === 0 && <p className="text-sm text-gray-400 py-6 text-center">Sin pedidos recientes.</p>}
+                {data.recientes.map(o => {
+                  const e = badge(o.estado)
+                  return (
+                    <div key={`${o.tipo}-${o.id}`} className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-lg bg-[#f5f0e8] flex items-center justify-center flex-shrink-0" title={o.tipo === 'may' ? 'Mayorista' : 'Minorista'}>
+                        {o.tipo === 'may' ? <Store size={15} className="text-[#c9a24e]" /> : <ShoppingBag size={15} className="text-[#c9a24e]" />}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-[#1b2a4a] truncate">{o.cliente}</p>
+                        <p className="text-xs text-gray-400">{o.numero} · {fechaCorta(o.fecha)} · {currency(o.total)}</p>
+                      </div>
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${e.c}`}>{e.t}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            </Panel>
+          </div>
+
+          {/* Resumen de caja del mes */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <Panel title="Caja de este mes" actionHref="/finanzas/caja" actionLabel="Ver caja">
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { l: 'Ingresos', v: data.kpis.ventasMes, c: 'text-green-600' },
+                  { l: 'Egresos', v: data.kpis.ventasMes - data.kpis.saldoMes, c: 'text-red-600' },
+                  { l: 'Saldo', v: data.kpis.saldoMes, c: data.kpis.saldoMes >= 0 ? 'text-[#1b2a4a]' : 'text-red-600' },
+                ].map(x => (
+                  <div key={x.l} className="rounded-xl bg-gray-50 px-3 py-3 text-center">
+                    <div className={`font-bold text-sm ${x.c}`}>{currency(x.v)}</div>
+                    <div className="text-[11px] text-gray-400 mt-0.5">{x.l}</div>
                   </div>
-                  <p className="text-xs text-gray-500">{f.label}</p>
-                  <p className={`text-lg font-bold leading-none ${f.done ? 'text-green-600' : 'text-[#1b2a4a]'}`}>{f.value}</p>
-                </div>
-                {i < flujo.length - 1 && <ChevronRight size={18} className="text-gray-300 flex-shrink-0" />}
+                ))}
               </div>
-            ))}
-          </div>
-        </Panel>
+            </Panel>
 
-        <Panel title="Alertas y pendientes" icon={AlertTriangle}>
-          <AlertasDashboard />
-          <Link href="/operaciones/inventario" className="mt-4 block text-center bg-[#c9a24e] hover:bg-[#b8923f] text-[#1b2a4a] text-sm font-semibold py-2.5 rounded-xl transition-colors">
-            Ver inventario
-          </Link>
-        </Panel>
-      </div>
-
-      {/* Ventas/gastos + Pedidos recientes + Equipo */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Panel title="Ventas y gastos" action={<span className="text-xs text-gray-400">Últimos 6 meses</span>}>
-          <SalesChart data={salesData} />
-        </Panel>
-
-        <Panel title="Pedidos recientes" actionHref="/operaciones/pedidos" actionLabel="Ver todos">
-          <div className="space-y-3">
-            {recentOrders.map(o => (
-              <div key={o.id} className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-[#f5f0e8] flex items-center justify-center flex-shrink-0">
-                  <ShoppingCart size={15} className="text-[#c9a24e]" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-[#1b2a4a] truncate">{o.customerName}</p>
-                  <p className="text-xs text-gray-400">{o.code} · {new Date(o.deliveryDate).toLocaleDateString('es-CL', { day: '2-digit', month: 'short' })}</p>
-                </div>
-                <span className={ESTADO_PEDIDO[o.status] || 'noma-badge-gray'}>{o.status}</span>
+            <Panel title="Atajos" className="lg:col-span-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {[
+                  { l: 'Pedidos', href: '/operaciones/pedidos' },
+                  { l: 'Caja', href: '/finanzas/caja' },
+                  { l: 'Proyección', href: '/finanzas/proyeccion' },
+                  { l: 'Compras', href: '/compras/recepcion' },
+                ].map(a => (
+                  <Link key={a.href} href={a.href} className="rounded-xl border border-gray-100 hover:border-[#c9a24e] px-3 py-4 text-center text-sm font-medium text-[#1b2a4a] transition-colors">{a.l}</Link>
+                ))}
               </div>
-            ))}
+            </Panel>
           </div>
-        </Panel>
-
-        <Panel title="Equipo conectado" icon={Users} actionHref="/personas/usuarios" actionLabel="Ver equipo">
-          <div className="space-y-3">
-            {equipo.map(([area, n]) => (
-              <div key={area} className="flex items-center justify-between">
-                <span className="text-sm text-gray-700">{area}</span>
-                <span className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-[#1b2a4a]">{n}</span>
-                  <Circle size={8} className="fill-green-500 text-green-500" />
-                </span>
-              </div>
-            ))}
-          </div>
-        </Panel>
-      </div>
+        </>
+      )}
     </div>
   )
 }
