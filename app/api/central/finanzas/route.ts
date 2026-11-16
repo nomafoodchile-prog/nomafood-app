@@ -147,7 +147,7 @@ export async function POST(req: NextRequest) {
       nuevos.push({
         fecha: S(p.created_at).slice(0, 10) || hoyCl(), tipo: 'ingreso', categoria: 'Ventas',
         descripcion: `Pedido minorista ${S(p.numero)} · ${S(p.cliente_nombre) || 'Cliente'}${p.marca ? ` (${S(p.marca)})` : ''}`,
-        monto: N(p.total), medio, origen: 'minorista', estado: 'conciliado',
+        monto: N(p.total), medio, origen: 'mercado_pago', estado: 'conciliado',
         ref_tipo: 'pedido_minorista', ref_id: S(p.id), creado_por: auth.id, creado_email: auth.email,
       })
     }

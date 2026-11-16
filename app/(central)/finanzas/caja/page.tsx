@@ -20,7 +20,6 @@ const MEDIOS = ['Efectivo', 'Transferencia', 'Mercado Pago', 'Tarjeta', 'Otro']
 const ORIGEN: Record<string, { l: string; c: string }> = {
   mercado_pago: { l: 'Mercado Pago', c: 'bg-blue-50 text-blue-700' }, compra: { l: 'Compra', c: 'bg-amber-50 text-amber-700' },
   manual: { l: 'Manual', c: 'bg-gray-100 text-gray-500' }, banco: { l: 'Banco', c: 'bg-violet-50 text-violet-700' },
-  minorista: { l: 'Minorista', c: 'bg-emerald-50 text-emerald-700' },
 }
 const ESTADO: Record<string, { l: string; c: string }> = {
   pendiente: { l: 'Pendiente', c: 'bg-gray-100 text-gray-500' }, conciliado: { l: 'Conciliado', c: 'bg-green-100 text-green-700' },
@@ -169,7 +168,7 @@ export default function CajaPage() {
         <Campo label="Desde"><input type="date" className="noma-input" value={S(fil.desde)} onChange={e => setFil({ ...fil, desde: e.target.value })} /></Campo>
         <Campo label="Hasta"><input type="date" className="noma-input" value={S(fil.hasta)} onChange={e => setFil({ ...fil, hasta: e.target.value })} /></Campo>
         <Campo label="Tipo"><select className="noma-input" value={S(fil.tipo)} onChange={e => setFil({ ...fil, tipo: e.target.value })}><option value="">Todos</option><option value="ingreso">Ingreso</option><option value="egreso">Egreso</option></select></Campo>
-        <Campo label="Origen"><select className="noma-input" value={S(fil.origen)} onChange={e => setFil({ ...fil, origen: e.target.value })}><option value="">Todos</option><option value="mercado_pago">Mercado Pago</option><option value="minorista">Minorista</option><option value="compra">Compra</option><option value="manual">Manual</option><option value="banco">Banco</option></select></Campo>
+        <Campo label="Origen"><select className="noma-input" value={S(fil.origen)} onChange={e => setFil({ ...fil, origen: e.target.value })}><option value="">Todos</option><option value="mercado_pago">Mercado Pago</option><option value="compra">Compra</option><option value="manual">Manual</option><option value="banco">Banco</option></select></Campo>
         <Campo label="Estado"><select className="noma-input" value={S(fil.estado)} onChange={e => setFil({ ...fil, estado: e.target.value })}><option value="">Todos</option><option value="pendiente">Pendiente</option><option value="conciliado">Conciliado</option><option value="anulado">Anulado</option></select></Campo>
       </div>
 
