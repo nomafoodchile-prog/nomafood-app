@@ -43,6 +43,7 @@ import { notify, armAudioUnlock } from '@/lib/notify'
 
 const SEEN_KEY = 'central_msgs_seen'
 const SEEN_PEDIDOS_KEY = 'central_pedidos_seen'
+const SEEN_MINORISTA_KEY = 'central_minorista_seen'
 
 type NavItem = {
   label: string
@@ -269,7 +270,34 @@ export function Sidebar() {
     }
   }, [pathname])
 
-  const badges = { '/operaciones/mensajes': novedadesMsg, '/operaciones/pedidos': nuevosPedidos, '/comercial/solicitudes': nuevasSol }
+  // Pedidos minorista: badge de "nuevos desde la última visita" + sonido al entrar uno
+  const [nuevosMinorista, setNuevosMinorista] = useState(0)
+  const minoristaIds = useRef<Set<string>>(new Set())
+  const minoristaPrimed = useRef(false)
+  const recomputarMinorista = useCallback(async () => {
+    const seen = (typeof localStorage !== 'undefined' && localStorage.getItem(SEEN_MINORISTA_KEY)) || '1970-01-01'
+    const { data } = await supabase.from('minorista_pedidos').select('id, created_at')
+    const list = (data as { id: string; created_at: string }[]) || []
+    if (minoristaPrimed.current && list.some(p => !minoristaIds.current.has(p.id))) notify(true)
+    minoristaIds.current = new Set(list.map(p => p.id))
+    minoristaPrimed.current = true
+    setNuevosMinorista(list.filter(p => p.created_at && p.created_at > seen).length)
+  }, [])
+  useEffect(() => {
+    recomputarMinorista()
+    const ch = supabase.channel('sidebar-minorista')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'minorista_pedidos' }, () => recomputarMinorista())
+      .subscribe()
+    return () => { supabase.removeChannel(ch) }
+  }, [recomputarMinorista])
+  useEffect(() => {
+    if (pathname === '/comercial/pedidos-minorista') {
+      try { localStorage.setItem(SEEN_MINORISTA_KEY, new Date().toISOString()) } catch {}
+      setNuevosMinorista(0)
+    }
+  }, [pathname])
+
+  const badges = { '/operaciones/mensajes': novedadesMsg, '/operaciones/pedidos': nuevosPedidos, '/comercial/solicitudes': nuevasSol, '/comercial/pedidos-minorista': nuevosMinorista }
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
