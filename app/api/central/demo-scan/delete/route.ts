@@ -45,6 +45,7 @@ export async function POST() {
     }
     await del('mayorista_direcciones', 'mayorista_id', mid)
     await del('mayorista_usuarios', 'mayorista_id', mid)
+    await del('access_requests', 'mayorista_id', mid)
     const { error } = await db.from('mayoristas').delete().eq('id', mid)
     if (error) {
       // Si una llave foránea impide el borrado, lo desactivo (no aparece en listados)
