@@ -10,8 +10,8 @@ const S = (v: unknown) => (v === null || v === undefined ? '' : String(v))
 type Row = Record<string, unknown>
 
 // Palabras que delatan datos de prueba/demo
-const PATRONES = ['demo', 'prueba', 'test', 'ejemplo', 'ficticio', 'sample', 'xxxx', 'aaa', 'asdf', 'qwerty', 'lorem']
-const EMAIL_DEMO = ['example.com', 'test.com', 'demo.com', 'mailinator', 'ejemplo.com']
+const PATRONES = ['demo', 'prueba', 'test', 'ejemplo', 'ficticio', 'lorem']
+const EMAIL_DEMO = ['example.com', 'test.com', 'mailinator']
 
 function pareceDemo(valores: string[]): string | null {
   for (const v of valores) {
@@ -39,22 +39,19 @@ export async function GET() {
   const { data: profile } = await db.from('profiles').select('role').eq('id', user.id).maybeSingle()
   if (!ROLES.includes(S(profile?.role))) return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
 
-  const resultados = []
-  for (const t of TABLAS) {
-    // conteo total (rápido, head)
-    const { count } = await db.from(t.tabla).select('id', { count: 'exact', head: true })
-    // filtro en el SERVIDOR: solo filas que ya coinciden con alguna palabra/correo demo
-    const términos = [...PATRONES, ...EMAIL_DEMO]
+  const términos = [...PATRONES, ...EMAIL_DEMO]
+  // Todas las tablas en PARALELO, solo el filtro ilike (sin conteo total caro)
+  const resultados = await Promise.all(TABLAS.map(async t => {
     const orExpr = t.cols.flatMap(c => términos.map(p => `${c}.ilike.*${p}*`)).join(',')
     const { data, error } = await db.from(t.tabla).select(['id', ...t.cols].join(', ')).or(orExpr).limit(100)
-    if (error) { resultados.push({ tabla: t.tabla, etiqueta: t.etiqueta, total: count ?? null, error: error.message, sospechosas: [] }); continue }
-    const sospechosas = []
-    for (const r of ((data as unknown as Row[] | null) || [])) {
-      const motivo = pareceDemo(t.cols.map(c => S((r as Row)[c])))
-      sospechosas.push({ id: S((r as Row).id), muestra: t.cols.map(c => S((r as Row)[c])).filter(Boolean).join(' · '), motivo: motivo || 'coincidencia' })
-    }
-    resultados.push({ tabla: t.tabla, etiqueta: t.etiqueta, total: count ?? null, sospechosas, sospechosasTotal: sospechosas.length })
-  }
+    if (error) return { tabla: t.tabla, etiqueta: t.etiqueta, error: error.message, sospechosas: [], sospechosasTotal: 0 }
+    const sospechosas = ((data as unknown as Row[] | null) || []).map(r => ({
+      id: S(r.id),
+      muestra: t.cols.map(c => S(r[c])).filter(Boolean).join(' · '),
+      motivo: pareceDemo(t.cols.map(c => S(r[c]))) || 'coincidencia',
+    }))
+    return { tabla: t.tabla, etiqueta: t.etiqueta, sospechosas, sospechosasTotal: sospechosas.length }
+  }))
 
   return NextResponse.json({ ok: true, resultados })
 }
