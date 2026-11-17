@@ -276,8 +276,13 @@ export function Sidebar() {
   const minoristaPrimed = useRef(false)
   const recomputarMinorista = useCallback(async () => {
     const seen = (typeof localStorage !== 'undefined' && localStorage.getItem(SEEN_MINORISTA_KEY)) || '1970-01-01'
-    const { data } = await supabase.from('minorista_pedidos').select('id, created_at')
-    const list = (data as { id: string; created_at: string }[]) || []
+    // Vía endpoint server-side (service role): minorista_pedidos no tiene política RLS de admin,
+    // así que el read client-side daría []. El endpoint ignora RLS y devuelve el conteo real.
+    let list: { id: string; created_at: string }[] = []
+    try {
+      const r = await fetch('/api/central/sidebar/minorista-nuevos')
+      if (r.ok) list = ((await r.json()).pedidos as { id: string; created_at: string }[]) || []
+    } catch { /* sin red: deja el conteo como estaba */ return }
     if (minoristaPrimed.current && list.some(p => !minoristaIds.current.has(p.id))) notify(true)
     minoristaIds.current = new Set(list.map(p => p.id))
     minoristaPrimed.current = true
