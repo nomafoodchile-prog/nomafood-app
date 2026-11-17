@@ -40,10 +40,17 @@ export async function GET() {
   if (!ROLES.includes(S(profile?.role))) return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
 
   const términos = [...PATRONES, ...EMAIL_DEMO]
-  // Todas las tablas en PARALELO, solo el filtro ilike (sin conteo total caro)
+  const conTimeout = <T,>(p: PromiseLike<T>, ms: number): Promise<T | { _timeout: true }> =>
+    Promise.race([Promise.resolve(p), new Promise<{ _timeout: true }>(res => setTimeout(() => res({ _timeout: true }), ms))])
+
+  // Todas las tablas en PARALELO; cada una con límite de 7s para no colgar la respuesta
   const resultados = await Promise.all(TABLAS.map(async t => {
     const orExpr = t.cols.flatMap(c => términos.map(p => `${c}.ilike.*${p}*`)).join(',')
-    const { data, error } = await db.from(t.tabla).select(['id', ...t.cols].join(', ')).or(orExpr).limit(100)
+    const res = await conTimeout(db.from(t.tabla).select(['id', ...t.cols].join(', ')).or(orExpr).limit(100), 7000)
+    if (res && typeof res === 'object' && '_timeout' in res) {
+      return { tabla: t.tabla, etiqueta: t.etiqueta, error: 'La búsqueda tardó demasiado (tabla grande); omitida.', sospechosas: [], sospechosasTotal: 0, timeout: true }
+    }
+    const { data, error } = res as { data: unknown; error: { message: string } | null }
     if (error) return { tabla: t.tabla, etiqueta: t.etiqueta, error: error.message, sospechosas: [], sospechosasTotal: 0 }
     const sospechosas = ((data as unknown as Row[] | null) || []).map(r => ({
       id: S(r.id),
