@@ -14,7 +14,12 @@ function num(v: unknown): number {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}))
-    const secret = process.env.MINORISTA_SYNC_SECRET || 'brotesmin2026'
+    // Fail-closed: exige el secreto desde variable de entorno (sin valor por defecto en el código).
+    const secret = process.env.MINORISTA_SYNC_SECRET
+    if (!secret) {
+      console.error('[minorista/pedido] MINORISTA_SYNC_SECRET no configurado en el entorno')
+      return NextResponse.json({ error: 'Integración no configurada' }, { status: 503 })
+    }
     const provided = req.headers.get('x-min-secret') || (body as { secret?: string }).secret
     if (provided !== secret) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
