@@ -35,6 +35,7 @@ import {
   BarChart3,
   Ship,
   TrendingUp,
+  Bot,
 } from 'lucide-react'
 import { Logo } from './Logo'
 import { supabase } from '@/lib/supabase/client'
@@ -54,6 +55,7 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { label: 'Agente', href: '/gerencia/agente', icon: Bot },
   { label: 'Brotes Asian Street', href: '/aldea', icon: Sprout },
   {
     label: 'Operaciones',
