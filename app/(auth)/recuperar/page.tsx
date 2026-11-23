@@ -38,10 +38,10 @@ export default function RecuperarPage() {
       <div className="bg-white rounded-2xl shadow-card p-8">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-16 h-16 bg-[#c9a24e] rounded-2xl flex items-center justify-center font-black text-[#1b2a4a] text-2xl mb-4 shadow-lg">
-            NF
+          <div className="w-16 h-16 bg-[#307139] rounded-2xl flex items-center justify-center font-black text-white text-2xl mb-4 shadow-lg">
+            BF
           </div>
-          <h1 className="text-2xl font-bold text-[#1a1a1a] tracking-tight">Noma Food</h1>
+          <h1 className="text-2xl font-bold text-[#1a1a1a] tracking-tight">Brotes Asiáticos Fábrica</h1>
           <p className="text-xs text-gray-400 mt-1">Alma Libre Grupo SpA</p>
         </div>
 
@@ -62,7 +62,7 @@ export default function RecuperarPage() {
             </p>
             <a
               href="/login"
-              className="flex items-center justify-center gap-1.5 text-xs text-[#c9a24e] hover:text-[#b8923f] hover:underline transition-colors mt-2"
+              className="flex items-center justify-center gap-1.5 text-xs text-[#307139] hover:text-[#255A2D] hover:underline transition-colors mt-2"
             >
               <ArrowLeft size={12} />
               Volver al inicio de sesión
@@ -113,7 +113,7 @@ export default function RecuperarPage() {
             <div className="mt-4 text-center">
               <a
                 href="/login"
-                className="flex items-center justify-center gap-1.5 text-xs text-[#c9a24e] hover:text-[#b8923f] hover:underline transition-colors"
+                className="flex items-center justify-center gap-1.5 text-xs text-[#307139] hover:text-[#255A2D] hover:underline transition-colors"
               >
                 <ArrowLeft size={12} />
                 Volver al inicio de sesión
@@ -124,7 +124,7 @@ export default function RecuperarPage() {
       </div>
 
       <p className="text-center text-[10px] text-gray-400 mt-6">
-        Sistema operacional · Noma Food © 2026
+        Sistema operacional · Brotes Asiáticos Fábrica © 2026
       </p>
     </div>
   )

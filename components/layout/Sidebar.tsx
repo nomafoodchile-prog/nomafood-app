@@ -134,7 +134,7 @@ function NavGroup({ item, pathname, onNavigate, badges }: { item: NavItem; pathn
         onClick={onNavigate}
         className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition-all ${
           active
-            ? 'border-l-2 border-[#c9a24e] text-[#c9a24e] bg-white/5 pl-[14px]'
+            ? 'border-l-2 border-[#F8EDD9] text-[#F8EDD9] bg-white/5 pl-[14px]'
             : 'text-gray-400 hover:text-white hover:bg-white/5'
         }`}
       >
@@ -149,7 +149,7 @@ function NavGroup({ item, pathname, onNavigate, badges }: { item: NavItem; pathn
       <button
         onClick={() => setOpen(o => !o)}
         className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition-all ${
-          isChildActive ? 'text-[#c9a24e]' : 'text-gray-400 hover:text-white hover:bg-white/5'
+          isChildActive ? 'text-[#F8EDD9]' : 'text-gray-400 hover:text-white hover:bg-white/5'
         }`}
       >
         <item.icon size={16} className="flex-shrink-0" />
@@ -168,7 +168,7 @@ function NavGroup({ item, pathname, onNavigate, badges }: { item: NavItem; pathn
                 onClick={onNavigate}
                 className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-all ${
                   active
-                    ? 'text-[#c9a24e] bg-white/5 font-semibold'
+                    ? 'text-[#F8EDD9] bg-white/5 font-semibold'
                     : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'
                 }`}
               >
@@ -310,14 +310,14 @@ export function Sidebar() {
   }
 
   const SidebarContent = ({ onNavigate }: { onNavigate?: () => void }) => (
-    <div className="flex flex-col h-full bg-[#1b2a4a] text-white">
+    <div className="flex flex-col h-full bg-[#1F4D27] text-white">
       {/* Logo */}
       <div className="flex items-center gap-3 px-4 py-5 border-b border-white/10">
-        <div className="w-9 h-9 bg-[#c9a24e] rounded-lg flex items-center justify-center font-black text-[#1b2a4a] text-sm flex-shrink-0">
-          NF
+        <div className="w-9 h-9 bg-[#F8EDD9] rounded-lg flex items-center justify-center font-black text-[#1F4D27] text-sm flex-shrink-0">
+          BF
         </div>
         <div>
-          <p className="text-sm font-bold text-white leading-tight">NOMMA FOOD</p>
+          <p className="text-sm font-bold text-white leading-tight">Brotes Asiáticos Fábrica</p>
           <p className="text-[10px] text-gray-500 leading-tight">Alma Libre Grupo SpA</p>
         </div>
       </div>
@@ -332,8 +332,8 @@ export function Sidebar() {
       {/* User info + logout */}
       <div className="border-t border-white/10 px-4 py-4">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-[#c9a24e]/20 border border-[#c9a24e]/40 flex items-center justify-center text-[#c9a24e] text-xs font-bold flex-shrink-0">
-            NF
+          <div className="w-8 h-8 rounded-full bg-[#F8EDD9]/20 border border-[#F8EDD9]/40 flex items-center justify-center text-[#F8EDD9] text-xs font-bold flex-shrink-0">
+            BF
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-xs font-semibold text-white truncate">Administrador</p>
@@ -360,7 +360,7 @@ export function Sidebar() {
 
       {/* Mobile Hamburger */}
       <button
-        className="lg:hidden fixed top-3 left-3 z-50 w-9 h-9 bg-[#1b2a4a] text-white rounded-lg flex items-center justify-center shadow-lg"
+        className="lg:hidden fixed top-3 left-3 z-50 w-9 h-9 bg-[#1F4D27] text-white rounded-lg flex items-center justify-center shadow-lg"
         onClick={() => setMobileOpen(true)}
       >
         <Menu size={18} />

@@ -225,8 +225,8 @@ export default function ProductosPage() {
         <div className="flex items-center justify-between">
           <div><h1 className="text-2xl font-bold text-[#1a1a1a]">Productos</h1><p className="text-sm text-gray-500 mt-0.5">Maestro de productos · {lista.length} productos</p></div>
           <div className="flex gap-2">
-            <button onClick={() => { setLoading(true); cargarLista() }} className="flex items-center gap-2 text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-2 hover:border-[#c9a24e]"><RefreshCw size={15} /> Actualizar</button>
-            <Link href="/comercial/productos-carga" className="flex items-center gap-2 text-sm text-[#1b2a4a] border border-[#c9a24e]/50 bg-[#f5efdf]/40 rounded-lg px-3 py-2 hover:border-[#c9a24e]"><Upload size={15} /> Carga rápida (Excel)</Link>
+            <button onClick={() => { setLoading(true); cargarLista() }} className="flex items-center gap-2 text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-2 hover:border-[#307139]"><RefreshCw size={15} /> Actualizar</button>
+            <Link href="/comercial/productos-carga" className="flex items-center gap-2 text-sm text-[#1F4D27] border border-[#307139]/50 bg-[#f5efdf]/40 rounded-lg px-3 py-2 hover:border-[#307139]"><Upload size={15} /> Carga rápida (Excel)</Link>
             <button onClick={() => setNuevo({ tipo_producto: 'terminado_fabricado' })} className="noma-btn-primary flex items-center gap-2 text-sm"><Plus size={16} /> Agregar producto</button>
           </div>
         </div>
@@ -253,7 +253,7 @@ export default function ProductosPage() {
               .map(f => {
                 const n = f.k === 'todos' ? lista.length : lista.filter(p => String(p.tipo_producto) === f.k).length
                 const activo = filtroTipo === f.k
-                return <button key={f.k} onClick={() => setFiltroTipo(f.k)} className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${activo ? 'bg-[#1b2a4a] text-white border-[#1b2a4a]' : 'bg-white text-gray-600 border-gray-200 hover:border-[#c9a24e]'}`}>{f.label} <span className={activo ? 'text-white/70' : 'text-gray-400'}>({n})</span></button>
+                return <button key={f.k} onClick={() => setFiltroTipo(f.k)} className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${activo ? 'bg-[#1F4D27] text-white border-[#1F4D27]' : 'bg-white text-gray-600 border-gray-200 hover:border-[#307139]'}`}>{f.label} <span className={activo ? 'text-white/70' : 'text-gray-400'}>({n})</span></button>
               })}
           </div>
           {categoriasPresentes.length > 0 && (
@@ -262,7 +262,7 @@ export default function ProductosPage() {
               {[{ k: 'todas', label: 'Todas' }, ...categoriasPresentes.map(c => ({ k: c, label: c }))].map(f => {
                 const n = f.k === 'todas' ? lista.length : lista.filter(p => String(p.categoria || '').trim() === f.k).length
                 const activo = filtroCat === f.k
-                return <button key={f.k} onClick={() => setFiltroCat(f.k)} className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${activo ? 'bg-[#c9a24e] text-white border-[#c9a24e]' : 'bg-white text-gray-600 border-gray-200 hover:border-[#c9a24e]'}`}>{f.label} <span className={activo ? 'text-white/80' : 'text-gray-400'}>({n})</span></button>
+                return <button key={f.k} onClick={() => setFiltroCat(f.k)} className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${activo ? 'bg-[#307139] text-white border-[#307139]' : 'bg-white text-gray-600 border-gray-200 hover:border-[#307139]'}`}>{f.label} <span className={activo ? 'text-white/80' : 'text-gray-400'}>({n})</span></button>
               })}
             </div>
           )}
@@ -277,7 +277,7 @@ export default function ProductosPage() {
             <th className="text-center py-3 px-4 text-xs font-semibold text-gray-400 uppercase">Venta</th>
           </tr></thead>
           <tbody className="divide-y divide-gray-50">
-            {loading ? <tr><td colSpan={6} className="py-12 text-center"><Loader2 className="w-5 h-5 text-[#1b2a4a] animate-spin mx-auto" /></td></tr>
+            {loading ? <tr><td colSpan={6} className="py-12 text-center"><Loader2 className="w-5 h-5 text-[#1F4D27] animate-spin mx-auto" /></td></tr>
             : filtrados.map(p => { const st = estados(p); return (
               <tr key={String(p.id)} onClick={() => abrir(String(p.id))} className="hover:bg-gray-50 cursor-pointer">
                 <td className="py-3 px-4"><span className="font-mono text-xs text-gray-500">{String(p.sku || '—')}</span></td>
@@ -296,12 +296,12 @@ export default function ProductosPage() {
   const st = estados(form)
   return (
     <div className="space-y-4">
-      <button onClick={() => { setSel(null); cargarLista() }} className="flex items-center gap-1 text-sm text-gray-500 hover:text-[#1b2a4a]"><ArrowLeft size={15} /> Volver a productos</button>
+      <button onClick={() => { setSel(null); cargarLista() }} className="flex items-center gap-1 text-sm text-gray-500 hover:text-[#1F4D27]"><ArrowLeft size={15} /> Volver a productos</button>
       <div className="noma-card !p-0 overflow-hidden">
         <div className="flex gap-4 items-start p-4 border-b border-gray-100">
-          <div className="w-14 h-14 rounded-lg bg-[#c9a24e]/15 flex items-center justify-center text-[#c9a24e] text-xl font-bold flex-shrink-0">{String(form.nombre || '?').charAt(0)}</div>
+          <div className="w-14 h-14 rounded-lg bg-[#307139]/15 flex items-center justify-center text-[#307139] text-xl font-bold flex-shrink-0">{String(form.nombre || '?').charAt(0)}</div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap"><span className="font-semibold text-[#1b2a4a]">{String(form.nombre)}</span><span className="font-mono text-xs text-gray-500 bg-gray-50 px-2 py-0.5 rounded">{String(form.sku || '—')}</span><span className="text-xs text-gray-400">Marca {String(form.marca || 'NOMMA FOOD')}</span></div>
+            <div className="flex items-center gap-2 flex-wrap"><span className="font-semibold text-[#1F4D27]">{String(form.nombre)}</span><span className="font-mono text-xs text-gray-500 bg-gray-50 px-2 py-0.5 rounded">{String(form.sku || '—')}</span><span className="text-xs text-gray-400">Marca {String(form.marca || 'NOMMA FOOD')}</span></div>
             <p className="text-[11px] text-gray-400 mt-1.5 mb-1">Estados calculados; picking y calidad son provisionales hasta el módulo Inventario por lotes</p>
             <div className="flex gap-1.5 flex-wrap">
               <Pill kind="info" label={`Ciclo: ${lbl(String(form.estado_ciclo || 'borrador'))}`} />
@@ -315,15 +315,15 @@ export default function ProductosPage() {
           </div>
         </div>
         <div className="flex gap-1 px-3 pt-2 border-b border-gray-100 overflow-x-auto">
-          {tabsVisibles.map(t => <button key={t.id} onClick={() => setTab(t.id)} className={`text-sm px-3 py-2 whitespace-nowrap border-b-2 ${tabActual?.id === t.id ? 'border-[#c9a24e] text-[#1b2a4a] font-medium' : 'border-transparent text-gray-500'}`}>{t.label}</button>)}
+          {tabsVisibles.map(t => <button key={t.id} onClick={() => setTab(t.id)} className={`text-sm px-3 py-2 whitespace-nowrap border-b-2 ${tabActual?.id === t.id ? 'border-[#307139] text-[#1F4D27] font-medium' : 'border-transparent text-gray-500'}`}>{t.label}</button>)}
         </div>
         <div className="p-5">
           {error && <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-sm text-red-700 mb-4">{error}</div>}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">{(tabActual?.fields || []).map(f => campo(f))}</div>
           {tabActual?.id === 'venta' && (
             <div className="mt-4 space-y-2">
-              <div className="px-3 py-2 bg-[#f5f0e8] rounded-lg text-sm text-[#1b2a4a]">Factor de conversión (automático): <strong>1 {String(form.unidad_venta || 'unidad venta')} = {factorAuto(form)} {String(form.unidad_inventario || 'unidad inv.')}</strong></div>
-              <div className="px-3 py-2 bg-[#eef1f6] rounded-lg text-sm text-[#1b2a4a]">Precio con IVA (19%): <strong>{clp(Math.round(Number(form.precio || 0) * 1.19))}</strong></div>
+              <div className="px-3 py-2 bg-[#F8EDD9] rounded-lg text-sm text-[#1F4D27]">Factor de conversión (automático): <strong>1 {String(form.unidad_venta || 'unidad venta')} = {factorAuto(form)} {String(form.unidad_inventario || 'unidad inv.')}</strong></div>
+              <div className="px-3 py-2 bg-[#eef1f6] rounded-lg text-sm text-[#1F4D27]">Precio con IVA (19%): <strong>{clp(Math.round(Number(form.precio || 0) * 1.19))}</strong></div>
             </div>
           )}
           {tabActual?.id === 'prod' && (
@@ -332,7 +332,7 @@ export default function ProductosPage() {
               <span className="text-xs text-gray-400">Se habilita al construir el módulo Recetas. El estado producible requiere receta aprobada.</span>
             </div>
           )}
-          {tabActual?.id === 'inv' && <div className="mt-4 text-xs text-gray-500 bg-[#f5f0e8] rounded-lg px-3 py-2">El estado de calidad real (disponible / retenido / bloqueado) vendrá de los lotes del módulo Inventario. Aquí se definen las políticas.</div>}
+          {tabActual?.id === 'inv' && <div className="mt-4 text-xs text-gray-500 bg-[#F8EDD9] rounded-lg px-3 py-2">El estado de calidad real (disponible / retenido / bloqueado) vendrá de los lotes del módulo Inventario. Aquí se definen las políticas.</div>}
           {tabActual?.id === 'prov' && sel && <ProveedoresProducto productId={sel} />}
         </div>
         <div className="border-t border-gray-100">
@@ -341,7 +341,7 @@ export default function ProductosPage() {
             <div className="px-5 pb-4 overflow-x-auto">
               {hist.length === 0 ? <p className="text-sm text-gray-400">Sin cambios registrados.</p> : (
                 <table className="w-full text-xs"><thead><tr className="text-gray-400 text-left"><th className="py-1 pr-3 font-normal">Fecha</th><th className="py-1 pr-3 font-normal">Usuario</th><th className="py-1 pr-3 font-normal">Campo</th><th className="py-1 pr-3 font-normal">Antes</th><th className="py-1 font-normal">Después</th></tr></thead>
-                <tbody>{hist.map(h => <tr key={h.id} className="border-t border-gray-50"><td className="py-1.5 pr-3 whitespace-nowrap">{fechaHora(h.created_at)}</td><td className="py-1.5 pr-3 text-gray-500">{h.usuario_email || '—'}</td><td className="py-1.5 pr-3">{h.campo}</td><td className="py-1.5 pr-3 text-gray-400">{h.valor_anterior ?? '—'}</td><td className="py-1.5 text-[#1b2a4a]">{h.valor_nuevo ?? '—'}</td></tr>)}</tbody></table>
+                <tbody>{hist.map(h => <tr key={h.id} className="border-t border-gray-50"><td className="py-1.5 pr-3 whitespace-nowrap">{fechaHora(h.created_at)}</td><td className="py-1.5 pr-3 text-gray-500">{h.usuario_email || '—'}</td><td className="py-1.5 pr-3">{h.campo}</td><td className="py-1.5 pr-3 text-gray-400">{h.valor_anterior ?? '—'}</td><td className="py-1.5 text-[#1F4D27]">{h.valor_nuevo ?? '—'}</td></tr>)}</tbody></table>
               )}
             </div>
           )}

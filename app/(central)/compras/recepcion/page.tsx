@@ -114,7 +114,7 @@ export default function RecepcionPage() {
   if (nuevo) {
     return (
       <div className="space-y-4">
-        <button onClick={() => { setNuevo(false); resetForm() }} className="flex items-center gap-1 text-sm text-gray-500 hover:text-[#1b2a4a]"><ArrowLeft size={15} /> Volver</button>
+        <button onClick={() => { setNuevo(false); resetForm() }} className="flex items-center gap-1 text-sm text-gray-500 hover:text-[#1F4D27]"><ArrowLeft size={15} /> Volver</button>
         <h1 className="text-2xl font-bold text-[#1a1a1a]">Nueva recepción de mercadería</h1>
         {error && <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-sm text-red-700">{error}</div>}
 
@@ -142,19 +142,19 @@ export default function RecepcionPage() {
               ))}
             </tbody>
           </table></div>
-          <button onClick={() => setLineas(ls => [...ls, nuevaLinea()])} className="flex items-center gap-1 text-sm text-[#c9a24e] font-medium"><Plus size={15} /> Agregar línea</button>
+          <button onClick={() => setLineas(ls => [...ls, nuevaLinea()])} className="flex items-center gap-1 text-sm text-[#307139] font-medium"><Plus size={15} /> Agregar línea</button>
 
           <div><label className="text-xs text-gray-500">Observaciones</label><textarea className="noma-input mt-1" rows={2} value={obs} onChange={e => setObs(e.target.value)} /></div>
 
           <div>
             <label className="text-xs text-gray-500">Fotos (opcional: factura y mercadería)</label>
             <div className="flex gap-3 mt-1 flex-wrap">
-              <label className={`flex-1 min-w-[160px] max-w-xs rounded-lg border-2 border-dashed py-3 flex items-center justify-center gap-2 text-sm cursor-pointer ${facturaUrl ? 'border-green-400 text-green-700 bg-green-50' : 'border-gray-300 text-gray-500 hover:border-[#c9a24e]'}`}>
+              <label className={`flex-1 min-w-[160px] max-w-xs rounded-lg border-2 border-dashed py-3 flex items-center justify-center gap-2 text-sm cursor-pointer ${facturaUrl ? 'border-green-400 text-green-700 bg-green-50' : 'border-gray-300 text-gray-500 hover:border-[#307139]'}`}>
                 {subF ? <Loader2 size={16} className="animate-spin" /> : facturaUrl ? <Check size={16} /> : <Camera size={16} />}
                 {subF ? 'Subiendo…' : facturaUrl ? 'Factura ✓' : 'Foto factura'}
                 <input type="file" accept="image/*" className="hidden" onChange={e => onFoto(e, 'factura')} />
               </label>
-              <label className={`flex-1 min-w-[160px] max-w-xs rounded-lg border-2 border-dashed py-3 flex items-center justify-center gap-2 text-sm cursor-pointer ${mercaUrl ? 'border-green-400 text-green-700 bg-green-50' : 'border-gray-300 text-gray-500 hover:border-[#c9a24e]'}`}>
+              <label className={`flex-1 min-w-[160px] max-w-xs rounded-lg border-2 border-dashed py-3 flex items-center justify-center gap-2 text-sm cursor-pointer ${mercaUrl ? 'border-green-400 text-green-700 bg-green-50' : 'border-gray-300 text-gray-500 hover:border-[#307139]'}`}>
                 {subM ? <Loader2 size={16} className="animate-spin" /> : mercaUrl ? <Check size={16} /> : <ImageUp size={16} />}
                 {subM ? 'Subiendo…' : mercaUrl ? 'Mercadería ✓' : 'Foto mercadería'}
                 <input type="file" accept="image/*" className="hidden" onChange={e => onFoto(e, 'merca')} />
@@ -178,7 +178,7 @@ export default function RecepcionPage() {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div><h1 className="text-2xl font-bold text-[#1a1a1a]">Recepción de mercadería</h1><p className="text-sm text-gray-500 mt-0.5">Ingreso controlado de compras al inventario (entrada por compra)</p></div>
         <div className="flex gap-2">
-          <button onClick={() => { setLoading(true); cargar() }} className="flex items-center gap-2 text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-2 hover:border-[#c9a24e]"><RefreshCw size={15} /> Actualizar</button>
+          <button onClick={() => { setLoading(true); cargar() }} className="flex items-center gap-2 text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-2 hover:border-[#307139]"><RefreshCw size={15} /> Actualizar</button>
           <button onClick={() => { resetForm(); setNuevo(true) }} className="noma-btn-primary flex items-center gap-2 text-sm"><Plus size={16} /> Nueva recepción</button>
         </div>
       </div>
@@ -193,11 +193,11 @@ export default function RecepcionPage() {
           <th className="text-left py-3 px-4 text-xs font-semibold text-gray-400 uppercase">Fotos</th>
         </tr></thead>
         <tbody className="divide-y divide-gray-50">
-          {loading ? <tr><td colSpan={5} className="py-12 text-center"><Loader2 className="w-5 h-5 text-[#1b2a4a] animate-spin mx-auto" /></td></tr>
+          {loading ? <tr><td colSpan={5} className="py-12 text-center"><Loader2 className="w-5 h-5 text-[#1F4D27] animate-spin mx-auto" /></td></tr>
           : recs.length === 0 ? <tr><td colSpan={5} className="py-12 text-center text-gray-400 text-sm">Sin recepciones aún. Usa <strong>Nueva recepción</strong>.</td></tr>
           : recs.map(r => (
             <tr key={S(r.id)} className="hover:bg-gray-50">
-              <td className="py-3 px-4 font-mono font-medium text-[#1b2a4a]">{S(r.numero)}</td>
+              <td className="py-3 px-4 font-mono font-medium text-[#1F4D27]">{S(r.numero)}</td>
               <td className="py-3 px-4 text-[#1a1a1a]">{S((r.proveedor as Row)?.nombre)}</td>
               <td className="py-3 px-4 text-gray-500 text-xs hidden md:table-cell">{S((r.bodega as Row)?.nombre)}</td>
               <td className="py-3 px-4 text-gray-500 text-xs">{fecha(r.created_at)}</td>
@@ -209,8 +209,8 @@ export default function RecepcionPage() {
                   if (!fact && !merca) return <span className="text-xs text-gray-300">—</span>
                   return (
                     <div className="flex items-center gap-1.5">
-                      {fact && <a href={fact} target="_blank" rel="noopener noreferrer" title="Factura"><img src={fact} alt="Factura" className="w-9 h-9 object-cover rounded border border-gray-200 hover:border-[#c9a24e]" /></a>}
-                      {merca && <a href={merca} target="_blank" rel="noopener noreferrer" title="Mercadería"><img src={merca} alt="Mercadería" className="w-9 h-9 object-cover rounded border border-gray-200 hover:border-[#c9a24e]" /></a>}
+                      {fact && <a href={fact} target="_blank" rel="noopener noreferrer" title="Factura"><img src={fact} alt="Factura" className="w-9 h-9 object-cover rounded border border-gray-200 hover:border-[#307139]" /></a>}
+                      {merca && <a href={merca} target="_blank" rel="noopener noreferrer" title="Mercadería"><img src={merca} alt="Mercadería" className="w-9 h-9 object-cover rounded border border-gray-200 hover:border-[#307139]" /></a>}
                     </div>
                   )
                 })()}

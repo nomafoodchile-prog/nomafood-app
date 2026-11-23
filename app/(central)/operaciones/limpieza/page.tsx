@@ -27,8 +27,8 @@ function printProc(area: string, t: Tarea) {
   if (!w) return
   w.document.write(`<html><head><title>${t.nombre}</title><style>
     body{font-family:system-ui,Arial,sans-serif;color:#1f2430;padding:30px;max-width:640px;margin:0 auto}
-    h1{color:#1b2a4a;font-size:22px;margin:0 0 4px} .meta{color:#6b6f77;font-size:13px;border-bottom:2px solid #c9a24e;padding-bottom:10px;margin-bottom:16px}
-    .t{background:#f5f0e8;display:inline-block;padding:4px 12px;border-radius:20px;font-weight:700;color:#7a5c1e;font-size:13px}
+    h1{color:#1F4D27;font-size:22px;margin:0 0 4px} .meta{color:#6b6f77;font-size:13px;border-bottom:2px solid #307139;padding-bottom:10px;margin-bottom:16px}
+    .t{background:#F8EDD9;display:inline-block;padding:4px 12px;border-radius:20px;font-weight:700;color:#255A2D;font-size:13px}
     ol{line-height:2;font-size:15px} .foot{margin-top:30px;border-top:1px solid #eee;padding-top:10px;color:#9aa;font-size:11px}
   </style></head><body>
     <h1>${t.nombre}</h1>
@@ -132,15 +132,15 @@ export default function LimpiezaPage() {
           <p className="text-sm text-gray-500 mt-0.5">Tareas de aseo por área, con paso a paso y tiempo estimado.</p>
         </div>
         <div className="flex gap-2">
-          <button onClick={() => setModal('area')} className="text-sm flex items-center gap-1.5 border border-gray-200 rounded-lg px-3 py-2 text-gray-600 hover:border-[#c9a24e]"><MapPin size={15} /> Nueva área</button>
+          <button onClick={() => setModal('area')} className="text-sm flex items-center gap-1.5 border border-gray-200 rounded-lg px-3 py-2 text-gray-600 hover:border-[#307139]"><MapPin size={15} /> Nueva área</button>
           <button onClick={abrirNueva} className="noma-btn-primary text-sm flex items-center gap-2"><Plus size={16} /> Nueva tarea</button>
         </div>
       </div>
 
       {/* Toggle Lista / Calendario */}
       <div className="inline-flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-        <button onClick={() => setVista('lista')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 ${vista === 'lista' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><List size={14} /> Lista</button>
-        <button onClick={() => setVista('calendario')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 ${vista === 'calendario' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><CalendarDays size={14} /> Calendario</button>
+        <button onClick={() => setVista('lista')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 ${vista === 'lista' ? 'bg-white text-[#1F4D27] shadow-sm' : 'text-gray-500'}`}><List size={14} /> Lista</button>
+        <button onClick={() => setVista('calendario')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 ${vista === 'calendario' ? 'bg-white text-[#1F4D27] shadow-sm' : 'text-gray-500'}`}><CalendarDays size={14} /> Calendario</button>
       </div>
 
       {atrasadas.length > 0 && (
@@ -150,7 +150,7 @@ export default function LimpiezaPage() {
       )}
 
       {loading ? (
-        <div className="py-16 text-center"><Loader2 className="w-6 h-6 text-[#1b2a4a] animate-spin mx-auto" /></div>
+        <div className="py-16 text-center"><Loader2 className="w-6 h-6 text-[#1F4D27] animate-spin mx-auto" /></div>
       ) : areas.length === 0 ? (
         <div className="noma-card text-center py-14 text-gray-400 text-sm">
           <SprayCan className="w-8 h-8 text-gray-200 mx-auto mb-2" />
@@ -175,15 +175,15 @@ export default function LimpiezaPage() {
                 const sel = iso === diaSel
                 return (
                   <button key={i} onClick={() => setDiaSel(sel ? null : iso)}
-                    className={`aspect-square rounded-lg text-xs flex flex-col items-center justify-center gap-0.5 border transition-all ${sel ? 'border-[#c9a24e] bg-[#f5f0e8]' : esHoy ? 'border-[#1b2a4a]/30 bg-[#1b2a4a]/5' : 'border-transparent hover:bg-gray-50'}`}>
-                    <span className={esHoy ? 'font-bold text-[#1b2a4a]' : 'text-gray-600'}>{n}</span>
-                    {items.length > 0 && <span className={`w-1.5 h-1.5 rounded-full ${hayAtraso ? 'bg-red-500' : 'bg-[#c9a24e]'}`} />}
+                    className={`aspect-square rounded-lg text-xs flex flex-col items-center justify-center gap-0.5 border transition-all ${sel ? 'border-[#307139] bg-[#F8EDD9]' : esHoy ? 'border-[#1F4D27]/30 bg-[#1F4D27]/5' : 'border-transparent hover:bg-gray-50'}`}>
+                    <span className={esHoy ? 'font-bold text-[#1F4D27]' : 'text-gray-600'}>{n}</span>
+                    {items.length > 0 && <span className={`w-1.5 h-1.5 rounded-full ${hayAtraso ? 'bg-red-500' : 'bg-[#307139]'}`} />}
                   </button>
                 )
               })}
             </div>
             <div className="flex items-center gap-4 mt-4 text-[11px] text-gray-400">
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#c9a24e]" /> Toca ese día</span>
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#307139]" /> Toca ese día</span>
               <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500" /> Atrasada</span>
             </div>
           </div>
@@ -216,7 +216,7 @@ export default function LimpiezaPage() {
             {areas.map(a => (
               <div key={a.id} className="noma-card !p-0 overflow-hidden">
                 <button onClick={() => setOpenArea(openArea === a.id ? null : a.id)} className="w-full flex items-center justify-between p-4 hover:bg-gray-50/50">
-                  <span className="font-bold text-[#1a1a1a] flex items-center gap-2"><SprayCan size={16} className="text-[#c9a24e]" /> {a.nombre}</span>
+                  <span className="font-bold text-[#1a1a1a] flex items-center gap-2"><SprayCan size={16} className="text-[#307139]" /> {a.nombre}</span>
                   <span className="text-xs text-gray-400 flex items-center gap-2">{a.tareas.length} tarea{a.tareas.length !== 1 ? 's' : ''} <ChevronDown size={16} className={`transition-transform ${openArea === a.id ? 'rotate-180' : ''}`} /></span>
                 </button>
                 {openArea === a.id && (
@@ -236,8 +236,8 @@ export default function LimpiezaPage() {
                             {t.ultima && <p className="text-xs text-gray-400 mb-2">Última vez: {new Date(t.ultima.fecha_realizada).toLocaleDateString('es-CL')} {t.ultima.realizado_por ? `· ${t.ultima.realizado_por}` : ''}</p>}
                             <div className="flex gap-2 flex-wrap">
                               <button onClick={() => marcarHecha(t.id)} className="text-xs font-semibold flex items-center gap-1.5 bg-green-600 text-white rounded-lg px-3 py-1.5 hover:bg-green-700"><Check size={13} /> Marcar hecha</button>
-                              <button onClick={() => printProc(a.nombre, t)} className="text-xs font-semibold flex items-center gap-1.5 border border-gray-200 text-gray-600 rounded-lg px-3 py-1.5 hover:border-[#c9a24e]"><Printer size={13} /> Imprimir procedimiento</button>
-                              <button onClick={() => abrirEditar(t, a.id)} className="text-xs font-semibold flex items-center gap-1.5 border border-gray-200 text-gray-600 rounded-lg px-3 py-1.5 hover:border-[#c9a24e]"><Pencil size={13} /> Editar</button>
+                              <button onClick={() => printProc(a.nombre, t)} className="text-xs font-semibold flex items-center gap-1.5 border border-gray-200 text-gray-600 rounded-lg px-3 py-1.5 hover:border-[#307139]"><Printer size={13} /> Imprimir procedimiento</button>
+                              <button onClick={() => abrirEditar(t, a.id)} className="text-xs font-semibold flex items-center gap-1.5 border border-gray-200 text-gray-600 rounded-lg px-3 py-1.5 hover:border-[#307139]"><Pencil size={13} /> Editar</button>
                               <button onClick={() => borrarTarea(t.id)} className="text-xs font-semibold flex items-center gap-1.5 text-red-500 rounded-lg px-2 py-1.5 hover:bg-red-50"><Trash2 size={13} /></button>
                             </div>
                           </div>

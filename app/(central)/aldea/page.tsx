@@ -215,33 +215,33 @@ export default function AldeaCentralPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-[#1a1a1a] flex items-center gap-2"><Sprout className="text-[#c9a24e]" size={22} /> Brotes Asian Street</h1>
+        <h1 className="text-2xl font-bold text-[#1a1a1a] flex items-center gap-2"><Sprout className="text-[#307139]" size={22} /> Brotes Asian Street</h1>
         <p className="text-sm text-gray-500 mt-0.5">Solicitudes e incidencias de las cafeterías.</p>
       </div>
 
       {/* Pestañas */}
       <div className="inline-flex items-center gap-1 bg-gray-100 rounded-lg p-1 overflow-x-auto max-w-full">
-        <button onClick={() => setTab('resumen')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap ${tab === 'resumen' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><Store size={14} /> Resumen</button>
-        <button onClick={() => setTab('solicitudes')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap ${tab === 'solicitudes' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><ClipboardList size={14} /> Solicitudes{nuevas ? ` · ${nuevas}` : ''}</button>
-        <button onClick={() => setTab('reserva')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap ${tab === 'reserva' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><ShieldCheck size={14} /> Reserva{rsv.alertas ? ` · ${rsv.alertas}` : ''}</button>
-        <button onClick={() => setTab('catalogo')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap ${tab === 'catalogo' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><Package size={14} /> Catálogo{cat.productos.length ? ` · ${cat.productos.length}` : ''}</button>
-        <button onClick={() => setTab('incidencias')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 ${tab === 'incidencias' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><MessageCircle size={14} /> Incidencias{incAbiertas ? ` · ${incAbiertas}` : ''}</button>
-        <button onClick={() => setTab('usuarios')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 ${tab === 'usuarios' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><Users size={14} /> Usuarios</button>
-        <button onClick={() => setTab('facturas')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 ${tab === 'facturas' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><Receipt size={14} /> Facturación</button>
+        <button onClick={() => setTab('resumen')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap ${tab === 'resumen' ? 'bg-white text-[#1F4D27] shadow-sm' : 'text-gray-500'}`}><Store size={14} /> Resumen</button>
+        <button onClick={() => setTab('solicitudes')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap ${tab === 'solicitudes' ? 'bg-white text-[#1F4D27] shadow-sm' : 'text-gray-500'}`}><ClipboardList size={14} /> Solicitudes{nuevas ? ` · ${nuevas}` : ''}</button>
+        <button onClick={() => setTab('reserva')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap ${tab === 'reserva' ? 'bg-white text-[#1F4D27] shadow-sm' : 'text-gray-500'}`}><ShieldCheck size={14} /> Reserva{rsv.alertas ? ` · ${rsv.alertas}` : ''}</button>
+        <button onClick={() => setTab('catalogo')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap ${tab === 'catalogo' ? 'bg-white text-[#1F4D27] shadow-sm' : 'text-gray-500'}`}><Package size={14} /> Catálogo{cat.productos.length ? ` · ${cat.productos.length}` : ''}</button>
+        <button onClick={() => setTab('incidencias')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 ${tab === 'incidencias' ? 'bg-white text-[#1F4D27] shadow-sm' : 'text-gray-500'}`}><MessageCircle size={14} /> Incidencias{incAbiertas ? ` · ${incAbiertas}` : ''}</button>
+        <button onClick={() => setTab('usuarios')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 ${tab === 'usuarios' ? 'bg-white text-[#1F4D27] shadow-sm' : 'text-gray-500'}`}><Users size={14} /> Usuarios</button>
+        <button onClick={() => setTab('facturas')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 ${tab === 'facturas' ? 'bg-white text-[#1F4D27] shadow-sm' : 'text-gray-500'}`}><Receipt size={14} /> Facturación</button>
       </div>
 
       {tab === 'resumen' && (
-        resLoad ? <div className="py-16 text-center"><Loader2 className="w-6 h-6 text-[#1b2a4a] animate-spin mx-auto" /></div>
+        resLoad ? <div className="py-16 text-center"><Loader2 className="w-6 h-6 text-[#1F4D27] animate-spin mx-auto" /></div>
         : <div className="space-y-4">
           {/* Consolidado */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             {[
-              { l: 'Solicitudes abiertas', v: res.consolidado?.solicitudes_abiertas ?? 0, c: 'text-[#1b2a4a]' },
-              { l: 'Pedidos (total)', v: res.consolidado?.pedidos_total ?? 0, c: 'text-[#1b2a4a]' },
+              { l: 'Solicitudes abiertas', v: res.consolidado?.solicitudes_abiertas ?? 0, c: 'text-[#1F4D27]' },
+              { l: 'Pedidos (total)', v: res.consolidado?.pedidos_total ?? 0, c: 'text-[#1F4D27]' },
               { l: 'Con diferencias', v: res.consolidado?.diferencias ?? 0, c: 'text-amber-600' },
               { l: 'Incidencias abiertas', v: res.consolidado?.incidencias_abiertas ?? 0, c: 'text-red-600' },
               { l: 'Stock crítico', v: res.consolidado?.stock_critico ?? 0, c: 'text-red-600' },
-              { l: 'Por cobrar', v: clp(res.consolidado?.facturas_por_pagar ?? 0), c: 'text-[#c9a24e]', small: true },
+              { l: 'Por cobrar', v: clp(res.consolidado?.facturas_por_pagar ?? 0), c: 'text-[#307139]', small: true },
             ].map((k, i) => (
               <div key={i} className="noma-card !p-3.5">
                 <p className="text-[10px] uppercase font-bold text-gray-400">{k.l}</p>
@@ -253,7 +253,7 @@ export default function AldeaCentralPage() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {(res.locales || []).map((l: any) => (
               <div key={l.id} className="noma-card !p-0 overflow-hidden">
-                <div className="bg-[#1b2a4a] text-white px-4 py-3 flex items-center gap-2"><Store size={15} className="text-[#c9a24e]" /><span className="font-bold text-sm">{l.nombre}</span></div>
+                <div className="bg-[#1F4D27] text-white px-4 py-3 flex items-center gap-2"><Store size={15} className="text-[#307139]" /><span className="font-bold text-sm">{l.nombre}</span></div>
                 <div className="p-4 space-y-2.5 text-sm">
                   <div className="flex items-center justify-between"><span className="text-gray-500">Stock crítico</span><span className={`font-bold ${l.stock_critico > 0 ? 'text-red-600' : 'text-green-600'}`}>{l.stock_critico}</span></div>
                   <div className="flex items-center justify-between"><span className="text-gray-500">Pedido actual</span>{l.ultimo_pedido ? <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${(EST[l.ultimo_pedido.estado]?.c) || 'bg-gray-100 text-gray-600'}`}>{EST[l.ultimo_pedido.estado]?.l || l.ultimo_pedido.estado}</span> : <span className="text-gray-400 text-xs">—</span>}</div>
@@ -271,12 +271,12 @@ export default function AldeaCentralPage() {
       {tab === 'solicitudes' && (<>
       <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1 w-fit overflow-x-auto max-w-full">
         {([['todos', `Todas${nuevas ? ` · ${nuevas} nuevas` : ''}`], ['solicitud_enviada', 'Enviadas'], ['aprobada', 'Aprobadas'], ['en_preparacion', 'En preparación'], ['en_ruta', 'En ruta'], ['entregada', 'Entregadas']] as const).map(([k, l]) => (
-          <button key={k} onClick={() => setFiltro(k)} className={`px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap ${filtro === k ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}>{l}</button>
+          <button key={k} onClick={() => setFiltro(k)} className={`px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap ${filtro === k ? 'bg-white text-[#1F4D27] shadow-sm' : 'text-gray-500'}`}>{l}</button>
         ))}
       </div>
 
       {loading ? (
-        <div className="py-16 text-center"><Loader2 className="w-6 h-6 text-[#1b2a4a] animate-spin mx-auto" /></div>
+        <div className="py-16 text-center"><Loader2 className="w-6 h-6 text-[#1F4D27] animate-spin mx-auto" /></div>
       ) : vis.length === 0 ? (
         <div className="noma-card text-center py-14 text-gray-400 text-sm"><Store className="w-8 h-8 text-gray-200 mx-auto mb-2" />No hay solicitudes {filtro !== 'todos' ? 'en este estado' : 'todavía'}.</div>
       ) : (
@@ -290,7 +290,7 @@ export default function AldeaCentralPage() {
                 <button onClick={() => abrir(s)} className="w-full flex items-center justify-between gap-3 p-4 hover:bg-gray-50/50 text-left">
                   <div className="flex items-center gap-3 flex-wrap">
                     <span className="font-mono text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">{s.folio}</span>
-                    <span className="font-semibold text-[#1a1a1a] text-sm flex items-center gap-1.5"><Store size={13} className="text-[#c9a24e]" /> {s.sucursal}</span>
+                    <span className="font-semibold text-[#1a1a1a] text-sm flex items-center gap-1.5"><Store size={13} className="text-[#307139]" /> {s.sucursal}</span>
                     {s.prioridad === 'alta' && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-50 text-red-600">⚡ Alta</span>}
                   </div>
                   <div className="flex items-center gap-3 flex-shrink-0">
@@ -334,7 +334,7 @@ export default function AldeaCentralPage() {
                       <div><label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Hora estimada</label><input value={d.he} onChange={ev => setDraft(p => ({ ...p, [s.id]: { ...p[s.id], he: ev.target.value } }))} className="noma-input !py-1.5 text-sm" placeholder="Ej: 14:30" /></div>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <button onClick={() => aprobarTodo(s)} className="text-xs font-semibold border border-gray-200 rounded-lg px-3 py-1.5 text-gray-600 hover:border-[#c9a24e]">Aprobar todo (= solicitado)</button>
+                      <button onClick={() => aprobarTodo(s)} className="text-xs font-semibold border border-gray-200 rounded-lg px-3 py-1.5 text-gray-600 hover:border-[#307139]">Aprobar todo (= solicitado)</button>
                       <div className="flex items-center gap-1.5 ml-auto">
                         <label className="text-xs text-gray-500">Estado:</label>
                         <select value={d.estado} onChange={ev => setDraft(prev => ({ ...prev, [s.id]: { ...prev[s.id], estado: ev.target.value } }))} className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white">
@@ -355,13 +355,13 @@ export default function AldeaCentralPage() {
       </>)}
 
       {tab === 'incidencias' && (
-        incLoad ? <div className="py-16 text-center"><Loader2 className="w-6 h-6 text-[#1b2a4a] animate-spin mx-auto" /></div>
+        incLoad ? <div className="py-16 text-center"><Loader2 className="w-6 h-6 text-[#1F4D27] animate-spin mx-auto" /></div>
         : incs.length === 0 ? <div className="noma-card text-center py-14 text-gray-400 text-sm"><MessageCircle className="w-8 h-8 text-gray-200 mx-auto mb-2" />No hay incidencias ni consultas.</div>
         : <div className="space-y-3">
           {incs.map(i => { const e = EST_INC[i.estado] || { l: i.estado, c: 'bg-gray-100 text-gray-600' }; return (
             <div key={i.id} className="noma-card">
               <div className="flex items-center justify-between gap-2 flex-wrap">
-                <span className="font-semibold text-sm text-[#1a1a1a] flex items-center gap-2"><Store size={13} className="text-[#c9a24e]" /> {i.sucursal} · {TIPO_INC[i.tipo] || i.tipo}{i.folio && <span className="font-mono text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">{i.folio}</span>}</span>
+                <span className="font-semibold text-sm text-[#1a1a1a] flex items-center gap-2"><Store size={13} className="text-[#307139]" /> {i.sucursal} · {TIPO_INC[i.tipo] || i.tipo}{i.folio && <span className="font-mono text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">{i.folio}</span>}</span>
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${e.c}`}>{e.l}</span>
               </div>
               <p className="text-sm text-gray-600 mt-1.5">{i.descripcion}</p>
@@ -383,9 +383,9 @@ export default function AldeaCentralPage() {
       )}
 
       {tab === 'reserva' && (
-        rsvLoad ? <div className="py-16 text-center"><Loader2 className="w-6 h-6 text-[#1b2a4a] animate-spin mx-auto" /></div>
+        rsvLoad ? <div className="py-16 text-center"><Loader2 className="w-6 h-6 text-[#1F4D27] animate-spin mx-auto" /></div>
         : <div className="space-y-4">
-          <div className="bg-[#faf7ef] border border-[#e7d4a6] rounded-xl px-4 py-3 text-sm text-[#5a4a24]">
+          <div className="bg-[#faf7ef] border border-[#e7d4a6] rounded-xl px-4 py-3 text-sm text-[#255A2D]">
             <b>Reserva Aldea (interno).</b> Stock protegido por SKU. Regla: <b>Disponible = Físico − Comprometido</b> · <b>Reposición = Objetivo − Físico</b>. El cliente solo ve "Disponible".
           </div>
           {(rsv.items || []).map((it: any) => {
@@ -396,7 +396,7 @@ export default function AldeaCentralPage() {
               <div key={it.product_id} className="noma-card">
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                   <span className="font-semibold text-[#1a1a1a] flex items-center gap-2">
-                    <span className="w-8 h-8 rounded-lg bg-[#f5f0e8] grid place-items-center overflow-hidden">{it.imagen_url ? <img src={it.imagen_url} alt="" className="w-full h-full object-cover" /> : <ShieldCheck size={14} className="text-[#c9a24e]" />}</span>
+                    <span className="w-8 h-8 rounded-lg bg-[#F8EDD9] grid place-items-center overflow-hidden">{it.imagen_url ? <img src={it.imagen_url} alt="" className="w-full h-full object-cover" /> : <ShieldCheck size={14} className="text-[#307139]" />}</span>
                     {it.nombre}
                   </span>
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${e.c}`}>{it.configurada ? e.l : 'Sin reserva'}</span>
@@ -406,7 +406,7 @@ export default function AldeaCentralPage() {
                     <div className="h-2 rounded-full bg-gray-100 overflow-hidden"><div className="h-full rounded-full" style={{ width: `${pct}%`, background: e.bar }} /></div>
                     <div className="flex items-center gap-4 mt-2 text-xs">
                       <span className="text-gray-500">Disponible: <b className="text-[#1a1a1a]">{it.disponible}</b></span>
-                      <span className="text-gray-500">Reposición sugerida: <b className="text-[#c9a24e]">{it.reposicion}</b></span>
+                      <span className="text-gray-500">Reposición sugerida: <b className="text-[#307139]">{it.reposicion}</b></span>
                     </div>
                   </div>
                 )}
@@ -429,45 +429,45 @@ export default function AldeaCentralPage() {
       )}
 
       {tab === 'catalogo' && (
-        catLoad ? <div className="py-16 text-center"><Loader2 className="w-6 h-6 text-[#1b2a4a] animate-spin mx-auto" /></div>
+        catLoad ? <div className="py-16 text-center"><Loader2 className="w-6 h-6 text-[#1F4D27] animate-spin mx-auto" /></div>
         : <div className="space-y-4">
-          <div className="bg-[#faf7ef] border border-[#e7d4a6] rounded-xl px-4 py-3 text-sm text-[#5a4a24]">
+          <div className="bg-[#faf7ef] border border-[#e7d4a6] rounded-xl px-4 py-3 text-sm text-[#255A2D]">
             <b>Catálogo exclusivo de Aldea.</b> Estos productos solo los ven las cafeterías Aldea (no el canal mayorista). <b>Disponible</b> = pueden pedir · <b>Próximamente</b> = lo ven pero no pueden pedir.
           </div>
 
           {/* Agregar producto */}
           <div className="noma-card">
-            <h3 className="font-bold text-[#1a1a1a] flex items-center gap-2 mb-3"><Plus size={16} className="text-[#c9a24e]" /> Agregar producto</h3>
+            <h3 className="font-bold text-[#1a1a1a] flex items-center gap-2 mb-3"><Plus size={16} className="text-[#307139]" /> Agregar producto</h3>
             <div className="grid sm:grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-semibold text-gray-500">Categoría</label>
-                <input list="cats-aldea" value={nuevo.categoria} onChange={e => setNuevo(n => ({ ...n, categoria: e.target.value }))} placeholder="Pastelería, Salado…" className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#c9a24e]" />
+                <input list="cats-aldea" value={nuevo.categoria} onChange={e => setNuevo(n => ({ ...n, categoria: e.target.value }))} placeholder="Pastelería, Salado…" className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#307139]" />
                 <datalist id="cats-aldea">{cat.categorias.map(c => <option key={c} value={c} />)}</datalist>
               </div>
               <div>
                 <label className="text-xs font-semibold text-gray-500">Nombre</label>
-                <input value={nuevo.nombre} onChange={e => setNuevo(n => ({ ...n, nombre: e.target.value }))} placeholder="Ej: Napolitana chocolate" className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#c9a24e]" />
+                <input value={nuevo.nombre} onChange={e => setNuevo(n => ({ ...n, nombre: e.target.value }))} placeholder="Ej: Napolitana chocolate" className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#307139]" />
               </div>
               <div>
                 <label className="text-xs font-semibold text-gray-500">Precio (por unidad de venta)</label>
-                <input type="number" value={nuevo.precio} onChange={e => setNuevo(n => ({ ...n, precio: e.target.value }))} placeholder="0" className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#c9a24e]" />
+                <input type="number" value={nuevo.precio} onChange={e => setNuevo(n => ({ ...n, precio: e.target.value }))} placeholder="0" className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#307139]" />
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="text-xs font-semibold text-gray-500">Unidad de venta</label>
-                  <select value={nuevo.unidad_venta} onChange={e => setNuevo(n => ({ ...n, unidad_venta: e.target.value }))} className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white outline-none focus:ring-2 focus:ring-[#c9a24e]">
+                  <select value={nuevo.unidad_venta} onChange={e => setNuevo(n => ({ ...n, unidad_venta: e.target.value }))} className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white outline-none focus:ring-2 focus:ring-[#307139]">
                     {UNIDADES_VENTA.map(u => <option key={u} value={u}>{u}</option>)}
                   </select>
                 </div>
                 {nuevo.unidad_venta === 'caja' && (
                   <div>
                     <label className="text-xs font-semibold text-gray-500">Un. por caja</label>
-                    <input type="number" value={nuevo.unidades_por_caja} onChange={e => setNuevo(n => ({ ...n, unidades_por_caja: e.target.value }))} placeholder="1" className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#c9a24e]" />
+                    <input type="number" value={nuevo.unidades_por_caja} onChange={e => setNuevo(n => ({ ...n, unidades_por_caja: e.target.value }))} placeholder="1" className="w-full mt-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#307139]" />
                   </div>
                 )}
               </div>
             </div>
-            <button onClick={crearProducto} disabled={creando} className="mt-3 bg-[#c9a24e] hover:bg-[#b8923f] text-[#16233f] font-bold text-sm px-4 py-2 rounded-xl disabled:opacity-50">{creando ? 'Agregando…' : 'Agregar al catálogo'}</button>
+            <button onClick={crearProducto} disabled={creando} className="mt-3 bg-[#307139] hover:bg-[#255A2D] text-white font-bold text-sm px-4 py-2 rounded-xl disabled:opacity-50">{creando ? 'Agregando…' : 'Agregar al catálogo'}</button>
           </div>
 
           {/* Lista por categoría */}
@@ -482,7 +482,7 @@ export default function AldeaCentralPage() {
                       <p className="font-semibold text-sm text-[#1a1a1a] truncate">{p.nombre}</p>
                       <p className="text-[11px] text-gray-400">{p.unidad_venta === 'caja' ? `Caja × ${p.unidades_por_caja}` : p.unidad_venta}</p>
                     </div>
-                    <input type="number" defaultValue={p.precio && p.precio > 0 ? p.precio : ''} onBlur={e => { const v = Number(e.target.value); if (v > 0 && v !== p.precio) editarProducto(p.product_id, { precio: v }) }} placeholder="precio" className={`w-24 border rounded-lg px-2 py-1 text-sm text-right outline-none focus:ring-2 focus:ring-[#c9a24e] ${p.precio && p.precio > 0 ? 'border-gray-200' : 'border-amber-300 bg-amber-50'}`} />
+                    <input type="number" defaultValue={p.precio && p.precio > 0 ? p.precio : ''} onBlur={e => { const v = Number(e.target.value); if (v > 0 && v !== p.precio) editarProducto(p.product_id, { precio: v }) }} placeholder="precio" className={`w-24 border rounded-lg px-2 py-1 text-sm text-right outline-none focus:ring-2 focus:ring-[#307139] ${p.precio && p.precio > 0 ? 'border-gray-200' : 'border-amber-300 bg-amber-50'}`} />
                     <button onClick={() => editarProducto(p.product_id, { disponible: !p.disponible })} className={`text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap ${p.disponible ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>{p.disponible ? 'Disponible' : 'Próximamente'}</button>
                     <button onClick={() => quitarProducto(p.product_id, p.nombre)} className="text-gray-300 hover:text-red-500" title="Quitar de Aldea"><Trash2 size={16} /></button>
                   </div>
@@ -497,14 +497,14 @@ export default function AldeaCentralPage() {
         <div className="grid lg:grid-cols-2 gap-4 items-start">
           {/* Crear usuario */}
           <form onSubmit={crearUsuario} className="noma-card space-y-3">
-            <h3 className="font-bold text-[#1a1a1a] flex items-center gap-2"><UserPlus size={16} className="text-[#c9a24e]" /> Crear usuario Aldea</h3>
+            <h3 className="font-bold text-[#1a1a1a] flex items-center gap-2"><UserPlus size={16} className="text-[#307139]" /> Crear usuario Aldea</h3>
             {okUser && (
               <div className="bg-green-50 border border-green-100 rounded-xl p-3 text-sm">
                 <p className="text-green-700 font-semibold mb-1">✓ Usuario listo</p>
                 <div className="bg-white rounded-lg p-2 text-xs font-mono text-[#1a1a1a] space-y-0.5">
                   <div>Correo: {okUser.email}</div><div>Clave: {okUser.password}</div><div>Portal: nommafood.cl/portal/aldea/login</div>
                 </div>
-                <button type="button" onClick={() => navigator.clipboard?.writeText(`Portal Brotes Asian Street: https://nommafood.cl/portal/aldea/login\nCorreo: ${okUser.email}\nContraseña: ${okUser.password}`)} className="mt-2 text-xs font-semibold text-[#c9a24e] flex items-center gap-1"><Copy size={12} /> Copiar datos</button>
+                <button type="button" onClick={() => navigator.clipboard?.writeText(`Portal Brotes Asian Street: https://nommafood.cl/portal/aldea/login\nCorreo: ${okUser.email}\nContraseña: ${okUser.password}`)} className="mt-2 text-xs font-semibold text-[#307139] flex items-center gap-1"><Copy size={12} /> Copiar datos</button>
               </div>
             )}
             <div className="grid grid-cols-2 gap-3">
@@ -532,13 +532,13 @@ export default function AldeaCentralPage() {
           {/* Lista de usuarios */}
           <div className="noma-card !p-0 overflow-hidden">
             <div className="p-4 border-b border-gray-100"><h3 className="font-bold text-[#1a1a1a] text-sm">Usuarios de Aldea</h3></div>
-            {usrLoad ? <div className="py-10 text-center"><Loader2 className="w-5 h-5 text-[#1b2a4a] animate-spin mx-auto" /></div>
+            {usrLoad ? <div className="py-10 text-center"><Loader2 className="w-5 h-5 text-[#1F4D27] animate-spin mx-auto" /></div>
               : usuarios.length === 0 ? <p className="p-4 text-sm text-gray-400">Aún no hay usuarios.</p>
               : <div className="divide-y divide-gray-50">
                 {usuarios.map(u => (
                   <div key={u.id} className="flex items-center justify-between gap-3 px-4 py-3">
                     <div><p className="text-sm font-medium text-[#1a1a1a]">{u.nombre || u.email}</p><p className="text-xs text-gray-400">{u.email}</p></div>
-                    <div className="text-right"><span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${u.rol === 'admin_general' ? 'bg-[#f5f0e8] text-[#7a5c1e]' : 'bg-blue-50 text-blue-700'}`}>{u.rol === 'admin_general' ? 'Admin General' : 'Encargado'}</span><p className="text-[11px] text-gray-400 mt-0.5">{u.sucursal}</p></div>
+                    <div className="text-right"><span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${u.rol === 'admin_general' ? 'bg-[#F8EDD9] text-[#255A2D]' : 'bg-blue-50 text-blue-700'}`}>{u.rol === 'admin_general' ? 'Admin General' : 'Encargado'}</span><p className="text-[11px] text-gray-400 mt-0.5">{u.sucursal}</p></div>
                   </div>
                 ))}
               </div>}
@@ -549,7 +549,7 @@ export default function AldeaCentralPage() {
       {tab === 'facturas' && (
         <div className="grid lg:grid-cols-2 gap-4 items-start">
           <form onSubmit={crearFactura} className="noma-card space-y-3">
-            <h3 className="font-bold text-[#1a1a1a] flex items-center gap-2"><Receipt size={16} className="text-[#c9a24e]" /> Registrar factura</h3>
+            <h3 className="font-bold text-[#1a1a1a] flex items-center gap-2"><Receipt size={16} className="text-[#307139]" /> Registrar factura</h3>
             <div><label className="block text-xs font-semibold text-gray-600 mb-1">Sucursal *</label>
               <select value={fForm.mayorista_id} onChange={e => setFForm(f => ({ ...f, mayorista_id: e.target.value }))} className="noma-input !py-2 text-sm" required>
                 <option value="">Elige la cafetería…</option>
@@ -568,7 +568,7 @@ export default function AldeaCentralPage() {
 
           <div className="noma-card !p-0 overflow-hidden">
             <div className="p-4 border-b border-gray-100"><h3 className="font-bold text-[#1a1a1a] text-sm">Facturas de Aldea</h3></div>
-            {factLoad ? <div className="py-10 text-center"><Loader2 className="w-5 h-5 text-[#1b2a4a] animate-spin mx-auto" /></div>
+            {factLoad ? <div className="py-10 text-center"><Loader2 className="w-5 h-5 text-[#1F4D27] animate-spin mx-auto" /></div>
               : facts.length === 0 ? <p className="p-4 text-sm text-gray-400">Aún no hay facturas.</p>
               : <div className="divide-y divide-gray-50">
                 {facts.map(f => { const e = EST_FACT[f.estado_real] || EST_FACT.por_pagar; return (

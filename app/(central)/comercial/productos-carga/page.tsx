@@ -78,7 +78,7 @@ export default function CargaInsumosPage() {
 
   return (
     <div className="space-y-5 max-w-5xl">
-      <Link href="/comercial/productos" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-[#1b2a4a]"><ArrowLeft size={15} /> Volver a Productos</Link>
+      <Link href="/comercial/productos" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-[#1F4D27]"><ArrowLeft size={15} /> Volver a Productos</Link>
 
       <div>
         <h1 className="text-2xl font-bold text-[#1a1a1a]">Carga rápida de insumos</h1>
@@ -88,7 +88,7 @@ export default function CargaInsumosPage() {
       {/* Paso 1 — plantilla */}
       <div className="noma-card !p-4">
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <h2 className="font-semibold text-[#1b2a4a] flex items-center gap-2"><Table size={16} /> Paso 1 · Copia la plantilla</h2>
+          <h2 className="font-semibold text-[#1F4D27] flex items-center gap-2"><Table size={16} /> Paso 1 · Copia la plantilla</h2>
           <button onClick={copiarPlantilla} className="noma-btn-primary text-sm flex items-center gap-2">{copiado ? <Check size={15} /> : <Copy size={15} />} {copiado ? 'Copiada' : 'Copiar plantilla'}</button>
         </div>
         <p className="text-sm text-gray-500 mt-2">Pégala en <strong>Excel o Google Sheets</strong>, llena tus insumos (una fila por insumo) y luego copia tus filas para el Paso 2. El orden de las columnas es:</p>
@@ -112,12 +112,12 @@ export default function CargaInsumosPage() {
         </ul>
 
         {/* Categorías de la fábrica (lista fija para que el equipo las use igual) */}
-        <div className="mt-4 rounded-lg border border-[#c9a24e]/30 bg-[#f5efdf]/30 p-3">
-          <div className="flex items-center gap-2 text-sm font-medium text-[#1b2a4a]"><Tag size={15} /> Categorías de la fábrica</div>
+        <div className="mt-4 rounded-lg border border-[#307139]/30 bg-[#f5efdf]/30 p-3">
+          <div className="flex items-center gap-2 text-sm font-medium text-[#1F4D27]"><Tag size={15} /> Categorías de la fábrica</div>
           <p className="text-xs text-gray-500 mt-1">Copia una de estas en la columna <strong>Categoría</strong> (cópialas igual para que todo quede ordenado):</p>
           <div className="flex flex-wrap gap-1.5 mt-2">
             {CATEGORIAS_INSUMO.map(c => (
-              <span key={c} className="text-xs px-2.5 py-1 rounded-full bg-white border border-[#c9a24e]/40 text-[#1b2a4a]">{c}</span>
+              <span key={c} className="text-xs px-2.5 py-1 rounded-full bg-white border border-[#307139]/40 text-[#1F4D27]">{c}</span>
             ))}
           </div>
         </div>
@@ -125,7 +125,7 @@ export default function CargaInsumosPage() {
 
       {/* Paso 2 — pegar */}
       <div className="noma-card !p-4">
-        <h2 className="font-semibold text-[#1b2a4a] flex items-center gap-2"><Upload size={16} /> Paso 2 · Pega tus insumos aquí</h2>
+        <h2 className="font-semibold text-[#1F4D27] flex items-center gap-2"><Upload size={16} /> Paso 2 · Pega tus insumos aquí</h2>
         <p className="text-sm text-gray-500 mt-1">Copia las filas desde tu planilla (sin el encabezado, aunque si lo incluyes el sistema lo ignora) y pégalas en el recuadro.</p>
         <textarea
           value={texto}
@@ -172,7 +172,7 @@ export default function CargaInsumosPage() {
       {/* Resultado */}
       {res && (
         <div className="noma-card !p-4">
-          <h2 className="font-semibold text-[#1b2a4a] flex items-center gap-2"><CheckCircle2 size={16} className="text-green-600" /> Resultado</h2>
+          <h2 className="font-semibold text-[#1F4D27] flex items-center gap-2"><CheckCircle2 size={16} className="text-green-600" /> Resultado</h2>
           <div className="flex flex-wrap gap-3 mt-3">
             <span className="text-sm px-3 py-1.5 rounded-lg bg-green-50 text-green-700 font-medium">{res.creados} creados</span>
             {res.duplicados > 0 && <span className="text-sm px-3 py-1.5 rounded-lg bg-amber-50 text-amber-700 font-medium">{res.duplicados} ya existían</span>}
@@ -194,7 +194,7 @@ export default function CargaInsumosPage() {
               </table>
             </div>
           )}
-          <p className="text-xs text-gray-500 mt-3">Los insumos quedaron en <Link href="/comercial/productos" className="text-[#c9a24e] font-medium">Productos</Link>. Desde ahí puedes afinar cada uno (proveedor, stock, etc.) cuando necesites.</p>
+          <p className="text-xs text-gray-500 mt-3">Los insumos quedaron en <Link href="/comercial/productos" className="text-[#307139] font-medium">Productos</Link>. Desde ahí puedes afinar cada uno (proveedor, stock, etc.) cuando necesites.</p>
         </div>
       )}
     </div>

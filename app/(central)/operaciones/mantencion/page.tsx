@@ -35,8 +35,8 @@ function printProc(maq: Maquina, t: Tarea) {
   if (!w) return
   w.document.write(`<html><head><title>${t.nombre}</title><style>
     body{font-family:system-ui,Arial,sans-serif;color:#1f2430;padding:30px;max-width:640px;margin:0 auto}
-    h1{color:#1b2a4a;font-size:22px;margin:0 0 4px} .meta{color:#6b6f77;font-size:13px;border-bottom:2px solid #c9a24e;padding-bottom:10px;margin-bottom:16px}
-    .t{background:#f5f0e8;display:inline-block;padding:4px 12px;border-radius:20px;font-weight:700;color:#7a5c1e;font-size:13px}
+    h1{color:#1F4D27;font-size:22px;margin:0 0 4px} .meta{color:#6b6f77;font-size:13px;border-bottom:2px solid #307139;padding-bottom:10px;margin-bottom:16px}
+    .t{background:#F8EDD9;display:inline-block;padding:4px 12px;border-radius:20px;font-weight:700;color:#255A2D;font-size:13px}
     ol{line-height:2;font-size:15px} .foot{margin-top:30px;border-top:1px solid #eee;padding-top:10px;color:#9aa;font-size:11px}
     table{font-size:12px;color:#555;margin:8px 0} td{padding:2px 10px 2px 0}
   </style></head><body>
@@ -134,15 +134,15 @@ export default function MantencionPage() {
           <p className="text-sm text-gray-500 mt-0.5">Ficha de cada máquina, plan preventivo e historial de cumplimiento.</p>
         </div>
         <div className="flex gap-2">
-          <button onClick={() => setModal('maquina')} className="text-sm flex items-center gap-1.5 border border-gray-200 rounded-lg px-3 py-2 text-gray-600 hover:border-[#c9a24e]"><Wrench size={15} /> Nueva máquina</button>
+          <button onClick={() => setModal('maquina')} className="text-sm flex items-center gap-1.5 border border-gray-200 rounded-lg px-3 py-2 text-gray-600 hover:border-[#307139]"><Wrench size={15} /> Nueva máquina</button>
           <button onClick={() => setModal('tarea')} className="noma-btn-primary text-sm flex items-center gap-2" disabled={maquinas.length === 0}><Plus size={16} /> Nueva tarea</button>
         </div>
       </div>
 
       {/* Toggle Lista / Calendario */}
       <div className="inline-flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-        <button onClick={() => setVista('lista')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 ${vista === 'lista' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><List size={14} /> Máquinas</button>
-        <button onClick={() => setVista('calendario')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 ${vista === 'calendario' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><CalendarDays size={14} /> Calendario</button>
+        <button onClick={() => setVista('lista')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 ${vista === 'lista' ? 'bg-white text-[#1F4D27] shadow-sm' : 'text-gray-500'}`}><List size={14} /> Máquinas</button>
+        <button onClick={() => setVista('calendario')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 ${vista === 'calendario' ? 'bg-white text-[#1F4D27] shadow-sm' : 'text-gray-500'}`}><CalendarDays size={14} /> Calendario</button>
       </div>
 
       {atrasadas.length > 0 && (
@@ -152,7 +152,7 @@ export default function MantencionPage() {
       )}
 
       {loading ? (
-        <div className="py-16 text-center"><Loader2 className="w-6 h-6 text-[#1b2a4a] animate-spin mx-auto" /></div>
+        <div className="py-16 text-center"><Loader2 className="w-6 h-6 text-[#1F4D27] animate-spin mx-auto" /></div>
       ) : maquinas.length === 0 ? (
         <div className="noma-card text-center py-14 text-gray-400 text-sm">
           <Wrench className="w-8 h-8 text-gray-200 mx-auto mb-2" />
@@ -177,15 +177,15 @@ export default function MantencionPage() {
                 const sel = iso === diaSel
                 return (
                   <button key={i} onClick={() => setDiaSel(sel ? null : iso)}
-                    className={`aspect-square rounded-lg text-xs flex flex-col items-center justify-center gap-0.5 border transition-all ${sel ? 'border-[#c9a24e] bg-[#f5f0e8]' : esHoy ? 'border-[#1b2a4a]/30 bg-[#1b2a4a]/5' : 'border-transparent hover:bg-gray-50'}`}>
-                    <span className={esHoy ? 'font-bold text-[#1b2a4a]' : 'text-gray-600'}>{n}</span>
-                    {items.length > 0 && <span className={`w-1.5 h-1.5 rounded-full ${hayAtraso ? 'bg-red-500' : 'bg-[#c9a24e]'}`} />}
+                    className={`aspect-square rounded-lg text-xs flex flex-col items-center justify-center gap-0.5 border transition-all ${sel ? 'border-[#307139] bg-[#F8EDD9]' : esHoy ? 'border-[#1F4D27]/30 bg-[#1F4D27]/5' : 'border-transparent hover:bg-gray-50'}`}>
+                    <span className={esHoy ? 'font-bold text-[#1F4D27]' : 'text-gray-600'}>{n}</span>
+                    {items.length > 0 && <span className={`w-1.5 h-1.5 rounded-full ${hayAtraso ? 'bg-red-500' : 'bg-[#307139]'}`} />}
                   </button>
                 )
               })}
             </div>
             <div className="flex items-center gap-4 mt-4 text-[11px] text-gray-400">
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#c9a24e]" /> Toca mantención</span>
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#307139]" /> Toca mantención</span>
               <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500" /> Atrasada</span>
             </div>
           </div>
@@ -216,7 +216,7 @@ export default function MantencionPage() {
           {maquinas.map(m => (
             <div key={m.id} className="noma-card !p-0 overflow-hidden">
               <button onClick={() => setOpenMaq(openMaq === m.id ? null : m.id)} className="w-full flex items-center justify-between p-4 hover:bg-gray-50/50 gap-3">
-                <span className="font-bold text-[#1a1a1a] flex items-center gap-2 text-left"><Wrench size={16} className="text-[#c9a24e] flex-shrink-0" /> {m.nombre} {m.codigo && <span className="text-xs font-normal text-gray-400">· {m.codigo}</span>}</span>
+                <span className="font-bold text-[#1a1a1a] flex items-center gap-2 text-left"><Wrench size={16} className="text-[#307139] flex-shrink-0" /> {m.nombre} {m.codigo && <span className="text-xs font-normal text-gray-400">· {m.codigo}</span>}</span>
                 <span className="flex items-center gap-2 flex-shrink-0">
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${ESTADO_MAQ[m.estado]?.c || 'bg-gray-100 text-gray-600'}`}>{ESTADO_MAQ[m.estado]?.l || m.estado}</span>
                   {m.tareas.some(t => t.estado === 'atrasado') && <span className="w-2 h-2 rounded-full bg-red-500" />}
@@ -233,7 +233,7 @@ export default function MantencionPage() {
                     <div><span className="text-gray-400">Compra</span><p className="text-[#1a1a1a]">{fFecha(m.fecha_compra)}</p></div>
                     <div><span className="text-gray-400">Garantía hasta</span><p className={m.garantia_hasta && m.garantia_hasta < hoyISO ? 'text-red-600' : 'text-[#1a1a1a]'}>{fFecha(m.garantia_hasta)}</p></div>
                     <div><span className="text-gray-400">Proveedor</span><p className="text-[#1a1a1a]">{m.proveedor || '—'}</p></div>
-                    {m.manual_url && <div className="col-span-2 sm:col-span-3"><a href={m.manual_url} target="_blank" rel="noopener noreferrer" className="text-[#c9a24e] font-semibold inline-flex items-center gap-1">Ver manual <ExternalLink size={11} /></a></div>}
+                    {m.manual_url && <div className="col-span-2 sm:col-span-3"><a href={m.manual_url} target="_blank" rel="noopener noreferrer" className="text-[#307139] font-semibold inline-flex items-center gap-1">Ver manual <ExternalLink size={11} /></a></div>}
                   </div>
 
                   {/* Plan de mantención */}
@@ -258,7 +258,7 @@ export default function MantencionPage() {
                           ) : <p className="text-xs text-gray-400 mb-3">Sin paso a paso registrado.</p>}
                           <div className="flex gap-2 flex-wrap">
                             <button onClick={() => setEjecModal({ tarea_id: t.id, maquina_id: m.id, nombre: t.nombre })} className="text-xs font-semibold flex items-center gap-1.5 bg-green-600 text-white rounded-lg px-3 py-1.5 hover:bg-green-700"><Check size={13} /> Registrar mantención</button>
-                            <button onClick={() => printProc(m, t)} className="text-xs font-semibold flex items-center gap-1.5 border border-gray-200 text-gray-600 rounded-lg px-3 py-1.5 hover:border-[#c9a24e]"><Printer size={13} /> Imprimir procedimiento</button>
+                            <button onClick={() => printProc(m, t)} className="text-xs font-semibold flex items-center gap-1.5 border border-gray-200 text-gray-600 rounded-lg px-3 py-1.5 hover:border-[#307139]"><Printer size={13} /> Imprimir procedimiento</button>
                           </div>
                         </div>
                       )}
@@ -266,7 +266,7 @@ export default function MantencionPage() {
                   ))}
 
                   {/* Historial */}
-                  <button onClick={() => setHistOpen(histOpen === m.id ? null : m.id)} className="mt-3 text-xs font-semibold text-gray-500 flex items-center gap-1.5 hover:text-[#1b2a4a]"><History size={13} /> Historial de mantenciones ({m.historial.length}) <ChevronDown size={13} className={`transition-transform ${histOpen === m.id ? 'rotate-180' : ''}`} /></button>
+                  <button onClick={() => setHistOpen(histOpen === m.id ? null : m.id)} className="mt-3 text-xs font-semibold text-gray-500 flex items-center gap-1.5 hover:text-[#1F4D27]"><History size={13} /> Historial de mantenciones ({m.historial.length}) <ChevronDown size={13} className={`transition-transform ${histOpen === m.id ? 'rotate-180' : ''}`} /></button>
                   {histOpen === m.id && (
                     <div className="mt-2 border border-gray-100 rounded-xl overflow-hidden">
                       {m.historial.length === 0 ? (

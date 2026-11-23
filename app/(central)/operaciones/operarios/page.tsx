@@ -138,7 +138,7 @@ export default function CentralOperariosPage() {
     }).sort((a, b) => a.estado === 'en_turno' ? -1 : b.estado === 'en_turno' ? 1 : 0)
   }, [ops, jorns, tars, cis])
 
-  if (loading) return <div className="min-h-[60vh] flex items-center justify-center"><Loader2 className="w-6 h-6 text-[#1b2a4a] animate-spin" /></div>
+  if (loading) return <div className="min-h-[60vh] flex items-center justify-center"><Loader2 className="w-6 h-6 text-[#1F4D27] animate-spin" /></div>
 
   // ── Detalle de un operario ──
   if (sel) {
@@ -147,17 +147,17 @@ export default function CentralOperariosPage() {
     const misCis = cis.filter(c => S(c.operario_id) === sel && idTars.has(S(c.tarea_id)))
     return (
       <div className="space-y-5">
-        <button onClick={() => setSel(null)} className="flex items-center gap-1 text-sm text-gray-500 hover:text-[#1b2a4a]"><ArrowLeft size={15} /> Volver a operarios</button>
+        <button onClick={() => setSel(null)} className="flex items-center gap-1 text-sm text-gray-500 hover:text-[#1F4D27]"><ArrowLeft size={15} /> Volver a operarios</button>
         <div className="flex items-start justify-between flex-wrap gap-3">
           <div>
             <h1 className="text-2xl font-bold text-[#1a1a1a]">{nombre(sel)}</h1>
             <p className="text-sm text-gray-500">{m?.area || 'Sin área'} · {JORN_LBL[m?.estado || 'no_iniciado']?.l} · ingreso {hhmm(m?.ingreso)}</p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            <button onClick={() => resetClave(sel)} disabled={reseteando} className="flex items-center gap-1.5 text-sm font-semibold text-[#1b2a4a] border border-gray-200 rounded-lg px-3 py-2 hover:bg-gray-50 disabled:opacity-50"><KeyRound size={14} /> {reseteando ? 'Restableciendo…' : 'Restablecer clave'}</button>
-            <button onClick={() => setEditOpen(true)} className="flex items-center gap-1.5 text-sm font-semibold text-[#1b2a4a] border border-gray-200 rounded-lg px-3 py-2 hover:bg-gray-50"><Pencil size={14} /> Editar</button>
+            <button onClick={() => resetClave(sel)} disabled={reseteando} className="flex items-center gap-1.5 text-sm font-semibold text-[#1F4D27] border border-gray-200 rounded-lg px-3 py-2 hover:bg-gray-50 disabled:opacity-50"><KeyRound size={14} /> {reseteando ? 'Restableciendo…' : 'Restablecer clave'}</button>
+            <button onClick={() => setEditOpen(true)} className="flex items-center gap-1.5 text-sm font-semibold text-[#1F4D27] border border-gray-200 rounded-lg px-3 py-2 hover:bg-gray-50"><Pencil size={14} /> Editar</button>
             <button onClick={() => eliminarOperario(sel, nombre(sel))} disabled={borrando} className="flex items-center gap-1.5 text-sm font-semibold text-[#E24B4A] border border-red-200 rounded-lg px-3 py-2 hover:bg-red-50 disabled:opacity-50"><Trash2 size={14} /> Eliminar</button>
-            <button onClick={() => setAsignarOpen(true)} className="flex items-center gap-2 text-sm font-semibold bg-[#c9a24e] text-[#1b2a4a] rounded-lg px-4 py-2 hover:bg-[#b8923f]"><CheckSquare size={15} /> Asignar tarea</button>
+            <button onClick={() => setAsignarOpen(true)} className="flex items-center gap-2 text-sm font-semibold bg-[#307139] text-white rounded-lg px-4 py-2 hover:bg-[#255A2D]"><CheckSquare size={15} /> Asignar tarea</button>
           </div>
         </div>
         {resetCred && <CredencialesModal titulo="Contraseña restablecida" email={resetCred.email} password={resetCred.password} portalUrl="nommafood.cl/operario/login" onClose={() => setResetCred(null)} />}
@@ -167,7 +167,7 @@ export default function CentralOperariosPage() {
         {/* Permiso: cargar datos desde su portal */}
         <div className="bg-white border border-gray-100 rounded-xl p-4 flex items-center justify-between gap-3">
           <div>
-            <p className="text-sm font-semibold text-[#1b2a4a] flex items-center gap-2"><PackagePlus size={16} /> Cargar datos desde su portal</p>
+            <p className="text-sm font-semibold text-[#1F4D27] flex items-center gap-2"><PackagePlus size={16} /> Cargar datos desde su portal</p>
             <p className="text-xs text-gray-500 mt-0.5">Si lo activas, este trabajador verá la pestaña “Cargar” en su portal para ingresar insumos.</p>
           </div>
           <button
@@ -188,7 +188,7 @@ export default function CentralOperariosPage() {
         </div>
 
         <div>
-          <h2 className="text-sm font-semibold text-[#1b2a4a] mb-2">Cierres de hoy ({misCis.length})</h2>
+          <h2 className="text-sm font-semibold text-[#1F4D27] mb-2">Cierres de hoy ({misCis.length})</h2>
           {misCis.length === 0 ? <p className="text-sm text-gray-400">Sin tareas cerradas hoy.</p> : (
             <div className="space-y-2.5">
               {misCis.map(c => {
@@ -214,7 +214,7 @@ export default function CentralOperariosPage() {
                     {c.merma_motivo ? <div className="text-xs text-gray-500 mt-1">Merma: {S(c.merma_motivo)}</div> : null}
                     {c.calidad_motivo ? <div className="text-xs text-red-600 mt-1"><AlertTriangle size={12} className="inline mr-1" />{S(c.calidad_motivo)} — {S(c.calidad_comentario)}</div> : null}
                     <div className="flex items-center gap-3 mt-2">
-                      {c.evidencia_url ? <a href={S(c.evidencia_url)} target="_blank" rel="noreferrer" className="text-xs text-[#c9a24e] font-medium flex items-center gap-1"><ImageIcon size={13} /> Ver foto final</a>
+                      {c.evidencia_url ? <a href={S(c.evidencia_url)} target="_blank" rel="noreferrer" className="text-xs text-[#307139] font-medium flex items-center gap-1"><ImageIcon size={13} /> Ver foto final</a>
                         : c.evidencia_cargada ? <span className="text-xs text-gray-400 flex items-center gap-1"><ImageIcon size={13} /> Foto registrada</span> : null}
                     </div>
                   </div>
@@ -237,9 +237,9 @@ export default function CentralOperariosPage() {
           <p className="text-sm text-gray-500 mt-0.5">{enTurno} en turno · {ops.length} operarios · en tiempo real</p>
         </div>
         <div className="flex gap-2">
-          <a href="/operaciones/operarios/mensajes" className="flex items-center gap-2 text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-2 hover:border-[#c9a24e]"><MessageSquare size={15} /> Mensajes</a>
-          <button onClick={() => { setLoading(true); cargar() }} className="flex items-center gap-2 text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-2 hover:border-[#c9a24e]"><RefreshCw size={15} /> Actualizar</button>
-          <button onClick={() => setCrearOpen(true)} className="flex items-center gap-2 text-sm font-semibold bg-[#c9a24e] text-[#1b2a4a] rounded-lg px-3 py-2 hover:bg-[#b8923f]"><UserPlus size={15} /> Crear operario</button>
+          <a href="/operaciones/operarios/mensajes" className="flex items-center gap-2 text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-2 hover:border-[#307139]"><MessageSquare size={15} /> Mensajes</a>
+          <button onClick={() => { setLoading(true); cargar() }} className="flex items-center gap-2 text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-2 hover:border-[#307139]"><RefreshCw size={15} /> Actualizar</button>
+          <button onClick={() => setCrearOpen(true)} className="flex items-center gap-2 text-sm font-semibold bg-[#307139] text-white rounded-lg px-3 py-2 hover:bg-[#255A2D]"><UserPlus size={15} /> Crear operario</button>
         </div>
       </div>
 
@@ -249,16 +249,16 @@ export default function CentralOperariosPage() {
         <div className="noma-card text-center text-gray-400 py-10">
           <CheckSquare className="w-8 h-8 mx-auto text-gray-300 mb-2" />
           <p className="text-sm mb-3">Aún no hay operarios registrados.</p>
-          <button onClick={() => setCrearOpen(true)} className="inline-flex items-center gap-2 text-sm font-semibold bg-[#c9a24e] text-[#1b2a4a] rounded-lg px-4 py-2 hover:bg-[#b8923f]"><UserPlus size={15} /> Crear el primero</button>
+          <button onClick={() => setCrearOpen(true)} className="inline-flex items-center gap-2 text-sm font-semibold bg-[#307139] text-white rounded-lg px-4 py-2 hover:bg-[#255A2D]"><UserPlus size={15} /> Crear el primero</button>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {metricas.map(m => {
             const jl = JORN_LBL[m.estado] || JORN_LBL.no_iniciado
             return (
-              <button key={m.id} onClick={() => setSel(m.id)} className="noma-card !p-4 text-left hover:border-[#c9a24e] transition-colors">
+              <button key={m.id} onClick={() => setSel(m.id)} className="noma-card !p-4 text-left hover:border-[#307139] transition-colors">
                 <div className="flex items-center justify-between">
-                  <div className="font-semibold text-[#1b2a4a]">{nombre(m.id)}</div>
+                  <div className="font-semibold text-[#1F4D27]">{nombre(m.id)}</div>
                   <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${jl.c}`}>{jl.l}</span>
                 </div>
                 <div className="text-xs text-gray-500 mb-3">{m.area || 'Sin área'}</div>
@@ -286,7 +286,7 @@ function Metric({ label, value, danger }: { label: string; value: string; danger
   return (
     <div className="bg-gray-50 rounded-xl p-3">
       <div className="text-[11px] text-gray-500">{label}</div>
-      <div className={`text-xl font-semibold ${danger ? 'text-red-600' : 'text-[#1b2a4a]'}`}>{value}</div>
+      <div className={`text-xl font-semibold ${danger ? 'text-red-600' : 'text-[#1F4D27]'}`}>{value}</div>
     </div>
   )
 }
@@ -334,22 +334,22 @@ function CrearOperarioModal({ onClose, onCreated }: { onClose: () => void; onCre
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl max-w-md w-full max-h-[88vh] overflow-auto" onClick={e => e.stopPropagation()}>
         <div className="p-5 border-b flex items-center justify-between">
-          <h2 className="font-bold text-[#1b2a4a]">{creado ? '✅ Operario creado' : 'Crear operario'}</h2>
+          <h2 className="font-bold text-[#1F4D27]">{creado ? '✅ Operario creado' : 'Crear operario'}</h2>
           <button onClick={onClose}><X className="w-5 h-5 text-gray-400" /></button>
         </div>
         {creado ? (
           <div className="p-5 space-y-4">
             <p className="text-sm text-gray-600">Entrégale estas credenciales a <b>{creado.nombre}</b>. Entra en <b>nommafood.cl/operario/login</b>.</p>
             <div className="bg-[#f6f3ec] border border-[#e7ddc4] rounded-xl p-4 text-sm space-y-2">
-              <div className="flex justify-between gap-3"><span className="text-gray-500">Correo</span><span className="font-semibold text-[#1b2a4a] break-all">{creado.email}</span></div>
-              <div className="flex justify-between gap-3"><span className="text-gray-500">Contraseña</span><span className="font-semibold text-[#1b2a4a]">{creado.password}</span></div>
+              <div className="flex justify-between gap-3"><span className="text-gray-500">Correo</span><span className="font-semibold text-[#1F4D27] break-all">{creado.email}</span></div>
+              <div className="flex justify-between gap-3"><span className="text-gray-500">Contraseña</span><span className="font-semibold text-[#1F4D27]">{creado.password}</span></div>
             </div>
             <button
               onClick={() => { navigator.clipboard?.writeText(`Portal Operario NOMMA\nEntra en: https://nommafood.cl/operario/login\nCorreo: ${creado.email}\nContraseña: ${creado.password}`); setCopiado(true); setTimeout(() => setCopiado(false), 2000) }}
               className="w-full flex items-center justify-center gap-2 border border-gray-200 rounded-xl py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50">
               {copiado ? <><Check size={15} className="text-green-600" /> Copiado</> : <><Copy size={15} /> Copiar credenciales</>}
             </button>
-            <button onClick={onCreated} className="w-full bg-[#c9a24e] text-[#1b2a4a] font-semibold rounded-xl py-2.5 text-sm hover:bg-[#b8923f]">Listo</button>
+            <button onClick={onCreated} className="w-full bg-[#307139] text-white font-semibold rounded-xl py-2.5 text-sm hover:bg-[#255A2D]">Listo</button>
           </div>
         ) : (
           <div className="p-5 space-y-3">
@@ -362,7 +362,7 @@ function CrearOperarioModal({ onClose, onCreated }: { onClose: () => void; onCre
             <Campo label="Correo (opcional)"><input className="noma-input" value={email} onChange={e => setEmail(e.target.value)} placeholder="Vacío = se genera automático" /></Campo>
             <Campo label="Contraseña (opcional)"><input className="noma-input" value={pass} onChange={e => setPass(e.target.value)} placeholder="Vacío = se genera una" /></Campo>
             {error && <div className="bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg px-3 py-2">{error}</div>}
-            <button onClick={crear} disabled={saving} className="w-full bg-[#c9a24e] text-[#1b2a4a] font-semibold rounded-xl py-2.5 text-sm hover:bg-[#b8923f] flex items-center justify-center gap-2 disabled:opacity-60">
+            <button onClick={crear} disabled={saving} className="w-full bg-[#307139] text-white font-semibold rounded-xl py-2.5 text-sm hover:bg-[#255A2D] flex items-center justify-center gap-2 disabled:opacity-60">
               {saving ? <Loader2 size={15} className="animate-spin" /> : <UserPlus size={15} />} Crear operario
             </button>
             <p className="text-[11px] text-gray-400 text-center">Entra en nommafood.cl/operario/login con estas credenciales.</p>
@@ -402,7 +402,7 @@ function EditarOperarioModal({ profileId, nombreActual, areaActual, turnoActual,
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl max-w-md w-full max-h-[88vh] overflow-auto" onClick={e => e.stopPropagation()}>
         <div className="p-5 border-b flex items-center justify-between">
-          <h2 className="font-bold text-[#1b2a4a]">Editar operario</h2>
+          <h2 className="font-bold text-[#1F4D27]">Editar operario</h2>
           <button onClick={onClose}><X className="w-5 h-5 text-gray-400" /></button>
         </div>
         <div className="p-5 space-y-3">
@@ -413,7 +413,7 @@ function EditarOperarioModal({ profileId, nombreActual, areaActual, turnoActual,
           </div>
           <label className="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" checked={activo} onChange={e => setActivo(e.target.checked)} /> Activo (puede iniciar sesión y recibir tareas)</label>
           {error && <div className="bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg px-3 py-2">{error}</div>}
-          <button onClick={guardar} disabled={saving} className="w-full bg-[#c9a24e] text-[#1b2a4a] font-semibold rounded-xl py-2.5 text-sm hover:bg-[#b8923f] flex items-center justify-center gap-2 disabled:opacity-60">
+          <button onClick={guardar} disabled={saving} className="w-full bg-[#307139] text-white font-semibold rounded-xl py-2.5 text-sm hover:bg-[#255A2D] flex items-center justify-center gap-2 disabled:opacity-60">
             {saving ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />} Guardar cambios
           </button>
           <p className="text-[11px] text-gray-400 text-center">El correo/contraseña no cambian aquí. Para restablecer la clave, usa el flujo de acceso.</p>
@@ -430,20 +430,20 @@ function CredencialesModal({ titulo, email, password, portalUrl, onClose }: { ti
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl max-w-md w-full" onClick={e => e.stopPropagation()}>
         <div className="p-5 border-b flex items-center justify-between">
-          <h2 className="font-bold text-[#1b2a4a]">🔑 {titulo}</h2>
+          <h2 className="font-bold text-[#1F4D27]">🔑 {titulo}</h2>
           <button onClick={onClose}><X className="w-5 h-5 text-gray-400" /></button>
         </div>
         <div className="p-5 space-y-4">
           <p className="text-sm text-gray-600">Entrégale estas credenciales al trabajador. Entra en <b>{portalUrl}</b>.</p>
           <div className="bg-[#f6f3ec] border border-[#e7ddc4] rounded-xl p-4 text-sm space-y-2">
-            <div className="flex justify-between gap-3"><span className="text-gray-500">Correo</span><span className="font-semibold text-[#1b2a4a] break-all">{email}</span></div>
-            <div className="flex justify-between gap-3"><span className="text-gray-500">Contraseña</span><span className="font-semibold text-[#1b2a4a]">{password}</span></div>
+            <div className="flex justify-between gap-3"><span className="text-gray-500">Correo</span><span className="font-semibold text-[#1F4D27] break-all">{email}</span></div>
+            <div className="flex justify-between gap-3"><span className="text-gray-500">Contraseña</span><span className="font-semibold text-[#1F4D27]">{password}</span></div>
           </div>
           <button onClick={() => { navigator.clipboard?.writeText(`Entra en: https://${portalUrl}\nCorreo: ${email}\nContraseña: ${password}`); setCopiado(true); setTimeout(() => setCopiado(false), 2000) }}
             className="w-full flex items-center justify-center gap-2 border border-gray-200 rounded-xl py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50">
             {copiado ? <><Check size={15} className="text-green-600" /> Copiado</> : <><Copy size={15} /> Copiar credenciales</>}
           </button>
-          <button onClick={onClose} className="w-full bg-[#c9a24e] text-[#1b2a4a] font-semibold rounded-xl py-2.5 text-sm hover:bg-[#b8923f]">Listo</button>
+          <button onClick={onClose} className="w-full bg-[#307139] text-white font-semibold rounded-xl py-2.5 text-sm hover:bg-[#255A2D]">Listo</button>
         </div>
       </div>
     </div>
@@ -520,7 +520,7 @@ function AsignarTareaModal({ operarioId, nombre, area, onClose, onDone }: { oper
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl max-w-md w-full max-h-[88vh] overflow-auto" onClick={e => e.stopPropagation()}>
         <div className="p-5 border-b flex items-center justify-between">
-          <div><h2 className="font-bold text-[#1b2a4a]">Asignar tarea</h2><p className="text-xs text-gray-400">para {nombre}</p></div>
+          <div><h2 className="font-bold text-[#1F4D27]">Asignar tarea</h2><p className="text-xs text-gray-400">para {nombre}</p></div>
           <button onClick={onClose}><X className="w-5 h-5 text-gray-400" /></button>
         </div>
         <div className="p-5 space-y-3">
@@ -559,7 +559,7 @@ function AsignarTareaModal({ operarioId, nombre, area, onClose, onDone }: { oper
           <Campo label="Fecha"><input className="noma-input" type="date" value={fecha} onChange={e => setFecha(e.target.value)} /></Campo>
           <Campo label="Instrucciones (opcional)"><textarea className="noma-input" rows={2} value={instr} onChange={e => setInstr(e.target.value)} placeholder="Seguir la receta paso a paso…" /></Campo>
           {error && <div className="bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg px-3 py-2">{error}</div>}
-          <button onClick={asignar} disabled={saving} className="w-full bg-[#c9a24e] text-[#1b2a4a] font-semibold rounded-xl py-2.5 text-sm hover:bg-[#b8923f] flex items-center justify-center gap-2 disabled:opacity-60">
+          <button onClick={asignar} disabled={saving} className="w-full bg-[#307139] text-white font-semibold rounded-xl py-2.5 text-sm hover:bg-[#255A2D] flex items-center justify-center gap-2 disabled:opacity-60">
             {saving ? <Loader2 size={15} className="animate-spin" /> : <CheckSquare size={15} />} Asignar tarea
           </button>
           <p className="text-[11px] text-gray-400 text-center">La tarea aparece en el portal del operario en la fecha elegida.</p>

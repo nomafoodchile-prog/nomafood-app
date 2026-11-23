@@ -22,7 +22,7 @@ type Data = {
 const BADGE: Record<string, { t: string; c: string }> = {
   pendiente_pago: { t: 'Pend. pago', c: 'bg-orange-100 text-orange-700' },
   pagado: { t: 'Pagado', c: 'bg-green-100 text-green-700' },
-  en_preparacion: { t: 'En preparación', c: 'bg-[#f5f0e8] text-[#c9a24e]' },
+  en_preparacion: { t: 'En preparación', c: 'bg-[#F8EDD9] text-[#307139]' },
   listo_para_despacho: { t: 'Listo', c: 'bg-blue-50 text-blue-700' },
   asignado: { t: 'En despacho', c: 'bg-blue-50 text-blue-700' },
   entregado: { t: 'Entregado', c: 'bg-green-100 text-green-700' },
@@ -56,26 +56,26 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-[#1b2a4a]">Dashboard Central</h1>
+      <h1 className="text-2xl font-bold text-[#1F4D27]">Dashboard Central</h1>
 
       {/* Saludo */}
       <div className="bg-white rounded-2xl shadow-card p-5 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-[#c9a24e]/12 flex items-center justify-center">
-            {now.getHours() < 20 ? <Sun size={22} className="text-[#c9a24e]" /> : <Moon size={22} className="text-[#c9a24e]" />}
+          <div className="w-11 h-11 rounded-xl bg-[#307139]/12 flex items-center justify-center">
+            {now.getHours() < 20 ? <Sun size={22} className="text-[#307139]" /> : <Moon size={22} className="text-[#307139]" />}
           </div>
           <div>
-            <p className="text-lg font-bold text-[#1b2a4a]">{saludo}</p>
+            <p className="text-lg font-bold text-[#1F4D27]">{saludo}</p>
             <p className="text-sm text-gray-500">Resumen general de Noma Food</p>
           </div>
         </div>
-        <span className="flex items-center gap-2 text-sm font-medium text-[#1b2a4a] bg-[#f5f0e8] rounded-full px-4 py-2 capitalize">
-          <Calendar size={15} className="text-[#c9a24e]" /> {fecha}
+        <span className="flex items-center gap-2 text-sm font-medium text-[#1F4D27] bg-[#F8EDD9] rounded-full px-4 py-2 capitalize">
+          <Calendar size={15} className="text-[#307139]" /> {fecha}
         </span>
       </div>
 
       {cargando ? (
-        <div className="min-h-[40vh] flex items-center justify-center"><Loader2 className="w-6 h-6 text-[#1b2a4a] animate-spin" /></div>
+        <div className="min-h-[40vh] flex items-center justify-center"><Loader2 className="w-6 h-6 text-[#1F4D27] animate-spin" /></div>
       ) : !data ? (
         <div className="bg-white rounded-2xl shadow-card p-8 text-center text-gray-400 text-sm">No se pudieron cargar los datos. Recarga la página.</div>
       ) : (
@@ -101,11 +101,11 @@ export default function DashboardPage() {
                   const e = badge(o.estado)
                   return (
                     <div key={`${o.tipo}-${o.id}`} className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-lg bg-[#f5f0e8] flex items-center justify-center flex-shrink-0" title={o.tipo === 'may' ? 'Mayorista' : 'Minorista'}>
-                        {o.tipo === 'may' ? <Store size={15} className="text-[#c9a24e]" /> : <ShoppingBag size={15} className="text-[#c9a24e]" />}
+                      <div className="w-9 h-9 rounded-lg bg-[#F8EDD9] flex items-center justify-center flex-shrink-0" title={o.tipo === 'may' ? 'Mayorista' : 'Minorista'}>
+                        {o.tipo === 'may' ? <Store size={15} className="text-[#307139]" /> : <ShoppingBag size={15} className="text-[#307139]" />}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-[#1b2a4a] truncate">{o.cliente}</p>
+                        <p className="text-sm font-medium text-[#1F4D27] truncate">{o.cliente}</p>
                         <p className="text-xs text-gray-400">{o.numero} · {fechaCorta(o.fecha)} · {currency(o.total)}</p>
                       </div>
                       <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${e.c}`}>{e.t}</span>
@@ -123,7 +123,7 @@ export default function DashboardPage() {
                 {[
                   { l: 'Ingresos', v: data.kpis.ventasMes, c: 'text-green-600' },
                   { l: 'Egresos', v: data.kpis.ventasMes - data.kpis.saldoMes, c: 'text-red-600' },
-                  { l: 'Saldo', v: data.kpis.saldoMes, c: data.kpis.saldoMes >= 0 ? 'text-[#1b2a4a]' : 'text-red-600' },
+                  { l: 'Saldo', v: data.kpis.saldoMes, c: data.kpis.saldoMes >= 0 ? 'text-[#1F4D27]' : 'text-red-600' },
                 ].map(x => (
                   <div key={x.l} className="rounded-xl bg-gray-50 px-3 py-3 text-center">
                     <div className={`font-bold text-sm ${x.c}`}>{currency(x.v)}</div>
@@ -141,7 +141,7 @@ export default function DashboardPage() {
                   { l: 'Proyección', href: '/finanzas/proyeccion' },
                   { l: 'Compras', href: '/compras/recepcion' },
                 ].map(a => (
-                  <Link key={a.href} href={a.href} className="rounded-xl border border-gray-100 hover:border-[#c9a24e] px-3 py-4 text-center text-sm font-medium text-[#1b2a4a] transition-colors">{a.l}</Link>
+                  <Link key={a.href} href={a.href} className="rounded-xl border border-gray-100 hover:border-[#307139] px-3 py-4 text-center text-sm font-medium text-[#1F4D27] transition-colors">{a.l}</Link>
                 ))}
               </div>
             </Panel>

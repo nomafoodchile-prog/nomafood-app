@@ -115,9 +115,9 @@ export default function CobranzaPage() {
 
       {/* KPI cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="noma-card border-l-4 border-[#c9a24e]">
+        <div className="noma-card border-l-4 border-[#307139]">
           <div className="flex items-center gap-2 mb-2">
-            <CreditCard size={16} className="text-[#c9a24e]" />
+            <CreditCard size={16} className="text-[#307139]" />
             <span className="text-xs text-gray-500">Total por cobrar</span>
           </div>
           <p className="text-xl font-bold text-[#1a1a1a]">{currency(porCobrar)}</p>
@@ -155,7 +155,7 @@ export default function CobranzaPage() {
                 key={e}
                 onClick={() => setFiltroEstado(e)}
                 className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${
-                  filtroEstado === e ? 'bg-[#c9a24e] text-[#1b2a4a]' : 'text-gray-500 hover:text-gray-700'
+                  filtroEstado === e ? 'bg-[#307139] text-white' : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
                 {e}

@@ -165,7 +165,7 @@ export default function RouteDetail({ routeId, onClose, onDeleted, onChanged }: 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-stretch sm:items-center justify-center sm:p-4" onClick={onClose}>
       <div className="bg-[#f5efe6] w-full sm:max-w-5xl sm:rounded-2xl max-h-full sm:max-h-[92vh] overflow-auto" onClick={e => e.stopPropagation()}>
-        <div className="sticky top-0 bg-[#16233f] text-white px-5 py-3.5 flex items-center justify-between z-10">
+        <div className="sticky top-0 bg-[#1F4D27] text-white px-5 py-3.5 flex items-center justify-between z-10">
           <div>
             <h2 className="font-bold text-lg flex items-center gap-2"><Truck className="w-5 h-5" /> {ruta?.codigo || 'Ruta'}</h2>
             <p className="text-xs text-white/70">Quita clientes, cambia la hora o el chofer, y guarda.</p>
@@ -188,7 +188,7 @@ export default function RouteDetail({ routeId, onClose, onDeleted, onChanged }: 
               ].map(m => (
                 <div key={m.k} className="bg-white border rounded-xl px-3.5 py-2 min-w-[86px]">
                   <div className="text-[10px] uppercase tracking-wide text-gray-400 font-bold">{m.k}</div>
-                  <div className="text-lg font-bold text-[#16233f] capitalize">{m.v}</div>
+                  <div className="text-lg font-bold text-[#1F4D27] capitalize">{m.v}</div>
                 </div>
               ))}
             </div>
@@ -196,10 +196,10 @@ export default function RouteDetail({ routeId, onClose, onDeleted, onChanged }: 
             {/* Controles de edición */}
             <div className="bg-white border rounded-xl p-3 mb-3 flex flex-wrap gap-3 items-end">
               <label className="flex flex-col gap-1 text-[11px] font-bold uppercase text-gray-400">Hora de salida
-                <input type="time" value={hora} onChange={e => setHora(e.target.value)} className="border rounded-lg px-2 py-1.5 text-sm font-normal text-[#16233f]" />
+                <input type="time" value={hora} onChange={e => setHora(e.target.value)} className="border rounded-lg px-2 py-1.5 text-sm font-normal text-[#1F4D27]" />
               </label>
               <label className="flex flex-col gap-1 text-[11px] font-bold uppercase text-gray-400 flex-1 min-w-[160px]">Chofer
-                <select value={choferSel} onChange={e => setChoferSel(e.target.value)} className="border rounded-lg px-2 py-1.5 text-sm font-normal text-[#16233f]">
+                <select value={choferSel} onChange={e => setChoferSel(e.target.value)} className="border rounded-lg px-2 py-1.5 text-sm font-normal text-[#1F4D27]">
                   <option value="">— Sin asignar —</option>
                   {choferes.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
                 </select>
@@ -208,13 +208,13 @@ export default function RouteDetail({ routeId, onClose, onDeleted, onChanged }: 
             </div>
 
             <button onClick={abrirPickerMay}
-              className="w-full mb-3 flex items-center justify-center gap-1.5 border-2 border-dashed border-[#c9a24e]/60 text-[#8a6d22] rounded-xl py-2 text-sm font-semibold hover:bg-[#c9a24e]/10">
+              className="w-full mb-3 flex items-center justify-center gap-1.5 border-2 border-dashed border-[#307139]/60 text-[#255A2D] rounded-xl py-2 text-sm font-semibold hover:bg-[#307139]/10">
               <Plus className="w-4 h-4" /> Agregar pedidos mayoristas{addMay.size > 0 ? ` (${addMay.size} por agregar — guarda para aplicar)` : ''}
             </button>
 
             <div className="grid md:grid-cols-2 gap-4">
               <div className="bg-white border rounded-xl p-4">
-                <h3 className="font-semibold text-[#16233f] mb-1 text-sm flex items-center gap-1.5"><MapPin className="w-4 h-4 text-[#c9a24e]" /> Salida: {ruta.origen_nombre || 'Centro de despacho'}</h3>
+                <h3 className="font-semibold text-[#1F4D27] mb-1 text-sm flex items-center gap-1.5"><MapPin className="w-4 h-4 text-[#307139]" /> Salida: {ruta.origen_nombre || 'Centro de despacho'}</h3>
                 <p className="text-[11px] text-gray-400 mb-3">Orden de entrega optimizado · toca ✕ para sacar un cliente de hoy</p>
                 <div className="space-y-2">
                   {ruta.stops.map(s => {
@@ -224,14 +224,14 @@ export default function RouteDetail({ routeId, onClose, onDeleted, onChanged }: 
                     return (
                       <div key={s.id}>
                         <div className={`flex gap-2.5 items-center p-2.5 border rounded-xl ${quitado ? 'bg-red-50 opacity-60' : sinUbicar ? 'bg-amber-50 border-amber-200' : 'bg-gray-50'}`}>
-                          <div className={`w-7 h-7 rounded-full text-white font-bold grid place-items-center text-sm flex-none ${quitado ? 'bg-gray-300' : 'bg-[#16233f]'}`}>{s.orden}</div>
+                          <div className={`w-7 h-7 rounded-full text-white font-bold grid place-items-center text-sm flex-none ${quitado ? 'bg-gray-300' : 'bg-[#1F4D27]'}`}>{s.orden}</div>
                           <div className="flex-1 min-w-0">
-                            <div className={`font-semibold text-sm text-[#16233f] truncate flex items-center gap-1 ${quitado ? 'line-through' : ''}`}><User className="w-3 h-3 text-gray-400" />{s.cliente_nombre || 'Cliente'}</div>
+                            <div className={`font-semibold text-sm text-[#1F4D27] truncate flex items-center gap-1 ${quitado ? 'line-through' : ''}`}><User className="w-3 h-3 text-gray-400" />{s.cliente_nombre || 'Cliente'}</div>
                             <div className="text-[11px] text-gray-400 truncate">{[s.direccion, s.comuna].filter(Boolean).join(', ') || 'Sin dirección'}</div>
                             {s.telefono && <div className="text-[11px] text-gray-400 flex items-center gap-1"><Phone className="w-3 h-3" />{s.telefono}</div>}
                           </div>
                           <div className="text-right flex-none">
-                            {sinUbicar ? <div className="text-[10px] text-amber-600 font-semibold">a ubicar</div> : <><div className="font-bold text-sm text-[#16233f] tabular-nums">{hhmm(s.eta)}</div><div className="text-[9px] uppercase text-gray-400">est.</div></>}
+                            {sinUbicar ? <div className="text-[10px] text-amber-600 font-semibold">a ubicar</div> : <><div className="font-bold text-sm text-[#1F4D27] tabular-nums">{hhmm(s.eta)}</div><div className="text-[9px] uppercase text-gray-400">est.</div></>}
                             <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${ee.cls}`}>{ee.txt}</span>
                           </div>
                           <button onClick={() => toggleQuitar(s)} title={quitado ? 'Volver a incluir' : 'Sacar de la ruta'} className="flex-none text-gray-300 hover:text-red-500">
@@ -244,7 +244,7 @@ export default function RouteDetail({ routeId, onClose, onDeleted, onChanged }: 
                               placeholder="Escribe la dirección (calle, número, comuna)"
                               className="flex-1 min-w-0 border rounded-lg px-2.5 py-1.5 text-sm" />
                             <button onClick={() => corregir(s)} disabled={fixing === pedidoId(s)}
-                              className="px-3 py-1.5 rounded-lg bg-[#16233f] text-white text-xs font-semibold flex items-center gap-1.5 disabled:opacity-60 whitespace-nowrap">
+                              className="px-3 py-1.5 rounded-lg bg-[#1F4D27] text-white text-xs font-semibold flex items-center gap-1.5 disabled:opacity-60 whitespace-nowrap">
                               {fixing === pedidoId(s) ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <MapPin className="w-3.5 h-3.5" />} Ubicar
                             </button>
                           </div>
@@ -257,8 +257,8 @@ export default function RouteDetail({ routeId, onClose, onDeleted, onChanged }: 
 
               <div className="bg-white border rounded-xl p-2 min-h-[340px] relative isolate z-0">
                 {driverPos && (
-                  <div className="absolute top-3 left-3 z-[5] bg-[#16233f] text-white text-[11px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-lg">
-                    <Radio className="w-3 h-3 text-[#c9a24e] animate-pulse" /> Chofer en vivo{driverPos.updated_at ? ` · ${hhmm(driverPos.updated_at)}` : ''}
+                  <div className="absolute top-3 left-3 z-[5] bg-[#1F4D27] text-white text-[11px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-lg">
+                    <Radio className="w-3 h-3 text-[#307139] animate-pulse" /> Chofer en vivo{driverPos.updated_at ? ` · ${hhmm(driverPos.updated_at)}` : ''}
                   </div>
                 )}
                 <PlannerMap origin={origin} stops={mapStops} driver={driverPos ? { lat: driverPos.lat, lng: driverPos.lng, nombre: ruta.chofer?.nombre || 'Chofer' } : null} />
@@ -273,7 +273,7 @@ export default function RouteDetail({ routeId, onClose, onDeleted, onChanged }: 
               <div className="flex gap-2 ml-auto">
                 <button onClick={onClose} className="px-4 py-2.5 rounded-xl border bg-white text-sm font-semibold text-gray-600">Cerrar</button>
                 <button onClick={guardar} disabled={saving || deleting || !hayCambios}
-                  className="px-5 py-2.5 rounded-xl bg-[#c9a24e] hover:bg-[#b8923f] text-[#16233f] text-sm font-bold flex items-center gap-2 disabled:opacity-50">
+                  className="px-5 py-2.5 rounded-xl bg-[#307139] hover:bg-[#255A2D] text-white text-sm font-bold flex items-center gap-2 disabled:opacity-50">
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Guardar cambios
                 </button>
               </div>
@@ -286,7 +286,7 @@ export default function RouteDetail({ routeId, onClose, onDeleted, onChanged }: 
         <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4" onClick={e => { e.stopPropagation(); setMayPicker(false) }}>
           <div className="bg-white rounded-2xl max-w-md w-full max-h-[82vh] flex flex-col" onClick={e => e.stopPropagation()}>
             <div className="p-4 border-b flex items-center justify-between">
-              <h3 className="font-bold text-[#16233f] flex items-center gap-2"><Building2 className="w-5 h-5" /> Agregar mayoristas</h3>
+              <h3 className="font-bold text-[#1F4D27] flex items-center gap-2"><Building2 className="w-5 h-5" /> Agregar mayoristas</h3>
               <button onClick={() => setMayPicker(false)}><X className="w-5 h-5 text-gray-400" /></button>
             </div>
             <div className="p-3 overflow-auto flex-1">
@@ -297,10 +297,10 @@ export default function RouteDetail({ routeId, onClose, onDeleted, onChanged }: 
                   {mayList.map(m => {
                     const on = addMay.has(m.id)
                     return (
-                      <label key={m.id} className={`flex items-center gap-2.5 p-2.5 border rounded-xl cursor-pointer ${on ? 'bg-amber-50 border-[#c9a24e]' : ''}`}>
-                        <input type="checkbox" checked={on} onChange={() => setAddMay(prev => { const n = new Set(prev); if (n.has(m.id)) n.delete(m.id); else n.add(m.id); return n })} className="w-4 h-4 accent-[#16233f] flex-none" />
+                      <label key={m.id} className={`flex items-center gap-2.5 p-2.5 border rounded-xl cursor-pointer ${on ? 'bg-amber-50 border-[#307139]' : ''}`}>
+                        <input type="checkbox" checked={on} onChange={() => setAddMay(prev => { const n = new Set(prev); if (n.has(m.id)) n.delete(m.id); else n.add(m.id); return n })} className="w-4 h-4 accent-[#1F4D27] flex-none" />
                         <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-sm text-[#16233f] truncate">{m.cliente}{m.numero ? ` · #${m.numero}` : ''}</div>
+                          <div className="font-semibold text-sm text-[#1F4D27] truncate">{m.cliente}{m.numero ? ` · #${m.numero}` : ''}</div>
                           <div className="text-[11px] text-gray-400 truncate">{m.direccion || 'Sin dirección — se necesita para ubicarlo'}</div>
                         </div>
                         {!m.direccion && <span className="text-[9px] text-red-500 flex-none">sin dirección</span>}
@@ -313,7 +313,7 @@ export default function RouteDetail({ routeId, onClose, onDeleted, onChanged }: 
               )}
             </div>
             <div className="p-4 border-t">
-              <button onClick={() => setMayPicker(false)} className="w-full py-2.5 rounded-xl bg-[#16233f] text-white text-sm font-bold">Listo{addMay.size > 0 ? ` (${addMay.size})` : ''} · luego Guardar cambios</button>
+              <button onClick={() => setMayPicker(false)} className="w-full py-2.5 rounded-xl bg-[#1F4D27] text-white text-sm font-bold">Listo{addMay.size > 0 ? ` (${addMay.size})` : ''} · luego Guardar cambios</button>
             </div>
           </div>
         </div>

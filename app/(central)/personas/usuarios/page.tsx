@@ -79,9 +79,9 @@ export default function UsuariosPage() {
       </div>
 
       {/* Info banner */}
-      <div className="flex items-start gap-3 bg-[#c9a24e]/10 border border-[#c9a24e]/30 rounded-xl px-4 py-3">
-        <Info size={16} className="text-[#c9a24e] mt-0.5 flex-shrink-0" />
-        <p className="text-sm text-[#8a6e2a]">
+      <div className="flex items-start gap-3 bg-[#307139]/10 border border-[#307139]/30 rounded-xl px-4 py-3">
+        <Info size={16} className="text-[#307139] mt-0.5 flex-shrink-0" />
+        <p className="text-sm text-[#255A2D]">
           Los usuarios se gestionan directamente en <strong>Supabase Authentication</strong>. Para agregar, desactivar o cambiar roles, accede al panel de Supabase con tu cuenta de administrador.
         </p>
       </div>
@@ -119,7 +119,7 @@ export default function UsuariosPage() {
                 <tr key={u.id} className={`hover:bg-gray-50/50 transition-colors ${!u.activo ? 'opacity-50' : ''}`}>
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-full bg-[#c9a24e]/20 flex items-center justify-center text-xs font-bold text-[#8a6e2a] flex-shrink-0">
+                      <div className="w-8 h-8 rounded-full bg-[#307139]/20 flex items-center justify-center text-xs font-bold text-[#255A2D] flex-shrink-0">
                         {u.nombre.split(' ').map(n => n[0]).join('').slice(0, 2)}
                       </div>
                       <span className="font-medium text-[#1a1a1a]">{u.nombre}</span>

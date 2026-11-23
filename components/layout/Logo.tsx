@@ -6,9 +6,9 @@ export function Logo({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
   }
   return (
     <div
-      className={`${sizes[size]} bg-[#c9a24e] rounded-lg flex items-center justify-center font-black text-[#1b2a4a] flex-shrink-0 select-none`}
+      className={`${sizes[size]} bg-[#F8EDD9] rounded-lg flex items-center justify-center font-black text-[#307139] flex-shrink-0 select-none`}
     >
-      NF
+      BF
     </div>
   )
 }

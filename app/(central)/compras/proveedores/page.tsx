@@ -115,20 +115,20 @@ export default function ProveedoresPage() {
     const estado = S(sel.estado) || 'activo'
     return (
       <div className="space-y-4">
-        <button onClick={() => { setSel(null); setTab('gen'); cargar() }} className="flex items-center gap-1 text-sm text-gray-500 hover:text-[#1b2a4a]"><ArrowLeft size={15} /> Volver a proveedores</button>
+        <button onClick={() => { setSel(null); setTab('gen'); cargar() }} className="flex items-center gap-1 text-sm text-gray-500 hover:text-[#1F4D27]"><ArrowLeft size={15} /> Volver a proveedores</button>
         {error && <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-sm text-red-700">{error}</div>}
 
         <div className="noma-card !p-0 overflow-hidden">
           <div className="flex items-center gap-3 p-4 border-b border-gray-100">
-            <div className="w-11 h-11 rounded-lg bg-[#f5efdf] flex items-center justify-center text-[#c9a24e] font-bold">{S(sel.nombre).slice(0, 2).toUpperCase()}</div>
+            <div className="w-11 h-11 rounded-lg bg-[#f5efdf] flex items-center justify-center text-[#307139] font-bold">{S(sel.nombre).slice(0, 2).toUpperCase()}</div>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap"><span className="font-bold text-[#1b2a4a]">{S(sel.nombre)}</span><span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${ESTADO_CLR[estado]}`}>{estado}</span><span className="text-[11px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">Confianza: {S(sel.nivel_confianza) || 'normal'}</span></div>
+              <div className="flex items-center gap-2 flex-wrap"><span className="font-bold text-[#1F4D27]">{S(sel.nombre)}</span><span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${ESTADO_CLR[estado]}`}>{estado}</span><span className="text-[11px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">Confianza: {S(sel.nivel_confianza) || 'normal'}</span></div>
               <div className="text-xs text-gray-500 mt-0.5">{S(sel.giro) || 'Sin giro'} · provee {misProd.length} productos</div>
             </div>
             <button onClick={guardarProv} disabled={saving} className="noma-btn-primary text-sm flex items-center gap-2">{saving ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />} Guardar</button>
           </div>
           <div className="flex gap-1 px-3 overflow-x-auto border-b border-gray-100">
-            {TABS.map(t => <button key={t.id} onClick={() => setTab(t.id)} className={`px-3 py-2.5 text-sm whitespace-nowrap border-b-2 ${tab === t.id ? 'border-[#c9a24e] text-[#1b2a4a] font-medium' : 'border-transparent text-gray-500'}`}>{t.label}</button>)}
+            {TABS.map(t => <button key={t.id} onClick={() => setTab(t.id)} className={`px-3 py-2.5 text-sm whitespace-nowrap border-b-2 ${tab === t.id ? 'border-[#307139] text-[#1F4D27] font-medium' : 'border-transparent text-gray-500'}`}>{t.label}</button>)}
           </div>
 
           <div className="p-4">
@@ -211,7 +211,7 @@ export default function ProveedoresPage() {
                     </div>
                   </div>
                 ) : (
-                  <button onClick={() => setVinc({})} className="flex items-center gap-1 text-sm text-[#c9a24e] font-medium"><Plus size={15} /> Vincular producto del Maestro</button>
+                  <button onClick={() => setVinc({})} className="flex items-center gap-1 text-sm text-[#307139] font-medium"><Plus size={15} /> Vincular producto del Maestro</button>
                 )}
                 <p className="text-xs text-gray-400">Bidireccional: también aparece desde la ficha del producto. La equivalencia evita errores caja↔unidad.</p>
               </div>
@@ -246,7 +246,7 @@ export default function ProveedoresPage() {
                       const nombres = its.map(i => S((i.producto as Row)?.nombre)).filter(Boolean).slice(0, 3).join(', ')
                       return (
                         <tr key={S(r.id)}>
-                          <td className="py-2 px-3 font-mono font-medium text-[#1b2a4a]">{S(r.numero)}</td>
+                          <td className="py-2 px-3 font-mono font-medium text-[#1F4D27]">{S(r.numero)}</td>
                           <td className="py-2 px-3 text-gray-500">{new Date(S(r.created_at)).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: '2-digit' })}</td>
                           <td className="py-2 px-3 text-gray-600">{nombres || `${its.length} ítem(s)`}</td>
                           <td className="py-2 px-3 text-right">{montoDe(r.id) > 0 ? clp(montoDe(r.id)) : '—'}</td>
@@ -268,7 +268,7 @@ export default function ProveedoresPage() {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div><h1 className="text-2xl font-bold text-[#1a1a1a]">Proveedores</h1><p className="text-sm text-gray-500 mt-0.5">{provs.length} proveedores</p></div>
         <div className="flex gap-2">
-          <button onClick={() => { setLoading(true); cargar() }} className="flex items-center gap-2 text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-2 hover:border-[#c9a24e]"><RefreshCw size={15} /> Actualizar</button>
+          <button onClick={() => { setLoading(true); cargar() }} className="flex items-center gap-2 text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-2 hover:border-[#307139]"><RefreshCw size={15} /> Actualizar</button>
           <button onClick={() => setNuevo({})} className="noma-btn-primary flex items-center gap-2 text-sm"><Plus size={16} /> Nuevo proveedor</button>
         </div>
       </div>
@@ -290,7 +290,7 @@ export default function ProveedoresPage() {
           <th className="text-left py-3 px-4 text-xs font-semibold text-gray-400 uppercase">Proveedor</th><th className="text-left py-3 px-4 text-xs font-semibold text-gray-400 uppercase hidden md:table-cell">Contacto</th><th className="text-left py-3 px-4 text-xs font-semibold text-gray-400 uppercase hidden lg:table-cell">Confianza</th><th className="text-right py-3 px-4 text-xs font-semibold text-gray-400 uppercase">Productos</th><th className="text-center py-3 px-4 text-xs font-semibold text-gray-400 uppercase">Estado</th>
         </tr></thead>
         <tbody className="divide-y divide-gray-50">
-          {loading ? <tr><td colSpan={5} className="py-12 text-center"><Loader2 className="w-5 h-5 text-[#1b2a4a] animate-spin mx-auto" /></td></tr>
+          {loading ? <tr><td colSpan={5} className="py-12 text-center"><Loader2 className="w-5 h-5 text-[#1F4D27] animate-spin mx-auto" /></td></tr>
           : filtrados.length === 0 ? <tr><td colSpan={5} className="py-12 text-center text-gray-400 text-sm">Sin proveedores. Crea el primero.</td></tr>
           : filtrados.map(p => { const est = S(p.estado) || 'activo'; return (
             <tr key={S(p.id)} onClick={() => { setSel(p); setTab('gen') }} className="hover:bg-gray-50 cursor-pointer">

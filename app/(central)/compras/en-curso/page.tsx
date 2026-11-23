@@ -41,13 +41,13 @@ export default function ComprasEnCurso() {
     if (data?.signedUrl) window.open(data.signedUrl, '_blank')
   }
 
-  if (loading) return <div className="min-h-[60vh] flex items-center justify-center"><Loader2 className="w-6 h-6 text-[#1b2a4a] animate-spin" /></div>
+  if (loading) return <div className="min-h-[60vh] flex items-center justify-center"><Loader2 className="w-6 h-6 text-[#1F4D27] animate-spin" /></div>
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[#1b2a4a] flex items-center gap-2"><ShoppingCart className="w-6 h-6 text-[#c9a24e]" /> Compras en curso</h1>
+          <h1 className="text-2xl font-bold text-[#1F4D27] flex items-center gap-2"><ShoppingCart className="w-6 h-6 text-[#307139]" /> Compras en curso</h1>
           <p className="text-sm text-gray-500 mt-0.5">Lo que cada chofer va comprando, en tiempo real.</p>
         </div>
         <span className="flex items-center gap-1.5 text-xs font-semibold text-green-700 bg-green-50 px-3 py-1.5 rounded-full">
@@ -67,7 +67,7 @@ export default function ComprasEnCurso() {
               <div key={c.id} className="bg-white rounded-2xl shadow-card p-5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-bold text-[#1b2a4a]">{c.proveedor || 'Compra'}</p>
+                    <p className="font-bold text-[#1F4D27]">{c.proveedor || 'Compra'}</p>
                     <p className="text-xs text-gray-400 flex items-center gap-1"><User size={12} />{c.driver?.nombre || '—'} · {c.numero}</p>
                   </div>
                   <span className={EST[c.estado] || 'noma-badge-gray'}>{EST_L[c.estado] || c.estado}</span>
@@ -81,7 +81,7 @@ export default function ComprasEnCurso() {
                         : <Circle size={15} className="text-gray-300 flex-shrink-0" />}
                       <span className={`flex-1 min-w-0 truncate ${it.comprado ? 'text-gray-500' : 'text-gray-800'}`}>{it.producto}{it.cantidad ? ` · ${it.cantidad} ${it.unidad || ''}` : ''}</span>
                       {it.foto_url && (
-                        <button onClick={() => verFoto(it.foto_url!)} className="text-[#1b2a4a] hover:text-[#c9a24e] flex-shrink-0" title="Ver foto"><ImageIcon size={15} /></button>
+                        <button onClick={() => verFoto(it.foto_url!)} className="text-[#1F4D27] hover:text-[#307139] flex-shrink-0" title="Ver foto"><ImageIcon size={15} /></button>
                       )}
                       <span className="text-gray-700 font-medium w-16 text-right flex-shrink-0">{it.precio_unitario != null ? clp(it.precio_unitario) : '—'}</span>
                     </div>
@@ -90,7 +90,7 @@ export default function ComprasEnCurso() {
 
                 <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-100 text-sm">
                   <span className="text-gray-400">{comprados}/{c.items?.length || 0} comprados</span>
-                  <span className={`font-bold ${sobreTope ? 'text-red-600' : 'text-[#1b2a4a]'}`}>
+                  <span className={`font-bold ${sobreTope ? 'text-red-600' : 'text-[#1F4D27]'}`}>
                     {clp(total)}{c.monto_autorizado != null && <span className="text-xs font-normal text-gray-400"> / {clp(c.monto_autorizado)}</span>}
                   </span>
                 </div>

@@ -80,7 +80,7 @@ export default function PickersPage() {
     setLoading(true); cargar()
   }
 
-  if (loading) return <div className="py-20 flex justify-center"><Loader2 className="w-6 h-6 text-[#1b2a4a] animate-spin" /></div>
+  if (loading) return <div className="py-20 flex justify-center"><Loader2 className="w-6 h-6 text-[#1F4D27] animate-spin" /></div>
 
   return (
     <div className="space-y-5">
@@ -90,8 +90,8 @@ export default function PickersPage() {
           <p className="text-sm text-gray-500">{ops.length} picker{ops.length === 1 ? '' : 's'} · en tiempo real</p>
         </div>
         <div className="flex gap-2">
-          <button onClick={() => { setLoading(true); cargar() }} className="flex items-center gap-2 text-sm font-semibold text-[#1b2a4a] border border-gray-200 rounded-lg px-3 py-2 hover:bg-gray-50"><RefreshCw size={15} /> Actualizar</button>
-          <button onClick={() => setCrearOpen(true)} className="flex items-center gap-2 text-sm font-semibold bg-[#c9a24e] text-[#1b2a4a] rounded-lg px-4 py-2 hover:bg-[#b8923f]"><UserPlus size={15} /> Crear picker</button>
+          <button onClick={() => { setLoading(true); cargar() }} className="flex items-center gap-2 text-sm font-semibold text-[#1F4D27] border border-gray-200 rounded-lg px-3 py-2 hover:bg-gray-50"><RefreshCw size={15} /> Actualizar</button>
+          <button onClick={() => setCrearOpen(true)} className="flex items-center gap-2 text-sm font-semibold bg-[#307139] text-white rounded-lg px-4 py-2 hover:bg-[#255A2D]"><UserPlus size={15} /> Crear picker</button>
         </div>
       </div>
 
@@ -99,7 +99,7 @@ export default function PickersPage() {
         <div className="noma-card text-center text-gray-400 py-10">
           <PackageCheck className="w-8 h-8 mx-auto text-gray-300 mb-2" />
           <p className="text-sm mb-3">Aún no hay pickers registrados.</p>
-          <button onClick={() => setCrearOpen(true)} className="inline-flex items-center gap-2 text-sm font-semibold bg-[#c9a24e] text-[#1b2a4a] rounded-lg px-4 py-2 hover:bg-[#b8923f]"><UserPlus size={15} /> Crear el primero</button>
+          <button onClick={() => setCrearOpen(true)} className="inline-flex items-center gap-2 text-sm font-semibold bg-[#307139] text-white rounded-lg px-4 py-2 hover:bg-[#255A2D]"><UserPlus size={15} /> Crear el primero</button>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -110,7 +110,7 @@ export default function PickersPage() {
               <div key={S(o.profile_id)} className="noma-card !p-4">
                 <div className="flex items-start justify-between">
                   <div className="min-w-0">
-                    <div className="font-semibold text-[#1b2a4a] truncate">{nombreDe(o.profile_id)}</div>
+                    <div className="font-semibold text-[#1F4D27] truncate">{nombreDe(o.profile_id)}</div>
                     <div className="text-xs text-gray-500 truncate">{S(prof(o.profile_id)?.email)}</div>
                   </div>
                   <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${activo ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>{activo ? 'Activo' : 'Inactivo'}</span>
@@ -121,7 +121,7 @@ export default function PickersPage() {
                   <Mini label="Armados" value={st.armados} tone="pos" />
                 </div>
                 <div className="flex items-center gap-2 mt-3">
-                  <button onClick={() => setEditing(o)} className="flex items-center gap-1.5 text-xs font-semibold text-[#1b2a4a] border border-gray-200 rounded-lg px-2.5 py-1.5 hover:bg-gray-50"><Pencil size={13} /> Editar</button>
+                  <button onClick={() => setEditing(o)} className="flex items-center gap-1.5 text-xs font-semibold text-[#1F4D27] border border-gray-200 rounded-lg px-2.5 py-1.5 hover:bg-gray-50"><Pencil size={13} /> Editar</button>
                   <button onClick={() => eliminar(o)} disabled={borrando} className="flex items-center gap-1.5 text-xs font-semibold text-[#E24B4A] border border-red-200 rounded-lg px-2.5 py-1.5 hover:bg-red-50 disabled:opacity-50"><Trash2 size={13} /> Eliminar</button>
                 </div>
               </div>
@@ -131,7 +131,7 @@ export default function PickersPage() {
       )}
 
       <div>
-        <h2 className="text-sm font-semibold text-[#1b2a4a] mb-2 flex items-center gap-2"><ClipboardList size={16} /> Pedidos por asignar ({sinAsignar.length})</h2>
+        <h2 className="text-sm font-semibold text-[#1F4D27] mb-2 flex items-center gap-2"><ClipboardList size={16} /> Pedidos por asignar ({sinAsignar.length})</h2>
         {sinAsignar.length === 0 ? <p className="text-sm text-gray-400">No hay pedidos pendientes de asignar.</p> : (
           <div className="space-y-2">
             {sinAsignar.map(p => (
@@ -160,7 +160,7 @@ export default function PickersPage() {
 }
 
 function Mini({ label, value, tone }: { label: string; value: number; tone?: 'pos' | 'mid' }) {
-  const c = tone === 'pos' ? 'text-[#639922]' : tone === 'mid' ? 'text-[#EF9F27]' : 'text-[#1b2a4a]'
+  const c = tone === 'pos' ? 'text-[#639922]' : tone === 'mid' ? 'text-[#EF9F27]' : 'text-[#1F4D27]'
   return <div className="bg-gray-50 rounded-lg py-1.5"><div className={`text-lg font-bold ${c}`}>{value}</div><div className="text-[10px] text-gray-500">{label}</div></div>
 }
 
@@ -192,21 +192,21 @@ function CrearPickerModal({ onClose, onCreated }: { onClose: () => void; onCreat
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl max-w-md w-full max-h-[88vh] overflow-auto" onClick={e => e.stopPropagation()}>
         <div className="p-5 border-b flex items-center justify-between">
-          <h2 className="font-bold text-[#1b2a4a]">{creado ? '✅ Picker creado' : 'Crear picker'}</h2>
+          <h2 className="font-bold text-[#1F4D27]">{creado ? '✅ Picker creado' : 'Crear picker'}</h2>
           <button onClick={onClose}><X className="w-5 h-5 text-gray-400" /></button>
         </div>
         {creado ? (
           <div className="p-5 space-y-4">
             <p className="text-sm text-gray-600">Entrégale estas credenciales a <b>{creado.nombre}</b>. Entra en <b>nommafood.cl/picker/login</b>.</p>
             <div className="bg-[#f6f3ec] border border-[#e7ddc4] rounded-xl p-4 text-sm space-y-2">
-              <div className="flex justify-between gap-3"><span className="text-gray-500">Correo</span><span className="font-semibold text-[#1b2a4a] break-all">{creado.email}</span></div>
-              <div className="flex justify-between gap-3"><span className="text-gray-500">Contraseña</span><span className="font-semibold text-[#1b2a4a]">{creado.password}</span></div>
+              <div className="flex justify-between gap-3"><span className="text-gray-500">Correo</span><span className="font-semibold text-[#1F4D27] break-all">{creado.email}</span></div>
+              <div className="flex justify-between gap-3"><span className="text-gray-500">Contraseña</span><span className="font-semibold text-[#1F4D27]">{creado.password}</span></div>
             </div>
             <button onClick={() => { navigator.clipboard?.writeText(`Portal Picker NOMMA\nEntra en: https://nommafood.cl/picker/login\nCorreo: ${creado.email}\nContraseña: ${creado.password}`); setCopiado(true); setTimeout(() => setCopiado(false), 2000) }}
               className="w-full flex items-center justify-center gap-2 border border-gray-200 rounded-xl py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50">
               {copiado ? <><Check size={15} className="text-green-600" /> Copiado</> : <><Copy size={15} /> Copiar credenciales</>}
             </button>
-            <button onClick={onCreated} className="w-full bg-[#c9a24e] text-[#1b2a4a] font-semibold rounded-xl py-2.5 text-sm hover:bg-[#b8923f]">Listo</button>
+            <button onClick={onCreated} className="w-full bg-[#307139] text-white font-semibold rounded-xl py-2.5 text-sm hover:bg-[#255A2D]">Listo</button>
           </div>
         ) : (
           <div className="p-5 space-y-3">
@@ -214,7 +214,7 @@ function CrearPickerModal({ onClose, onCreated }: { onClose: () => void; onCreat
             <Campo label="Correo (opcional)"><input className="noma-input" value={email} onChange={e => setEmail(e.target.value)} placeholder="Vacío = se genera automático" /></Campo>
             <Campo label="Contraseña (opcional)"><input className="noma-input" value={pass} onChange={e => setPass(e.target.value)} placeholder="Vacío = se genera una" /></Campo>
             {error && <div className="bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg px-3 py-2">{error}</div>}
-            <button onClick={crear} disabled={saving} className="w-full bg-[#c9a24e] text-[#1b2a4a] font-semibold rounded-xl py-2.5 text-sm hover:bg-[#b8923f] flex items-center justify-center gap-2 disabled:opacity-60">
+            <button onClick={crear} disabled={saving} className="w-full bg-[#307139] text-white font-semibold rounded-xl py-2.5 text-sm hover:bg-[#255A2D] flex items-center justify-center gap-2 disabled:opacity-60">
               {saving ? <Loader2 size={15} className="animate-spin" /> : <UserPlus size={15} />} Crear picker
             </button>
           </div>
@@ -244,14 +244,14 @@ function EditarPickerModal({ profileId, nombreActual, activoActual, onClose, onD
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl max-w-md w-full" onClick={e => e.stopPropagation()}>
         <div className="p-5 border-b flex items-center justify-between">
-          <h2 className="font-bold text-[#1b2a4a]">Editar picker</h2>
+          <h2 className="font-bold text-[#1F4D27]">Editar picker</h2>
           <button onClick={onClose}><X className="w-5 h-5 text-gray-400" /></button>
         </div>
         <div className="p-5 space-y-3">
           <Campo label="Nombre completo"><input className="noma-input" value={nombre} onChange={e => setNombre(e.target.value)} /></Campo>
           <label className="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" checked={activo} onChange={e => setActivo(e.target.checked)} /> Activo (puede iniciar sesión y armar pedidos)</label>
           {error && <div className="bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg px-3 py-2">{error}</div>}
-          <button onClick={guardar} disabled={saving} className="w-full bg-[#c9a24e] text-[#1b2a4a] font-semibold rounded-xl py-2.5 text-sm hover:bg-[#b8923f] flex items-center justify-center gap-2 disabled:opacity-60">
+          <button onClick={guardar} disabled={saving} className="w-full bg-[#307139] text-white font-semibold rounded-xl py-2.5 text-sm hover:bg-[#255A2D] flex items-center justify-center gap-2 disabled:opacity-60">
             {saving ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />} Guardar cambios
           </button>
         </div>

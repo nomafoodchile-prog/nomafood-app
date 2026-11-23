@@ -148,11 +148,11 @@ export default function CartolasPage() {
     return { con, pend, montoPend, total: lineas.length }
   }, [lineas])
 
-  if (loading) return <div className="min-h-[60vh] flex items-center justify-center"><Loader2 className="w-6 h-6 text-[#1b2a4a] animate-spin" /></div>
+  if (loading) return <div className="min-h-[60vh] flex items-center justify-center"><Loader2 className="w-6 h-6 text-[#1F4D27] animate-spin" /></div>
   if (!VER.includes(role)) return (
     <div className="p-6"><div className="noma-card text-center py-12 max-w-md mx-auto">
       <ShieldAlert className="w-9 h-9 mx-auto text-gray-300 mb-3" />
-      <p className="font-semibold text-[#1b2a4a]">Acceso restringido</p>
+      <p className="font-semibold text-[#1F4D27]">Acceso restringido</p>
       <p className="text-sm text-gray-500 mt-1">Solo Administración, Gerencia y Contador pueden ver Finanzas.</p>
     </div></div>
   )
@@ -165,7 +165,7 @@ export default function CartolasPage() {
 
       {puedeEditar ? (
         <div className="noma-card !p-4 space-y-3">
-          <div className="text-sm font-semibold text-[#1b2a4a]">Subir cartola (CSV)</div>
+          <div className="text-sm font-semibold text-[#1F4D27]">Subir cartola (CSV)</div>
           <div className="flex flex-col sm:flex-row gap-2">
             <input className="noma-input sm:w-48" placeholder="Banco (ej: BancoEstado)" value={banco} onChange={e => setBanco(e.target.value)} />
             <input type="file" accept=".csv,application/pdf" className="noma-input flex-1" onChange={onFile} />
@@ -185,11 +185,11 @@ export default function CartolasPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-1">
-          <div className="text-sm font-semibold text-[#1b2a4a] mb-2">Cartolas</div>
+          <div className="text-sm font-semibold text-[#1F4D27] mb-2">Cartolas</div>
           {cartolas.length === 0 ? <p className="text-sm text-gray-400">Aún no hay cartolas.</p> : (
             <div className="space-y-2">
               {cartolas.map(c => (
-                <button key={S(c.id)} onClick={() => setSel(S(c.id))} className={`w-full text-left noma-card !p-3 ${sel === S(c.id) ? 'border-[#c9a24e]' : ''}`}>
+                <button key={S(c.id)} onClick={() => setSel(S(c.id))} className={`w-full text-left noma-card !p-3 ${sel === S(c.id) ? 'border-[#307139]' : ''}`}>
                   <div className="flex items-center gap-2"><FileText size={15} className="text-gray-400" /><span className="font-medium text-sm text-[#1a1a1a]">{S(c.banco) || 'Cartola'}</span></div>
                   <div className="text-[11px] text-gray-500 mt-0.5">{fmt(S(c.created_at).slice(0, 10))} · {N(c.total_lineas)} líneas</div>
                 </button>
@@ -204,7 +204,7 @@ export default function CartolasPage() {
               <div className="grid grid-cols-3 gap-2">
                 <div className="bg-green-50 rounded-xl p-3 text-center"><div className="text-lg font-bold text-green-700">{resumen.con}</div><div className="text-[11px] text-gray-500">Conciliados</div></div>
                 <div className="bg-amber-50 rounded-xl p-3 text-center"><div className="text-lg font-bold text-amber-700">{resumen.pend}</div><div className="text-[11px] text-gray-500">Pendientes</div></div>
-                <div className="bg-gray-50 rounded-xl p-3 text-center"><div className="text-lg font-bold text-[#1b2a4a]">{clp(resumen.montoPend)}</div><div className="text-[11px] text-gray-500">Monto pendiente</div></div>
+                <div className="bg-gray-50 rounded-xl p-3 text-center"><div className="text-lg font-bold text-[#1F4D27]">{clp(resumen.montoPend)}</div><div className="text-[11px] text-gray-500">Monto pendiente</div></div>
               </div>
               <div className="noma-card !p-0 overflow-hidden"><div className="overflow-x-auto"><table className="w-full text-sm">
                 <thead className="bg-gray-50/50 text-gray-400 text-xs text-left"><tr><th className="py-2 px-3 font-medium">Fecha</th><th className="py-2 px-3 font-medium">Glosa</th><th className="py-2 px-3 font-medium text-right">Monto</th><th className="py-2 px-3 font-medium">Estado</th><th className="py-2 px-3"></th></tr></thead>
@@ -215,7 +215,7 @@ export default function CartolasPage() {
                       <td className="py-2 px-3 text-[#1a1a1a]">{S(l.descripcion)}</td>
                       <td className={`py-2 px-3 text-right whitespace-nowrap ${S(l.tipo) === 'abono' ? 'text-green-700' : 'text-red-700'}`}>{S(l.tipo) === 'abono' ? '+' : '−'}{clp(N(l.monto))}</td>
                       <td className="py-2 px-3">{l.conciliado ? <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-100 text-green-700 inline-flex items-center gap-1"><Check size={10} /> Conciliado</span> : <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">Pendiente</span>}</td>
-                      <td className="py-2 px-3 text-right">{!l.conciliado && puedeEditar ? <button onClick={() => setConc({ id: l.id, monto: l.monto, tipo: l.tipo })} className="text-gray-400 hover:text-[#1b2a4a]" title="Conciliar manual"><Link2 size={14} /></button> : null}</td>
+                      <td className="py-2 px-3 text-right">{!l.conciliado && puedeEditar ? <button onClick={() => setConc({ id: l.id, monto: l.monto, tipo: l.tipo })} className="text-gray-400 hover:text-[#1F4D27]" title="Conciliar manual"><Link2 size={14} /></button> : null}</td>
                     </tr>
                   ))}
                   {lineas.length === 0 ? <tr><td colSpan={5} className="py-8 text-center text-gray-400 text-sm">Cartola sin líneas.</td></tr> : null}
@@ -229,7 +229,7 @@ export default function CartolasPage() {
       {conc ? (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50" onClick={() => setConc(null)}>
           <div className="bg-white rounded-2xl p-5 w-full max-w-md" onClick={e => e.stopPropagation()}>
-            <h3 className="font-bold text-[#1b2a4a] mb-3">Conciliar manualmente</h3>
+            <h3 className="font-bold text-[#1F4D27] mb-3">Conciliar manualmente</h3>
             <div className="text-xs text-gray-500 mb-1">Movimiento de la Caja</div>
             <select className="noma-input" value={S(conc.movimiento_id)} onChange={e => setConc({ ...conc, movimiento_id: e.target.value })}>
               <option value="">Selecciona…</option>

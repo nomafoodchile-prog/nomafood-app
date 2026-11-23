@@ -13,7 +13,7 @@ import type { MapaPunto } from './MonitoreoMapa'
 // Leaflet accede a window → cargar solo en cliente, sin SSR
 const MonitoreoMapa = dynamic(() => import('./MonitoreoMapa'), {
   ssr: false,
-  loading: () => <div className="h-full flex items-center justify-center"><Loader2 className="w-5 h-5 text-[#1b2a4a] animate-spin" /></div>,
+  loading: () => <div className="h-full flex items-center justify-center"><Loader2 className="w-5 h-5 text-[#1F4D27] animate-spin" /></div>,
 })
 
 /* ── Tipos ───────────────────────────────────────────────────────── */
@@ -223,7 +223,7 @@ export default function MonitoreoEnVivo() {
 
   if (loading) return (
     <div className="min-h-[60vh] flex items-center justify-center">
-      <Loader2 className="w-6 h-6 text-[#1b2a4a] animate-spin" />
+      <Loader2 className="w-6 h-6 text-[#1F4D27] animate-spin" />
     </div>
   )
 
@@ -232,8 +232,8 @@ export default function MonitoreoEnVivo() {
       {/* Encabezado */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-[#1b2a4a] flex items-center gap-2">
-            <Radio className="w-6 h-6 text-[#c9a24e]" /> Monitoreo en vivo
+          <h1 className="text-2xl font-bold text-[#1F4D27] flex items-center gap-2">
+            <Radio className="w-6 h-6 text-[#307139]" /> Monitoreo en vivo
           </h1>
           <p className="text-sm text-gray-500 mt-0.5">Central de despacho — choferes, pedidos e incidencias en tiempo real.</p>
         </div>
@@ -245,7 +245,7 @@ export default function MonitoreoEnVivo() {
             </span>
             En vivo
           </span>
-          <button onClick={actualizar} disabled={refreshing} className="flex items-center gap-1.5 text-xs font-medium text-[#1b2a4a] border border-gray-200 bg-white px-3 py-1.5 rounded-full hover:bg-gray-50 disabled:opacity-60">
+          <button onClick={actualizar} disabled={refreshing} className="flex items-center gap-1.5 text-xs font-medium text-[#1F4D27] border border-gray-200 bg-white px-3 py-1.5 rounded-full hover:bg-gray-50 disabled:opacity-60">
             <RefreshCw size={13} className={refreshing ? 'animate-spin' : ''} /> {refreshing ? 'Actualizando…' : 'Actualizar'}
           </button>
         </div>
@@ -263,12 +263,12 @@ export default function MonitoreoEnVivo() {
 
       {/* Pedidos sin ubicación en el mapa */}
       {sinUbicacion.length > 0 && (
-        <div className="bg-[#faf0d7] border border-[#e7d5a6] rounded-xl px-4 py-2.5 flex flex-wrap items-center gap-3 text-sm text-[#7a5c15]">
+        <div className="bg-[#faf0d7] border border-[#e7d5a6] rounded-xl px-4 py-2.5 flex flex-wrap items-center gap-3 text-sm text-[#255A2D]">
           <MapPin size={16} className="flex-shrink-0" />
           <span className="flex-1">{sinUbicacion.length} {sinUbicacion.length === 1 ? 'pedido sin ubicación en el mapa' : 'pedidos sin ubicación en el mapa'} (no se puede validar la llegada por cercanía).</span>
-          {geoMsg && <span className="text-xs text-[#7a5c15]/80">{geoMsg}</span>}
+          {geoMsg && <span className="text-xs text-[#255A2D]/80">{geoMsg}</span>}
           <button onClick={() => ubicarPedidos(sinUbicacion)} disabled={geocoding}
-            className="flex items-center gap-1.5 text-xs font-semibold bg-[#c9a24e] hover:bg-[#b8923f] text-[#1b2a4a] px-3 py-1.5 rounded-full disabled:opacity-60">
+            className="flex items-center gap-1.5 text-xs font-semibold bg-[#307139] hover:bg-[#255A2D] text-white px-3 py-1.5 rounded-full disabled:opacity-60">
             {geocoding ? <Loader2 size={13} className="animate-spin" /> : <MapPin size={13} />}
             {geocoding ? 'Ubicando…' : 'Ubicar en el mapa'}
           </button>
@@ -278,13 +278,13 @@ export default function MonitoreoEnVivo() {
       {/* Mapa en vivo */}
       <div className="bg-white rounded-2xl shadow-card overflow-hidden">
         <div className="flex items-center justify-between px-5 pt-4 pb-3">
-          <h2 className="font-bold text-[#1b2a4a] flex items-center gap-2"><MapIcon size={17} className="text-[#c9a24e]" /> Mapa en vivo</h2>
+          <h2 className="font-bold text-[#1F4D27] flex items-center gap-2"><MapIcon size={17} className="text-[#307139]" /> Mapa en vivo</h2>
           <span className="text-xs text-gray-400">{conGps ? 'GPS activo' : 'Sin señal GPS todavía'}</span>
         </div>
         <div className="relative h-72 lg:h-80">
           <MonitoreoMapa puntos={puntos} />
           {!conGps && (
-            <div className="absolute inset-x-0 bottom-0 z-[500] bg-[#1b2a4a]/85 text-white text-xs text-center py-1.5 pointer-events-none">
+            <div className="absolute inset-x-0 bottom-0 z-[500] bg-[#1F4D27]/85 text-white text-xs text-center py-1.5 pointer-events-none">
               Esperando ubicación GPS de los choferes (se activa al iniciar ruta desde el teléfono).
             </div>
           )}
@@ -294,7 +294,7 @@ export default function MonitoreoEnVivo() {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         {/* Choferes en vivo */}
         <div className="xl:col-span-2 space-y-3">
-          <h2 className="text-sm font-semibold text-gray-700 flex items-center gap-2"><User size={16} className="text-[#1b2a4a]" /> Choferes</h2>
+          <h2 className="text-sm font-semibold text-gray-700 flex items-center gap-2"><User size={16} className="text-[#1F4D27]" /> Choferes</h2>
           {drivers.length === 0 ? (
             <Empty texto="No hay choferes activos." />
           ) : (
@@ -307,13 +307,13 @@ export default function MonitoreoEnVivo() {
                 const actual = pend.find(p => p.estado_entrega === 'llego_cliente') || pend.find(p => p.estado_entrega === 'en_ruta') || pend[0]
                 const gps = pos[d.id]
                 const cval = cumpl[d.id] ?? 100
-                const cc = cval >= 90 ? '#3b6d11' : cval >= 70 ? '#c9a24e' : '#c0392b'
+                const cc = cval >= 90 ? '#3b6d11' : cval >= 70 ? '#307139' : '#c0392b'
                 return (
                   <div key={d.id} className="bg-white rounded-2xl border border-gray-100 p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 min-w-0">
                         <div className="w-9 h-9 rounded-full bg-[#eef1f6] flex items-center justify-center flex-shrink-0">
-                          <User size={16} className="text-[#1b2a4a]" />
+                          <User size={16} className="text-[#1F4D27]" />
                         </div>
                         <div className="min-w-0">
                           <p className="font-semibold text-gray-900 truncate">{d.nombre}</p>
@@ -328,7 +328,7 @@ export default function MonitoreoEnVivo() {
 
                     {actual ? (
                       <div className="mt-3 bg-[#f8f6f1] rounded-xl p-3">
-                        <p className="text-[11px] font-semibold text-[#c9a24e] uppercase tracking-wide">Entrega actual</p>
+                        <p className="text-[11px] font-semibold text-[#307139] uppercase tracking-wide">Entrega actual</p>
                         <p className="text-sm font-semibold text-gray-900 truncate mt-0.5">{actual.mayorista?.empresa || actual.mayorista?.nombre || 'Cliente'}</p>
                         <p className="text-xs text-gray-500 flex items-center gap-1 truncate"><MapPin size={12} />{actual.direccion_entrega || 'Sin dirección'}</p>
                         <div className="flex items-center gap-2 mt-1.5">
@@ -360,7 +360,7 @@ export default function MonitoreoEnVivo() {
                         {gps ? `GPS ${hhmm(gps.updated_at)}${gps.velocidad != null ? ` · ${Math.round(gps.velocidad)} km/h` : ''}` : 'GPS sin señal'}
                       </span>
                       {gps?.lat != null && gps?.lng != null && (
-                        <a href={`https://www.google.com/maps?q=${gps.lat},${gps.lng}`} target="_blank" rel="noreferrer" className="text-[#1b2a4a] hover:underline">Ver mapa</a>
+                        <a href={`https://www.google.com/maps?q=${gps.lat},${gps.lng}`} target="_blank" rel="noreferrer" className="text-[#1F4D27] hover:underline">Ver mapa</a>
                       )}
                     </div>
                   </div>
@@ -396,12 +396,12 @@ export default function MonitoreoEnVivo() {
                       <p className="text-[11px] font-semibold text-gray-500">Instrucción para el chofer (opcional)</p>
                       <textarea value={notaReasignar} onChange={e => setNotaReasignar(e.target.value)} rows={2}
                         placeholder="Ej: Vuelve a la fábrica a retirar el pedido de Café Central para despacho inmediato."
-                        className="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-2 focus:outline-none focus:ring-2 focus:ring-[#c9a24e] resize-none" />
+                        className="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-2 focus:outline-none focus:ring-2 focus:ring-[#307139] resize-none" />
                       <p className="text-[11px] font-semibold text-gray-500">Asignar a:</p>
                       <div className="flex flex-wrap gap-1.5">
                         {drivers.map(d => (
                           <button key={d.id} disabled={busy === i.id} onClick={() => confirmarReasignar(d.id)}
-                            className="text-xs px-2.5 py-1.5 rounded-lg bg-[#1b2a4a] text-white hover:bg-[#142033] disabled:opacity-60 flex items-center gap-1">
+                            className="text-xs px-2.5 py-1.5 rounded-lg bg-[#1F4D27] text-white hover:bg-[#142033] disabled:opacity-60 flex items-center gap-1">
                             {busy === i.id && <Loader2 size={12} className="animate-spin" />}
                             {d.nombre}{d.id === i.driver_id ? ' (mismo)' : ''}
                           </button>
@@ -416,18 +416,18 @@ export default function MonitoreoEnVivo() {
                     <div className="mt-3 flex flex-wrap gap-1.5">
                       {i.estado_resolucion === 'abierta' && (
                         <button disabled={busy === i.id} onClick={() => accionIncidencia(i.id, 'en_revision')}
-                          className="text-xs px-2.5 py-1.5 rounded-lg border border-gray-200 text-[#1b2a4a] hover:bg-gray-50 flex items-center gap-1 disabled:opacity-60">
+                          className="text-xs px-2.5 py-1.5 rounded-lg border border-gray-200 text-[#1F4D27] hover:bg-gray-50 flex items-center gap-1 disabled:opacity-60">
                           <Eye size={13} /> En revisión
                         </button>
                       )}
                       {i.pedido_id && (
                         <button disabled={busy === i.id} onClick={() => { setNotaReasignar(''); setReasignando({ pedidoId: i.pedido_id as string, incidenciaId: i.id }) }}
-                          className="text-xs px-2.5 py-1.5 rounded-lg border border-gray-200 text-[#1b2a4a] hover:bg-gray-50 flex items-center gap-1 disabled:opacity-60">
+                          className="text-xs px-2.5 py-1.5 rounded-lg border border-gray-200 text-[#1F4D27] hover:bg-gray-50 flex items-center gap-1 disabled:opacity-60">
                           <ArrowRightLeft size={13} /> Reasignar / avisar
                         </button>
                       )}
                       <button disabled={busy === i.id} onClick={() => accionIncidencia(i.id, 'resuelta')}
-                        className="text-xs px-2.5 py-1.5 rounded-lg bg-[#c9a24e] text-[#1b2a4a] font-semibold hover:bg-[#b8923f] flex items-center gap-1 disabled:opacity-60">
+                        className="text-xs px-2.5 py-1.5 rounded-lg bg-[#307139] text-white font-semibold hover:bg-[#255A2D] flex items-center gap-1 disabled:opacity-60">
                         {busy === i.id ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />} Cerrar
                       </button>
                     </div>
@@ -441,10 +441,10 @@ export default function MonitoreoEnVivo() {
 
       {/* Pedidos en vivo — dos pistas de estado */}
       <div className="space-y-3">
-        <h2 className="text-sm font-semibold text-gray-700 flex items-center gap-2"><Package size={16} className="text-[#1b2a4a]" /> Pedidos en curso</h2>
+        <h2 className="text-sm font-semibold text-gray-700 flex items-center gap-2"><Package size={16} className="text-[#1F4D27]" /> Pedidos en curso</h2>
 
         {porAsignar.length > 0 && (
-          <div className="bg-[#faf0d7] border border-[#e7d5a6] rounded-xl px-4 py-2.5 text-sm text-[#7a5c15] flex items-center gap-2">
+          <div className="bg-[#faf0d7] border border-[#e7d5a6] rounded-xl px-4 py-2.5 text-sm text-[#255A2D] flex items-center gap-2">
             <Route size={15} /> {porAsignar.length} {porAsignar.length === 1 ? 'pedido en curso sin chofer asignado' : 'pedidos en curso sin chofer asignado'}.
           </div>
         )}
@@ -501,7 +501,7 @@ export default function MonitoreoEnVivo() {
                   <p className="text-xs text-gray-400">{p.numero_pedido} · {hhmm(p.hora_programada)}</p>
                 </div>
                 <span className="noma-badge-green hidden sm:inline">Entregado</span>
-                <button onClick={() => verComprobante(p)} className="text-xs font-medium text-[#1b2a4a] border border-gray-200 px-2.5 py-1.5 rounded-lg hover:bg-gray-50 flex items-center gap-1">
+                <button onClick={() => verComprobante(p)} className="text-xs font-medium text-[#1F4D27] border border-gray-200 px-2.5 py-1.5 rounded-lg hover:bg-gray-50 flex items-center gap-1">
                   <Camera size={13} /> Comprobante
                 </button>
               </div>
@@ -518,13 +518,13 @@ export default function MonitoreoEnVivo() {
       {comprobante && (
         <div className="fixed inset-0 z-[1000] bg-black/50 flex items-center justify-center p-4" onClick={() => setComprobante(null)}>
           <div className="bg-white rounded-2xl max-w-md w-full overflow-hidden" onClick={e => e.stopPropagation()}>
-            <div className="bg-[#1b2a4a] text-white px-5 py-3 flex items-center justify-between">
+            <div className="bg-[#1F4D27] text-white px-5 py-3 flex items-center justify-between">
               <span className="font-semibold text-sm">Comprobante · {comprobante.pedido.numero_pedido}</span>
               <button onClick={() => setComprobante(null)}><X size={18} /></button>
             </div>
             <div className="p-5 space-y-3 max-h-[75vh] overflow-y-auto">
               {compLoading ? (
-                <div className="py-10 flex justify-center"><Loader2 className="w-5 h-5 animate-spin text-[#1b2a4a]" /></div>
+                <div className="py-10 flex justify-center"><Loader2 className="w-5 h-5 animate-spin text-[#1F4D27]" /></div>
               ) : (
                 <>
                   <p className="text-sm text-gray-600">Recibió: <span className="font-medium text-gray-900">{comprobante.receptor || '—'}</span>{comprobante.hora ? ` · ${hhmm(comprobante.hora)}` : ''}</p>
@@ -553,8 +553,8 @@ export default function MonitoreoEnVivo() {
 
 /* ── Subcomponentes ──────────────────────────────────────────────── */
 function Kpi({ icon: Icon, label, value, tone }: { icon: React.ElementType; label: string; value: string | number; tone?: 'green' | 'red' | 'muted' }) {
-  const color = tone === 'green' ? 'text-green-600' : tone === 'red' ? 'text-[#c0392b]' : tone === 'muted' ? 'text-gray-400' : 'text-[#1b2a4a]'
-  const iconColor = tone === 'green' ? 'text-green-600' : tone === 'red' ? 'text-[#c0392b]' : 'text-[#c9a24e]'
+  const color = tone === 'green' ? 'text-green-600' : tone === 'red' ? 'text-[#c0392b]' : tone === 'muted' ? 'text-gray-400' : 'text-[#1F4D27]'
+  const iconColor = tone === 'green' ? 'text-green-600' : tone === 'red' ? 'text-[#c0392b]' : 'text-[#307139]'
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-4">
       <Icon className={`w-5 h-5 ${iconColor} mb-2`} />

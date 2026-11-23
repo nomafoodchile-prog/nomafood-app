@@ -50,10 +50,10 @@ export default function NuevaContrasenaPage() {
     <div className="w-full max-w-sm">
       <div className="bg-white rounded-2xl shadow-card p-8">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-16 h-16 bg-[#c9a24e] rounded-2xl flex items-center justify-center font-black text-[#1b2a4a] text-2xl mb-4 shadow-lg">
-            NF
+          <div className="w-16 h-16 bg-[#307139] rounded-2xl flex items-center justify-center font-black text-white text-2xl mb-4 shadow-lg">
+            BF
           </div>
-          <h1 className="text-2xl font-bold text-[#1a1a1a] tracking-tight">Noma Food</h1>
+          <h1 className="text-2xl font-bold text-[#1a1a1a] tracking-tight">Brotes Asiáticos Fábrica</h1>
           <p className="text-xs text-gray-400 mt-1">Alma Libre Grupo SpA</p>
         </div>
 
@@ -75,12 +75,12 @@ export default function NuevaContrasenaPage() {
               Abre esta página desde el enlace del correo de recuperación. Si expiró, solicita uno nuevo.
             </p>
             <a href="/recuperar" className="inline-block w-full noma-btn-primary py-2.5 mt-2 text-center">Solicitar enlace nuevo</a>
-            <a href="/login" className="flex items-center justify-center gap-1.5 text-xs text-[#c9a24e] hover:underline">
+            <a href="/login" className="flex items-center justify-center gap-1.5 text-xs text-[#307139] hover:underline">
               <ArrowLeft size={12} /> Volver al inicio de sesión
             </a>
           </div>
         ) : sesionOk === null ? (
-          <div className="text-center py-6"><Loader2 size={24} className="animate-spin text-[#c9a24e] mx-auto" /></div>
+          <div className="text-center py-6"><Loader2 size={24} className="animate-spin text-[#307139] mx-auto" /></div>
         ) : (
           <>
             <div className="mb-6">
@@ -130,7 +130,7 @@ export default function NuevaContrasenaPage() {
           </>
         )}
       </div>
-      <p className="text-center text-[10px] text-gray-400 mt-6">Sistema operacional · Noma Food © 2026</p>
+      <p className="text-center text-[10px] text-gray-400 mt-6">Sistema operacional · Brotes Asiáticos Fábrica © 2026</p>
     </div>
   )
 }

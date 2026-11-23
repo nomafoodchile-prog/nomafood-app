@@ -69,11 +69,11 @@ export default function EstadoResultadosPage() {
     URL.revokeObjectURL(url)
   }
 
-  if (loading) return <div className="min-h-[60vh] flex items-center justify-center"><Loader2 className="w-6 h-6 text-[#1b2a4a] animate-spin" /></div>
+  if (loading) return <div className="min-h-[60vh] flex items-center justify-center"><Loader2 className="w-6 h-6 text-[#1F4D27] animate-spin" /></div>
   if (!VER.includes(role)) return (
     <div className="p-6"><div className="noma-card text-center py-12 max-w-md mx-auto">
       <ShieldAlert className="w-9 h-9 mx-auto text-gray-300 mb-3" />
-      <p className="font-semibold text-[#1b2a4a]">Acceso restringido</p>
+      <p className="font-semibold text-[#1F4D27]">Acceso restringido</p>
       <p className="text-sm text-gray-500 mt-1">Solo Administración, Gerencia y Contador pueden ver Finanzas.</p>
     </div></div>
   )
@@ -85,13 +85,13 @@ export default function EstadoResultadosPage() {
         <div><h1 className="text-2xl font-bold text-[#1a1a1a]">Estado de resultados</h1><p className="text-sm text-gray-500 mt-0.5">Resultado del período, calculado desde la Caja</p></div>
         <div className="flex gap-2 items-center flex-wrap">
           <input type="month" className="noma-input" value={mes} onChange={e => setMes(e.target.value)} />
-          <button onClick={exportarCSV} className="flex items-center gap-2 text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-2 hover:border-[#c9a24e]"><FileSpreadsheet size={15} /> Excel</button>
-          <button onClick={() => window.print()} className="flex items-center gap-2 text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-2 hover:border-[#c9a24e]"><Printer size={15} /> PDF</button>
+          <button onClick={exportarCSV} className="flex items-center gap-2 text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-2 hover:border-[#307139]"><FileSpreadsheet size={15} /> Excel</button>
+          <button onClick={() => window.print()} className="flex items-center gap-2 text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-2 hover:border-[#307139]"><Printer size={15} /> PDF</button>
         </div>
       </div>
 
       <div className="noma-card max-w-2xl">
-        <div className="text-lg font-bold text-[#1b2a4a] mb-4">Resultado · {titulo()}</div>
+        <div className="text-lg font-bold text-[#1F4D27] mb-4">Resultado · {titulo()}</div>
         <Linea k="Ventas netas" v={pl.ventas} bold />
         <Linea k="(−) Costo de producción" v={-pl.costoProd} muted />
         <div className="border-t border-gray-200 my-1" />
@@ -100,7 +100,7 @@ export default function EstadoResultadosPage() {
         {pl.porCat.map(([k, v]) => <Linea key={k} k={`     · ${k}`} v={-v} small />)}
         <div className="border-t-2 border-gray-300 my-2" />
         <div className="flex justify-between items-center py-1">
-          <span className="text-base font-bold text-[#1b2a4a]">Resultado del mes</span>
+          <span className="text-base font-bold text-[#1F4D27]">Resultado del mes</span>
           <span className={`text-xl font-bold ${pos ? 'text-green-700' : 'text-red-700'}`}>{clp(pl.resultado)}</span>
         </div>
         <p className="text-xs text-gray-400 mt-3">Ventas = ingresos · Costo de producción = egresos de Materia prima y Envases · Gastos operacionales = el resto. Todo del período seleccionado.</p>
@@ -114,7 +114,7 @@ export default function EstadoResultadosPage() {
 function Linea({ k, v, bold, muted, small }: { k: string; v: number; bold?: boolean; muted?: boolean; small?: boolean }) {
   return (
     <div className={`flex justify-between py-1 ${small ? 'text-xs' : 'text-sm'}`}>
-      <span className={`${bold ? 'font-semibold text-[#1b2a4a]' : muted ? 'text-gray-500' : 'text-gray-600'} ${small ? 'text-gray-400' : ''}`}>{k}</span>
+      <span className={`${bold ? 'font-semibold text-[#1F4D27]' : muted ? 'text-gray-500' : 'text-gray-600'} ${small ? 'text-gray-400' : ''}`}>{k}</span>
       <span className={`${bold ? 'font-semibold' : ''} ${muted || small ? 'text-gray-500' : 'text-[#1a1a1a]'}`}>{clp(v)}</span>
     </div>
   )

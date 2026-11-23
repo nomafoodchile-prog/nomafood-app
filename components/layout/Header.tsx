@@ -50,7 +50,7 @@ export function Header() {
 
       {/* Breadcrumb */}
       <nav className="flex-1 flex items-center gap-1.5 text-sm min-w-0">
-        <span className="text-gray-400 text-xs">Noma Food</span>
+        <span className="text-gray-400 text-xs">Brotes Asiáticos Fábrica</span>
         {breadcrumbs.map((crumb, i) => (
           <span key={i} className="flex items-center gap-1.5">
             <ChevronRight size={12} className="text-gray-300 flex-shrink-0" />
@@ -75,7 +75,7 @@ export function Header() {
             onClick={() => changeLocale(l)}
             className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${
               locale === l
-                ? 'bg-[#c9a24e] text-[#1b2a4a]'
+                ? 'bg-[#307139] text-[#F8EDD9]'
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -88,7 +88,7 @@ export function Header() {
       <Campanita />
 
       {/* User avatar */}
-      <div className="w-9 h-9 rounded-full bg-[#c9a24e]/20 border-2 border-[#c9a24e]/40 flex items-center justify-center text-[#c9a24e] text-xs font-black cursor-pointer hover:border-[#c9a24e] transition-colors">
+      <div className="w-9 h-9 rounded-full bg-[#307139]/20 border-2 border-[#307139]/40 flex items-center justify-center text-[#307139] text-xs font-black cursor-pointer hover:border-[#307139] transition-colors">
         AD
       </div>
     </header>

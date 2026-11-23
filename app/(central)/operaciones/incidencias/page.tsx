@@ -66,22 +66,22 @@ export default function IncidenciasRepo() {
   const nRevision = enPeriodo.filter(r => r.estado_resolucion === 'en_revision').length
   const nResueltas = enPeriodo.filter(r => r.estado_resolucion === 'resuelta').length
 
-  if (loading) return <div className="min-h-[60vh] flex items-center justify-center"><Loader2 className="w-6 h-6 text-[#1b2a4a] animate-spin" /></div>
+  if (loading) return <div className="min-h-[60vh] flex items-center justify-center"><Loader2 className="w-6 h-6 text-[#1F4D27] animate-spin" /></div>
 
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[#1b2a4a] flex items-center gap-2"><AlertTriangle className="w-6 h-6 text-[#c9a24e]" /> Incidencias — historial</h1>
+          <h1 className="text-2xl font-bold text-[#1F4D27] flex items-center gap-2"><AlertTriangle className="w-6 h-6 text-[#307139]" /> Incidencias — historial</h1>
           <p className="text-sm text-gray-500 mt-0.5">Repositorio de todas las incidencias reportadas, con evidencia y resolución.</p>
         </div>
-        <button onClick={cargar} className="flex items-center gap-1.5 text-xs font-medium text-[#1b2a4a] border border-gray-200 bg-white px-3 py-1.5 rounded-full hover:bg-gray-50"><RefreshCw size={13} /> Actualizar</button>
+        <button onClick={cargar} className="flex items-center gap-1.5 text-xs font-medium text-[#1F4D27] border border-gray-200 bg-white px-3 py-1.5 rounded-full hover:bg-gray-50"><RefreshCw size={13} /> Actualizar</button>
       </div>
 
       {/* KPIs */}
       <div className="grid grid-cols-3 gap-4">
         <div className="bg-white rounded-2xl shadow-card p-4"><p className="text-2xl font-bold text-[#c0392b]">{nAbiertas}</p><p className="text-xs text-gray-500">Abiertas</p></div>
-        <div className="bg-white rounded-2xl shadow-card p-4"><p className="text-2xl font-bold text-[#c9a24e]">{nRevision}</p><p className="text-xs text-gray-500">En revisión</p></div>
+        <div className="bg-white rounded-2xl shadow-card p-4"><p className="text-2xl font-bold text-[#307139]">{nRevision}</p><p className="text-xs text-gray-500">En revisión</p></div>
         <div className="bg-white rounded-2xl shadow-card p-4"><p className="text-2xl font-bold text-green-600">{nResueltas}</p><p className="text-xs text-gray-500">Resueltas</p></div>
       </div>
 
@@ -89,12 +89,12 @@ export default function IncidenciasRepo() {
       <div className="flex flex-wrap items-center gap-2">
         {ESTADOS.map(e => (
           <button key={e.v} onClick={() => setFEstado(e.v)}
-            className={`text-xs font-medium px-3 py-1.5 rounded-full border ${fEstado === e.v ? 'bg-[#1b2a4a] text-white border-[#1b2a4a]' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}>{e.label}</button>
+            className={`text-xs font-medium px-3 py-1.5 rounded-full border ${fEstado === e.v ? 'bg-[#1F4D27] text-white border-[#1F4D27]' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}>{e.label}</button>
         ))}
         <span className="w-px h-5 bg-gray-200 mx-1" />
         {PERIODOS.map(p => (
           <button key={p.dias} onClick={() => setFDias(p.dias)}
-            className={`text-xs font-medium px-3 py-1.5 rounded-full border ${fDias === p.dias ? 'bg-[#c9a24e] text-[#1b2a4a] border-[#c9a24e]' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}>{p.label}</button>
+            className={`text-xs font-medium px-3 py-1.5 rounded-full border ${fDias === p.dias ? 'bg-[#307139] text-white border-[#307139]' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}>{p.label}</button>
         ))}
       </div>
 
@@ -115,15 +115,15 @@ export default function IncidenciasRepo() {
                 <User size={12} />{r.driver?.nombre || 'Chofer'}
                 {r.pedido?.numero_pedido && <span className="text-gray-400">· {r.pedido.numero_pedido}</span>}
               </p>
-              {r.respuesta_central && <p className="text-xs text-[#1b2a4a] mt-2 bg-[#eef1f6] rounded-lg px-3 py-1.5">Central: {r.respuesta_central}</p>}
+              {r.respuesta_central && <p className="text-xs text-[#1F4D27] mt-2 bg-[#eef1f6] rounded-lg px-3 py-1.5">Central: {r.respuesta_central}</p>}
               {r.resolved_at && <p className="text-[11px] text-green-600 mt-1">Resuelta {cuando(r.resolved_at)}</p>}
               <div className="flex items-center gap-2 mt-3">
                 {r.foto_url && (
-                  <button onClick={() => verFoto(r.foto_url!)} className="text-xs font-medium text-[#1b2a4a] border border-gray-200 px-2.5 py-1.5 rounded-lg hover:bg-gray-50 flex items-center gap-1"><ImageIcon size={13} /> Ver foto</button>
+                  <button onClick={() => verFoto(r.foto_url!)} className="text-xs font-medium text-[#1F4D27] border border-gray-200 px-2.5 py-1.5 rounded-lg hover:bg-gray-50 flex items-center gap-1"><ImageIcon size={13} /> Ver foto</button>
                 )}
                 {r.estado_resolucion !== 'resuelta' && (
                   <button onClick={() => cerrar(r.id)} disabled={busy === r.id}
-                    className="text-xs font-semibold bg-[#c9a24e] hover:bg-[#b8923f] text-[#1b2a4a] px-2.5 py-1.5 rounded-lg flex items-center gap-1 disabled:opacity-60">
+                    className="text-xs font-semibold bg-[#307139] hover:bg-[#255A2D] text-white px-2.5 py-1.5 rounded-lg flex items-center gap-1 disabled:opacity-60">
                     {busy === r.id ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />} Cerrar
                   </button>
                 )}

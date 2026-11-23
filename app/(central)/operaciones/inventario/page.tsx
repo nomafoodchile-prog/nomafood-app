@@ -98,12 +98,12 @@ export default function InventarioPage() {
     const p = sel.producto as Row | null
     return (
       <div className="space-y-4">
-        <button onClick={() => { setSel(null); cargar() }} className="flex items-center gap-1 text-sm text-gray-500 hover:text-[#1b2a4a]"><ArrowLeft size={15} /> Volver a inventario</button>
+        <button onClick={() => { setSel(null); cargar() }} className="flex items-center gap-1 text-sm text-gray-500 hover:text-[#1F4D27]"><ArrowLeft size={15} /> Volver a inventario</button>
         {error && <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-sm text-red-700">{error}</div>}
         {ok && <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2 text-sm text-green-700">{ok}</div>}
         <div className="noma-card">
           <div className="flex items-center gap-2 flex-wrap mb-3">
-            <span className="font-semibold text-[#1b2a4a]">{S(p?.nombre)}</span>
+            <span className="font-semibold text-[#1F4D27]">{S(p?.nombre)}</span>
             <span className="font-mono text-xs text-gray-500 bg-gray-50 px-2 py-0.5 rounded">{S(sel.lote_codigo) || 's/lote'}</span>
             <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${EST_C[S(sel.estado)] || 'bg-gray-100 text-gray-600'}`}>{S(sel.estado)}</span>
           </div>
@@ -122,7 +122,7 @@ export default function InventarioPage() {
         </div>
 
         <div className="noma-card">
-          <h3 className="text-sm font-semibold text-[#1b2a4a] mb-3 flex items-center gap-2"><PackagePlus size={16} /> Registrar movimiento</h3>
+          <h3 className="text-sm font-semibold text-[#1F4D27] mb-3 flex items-center gap-2"><PackagePlus size={16} /> Registrar movimiento</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <div><label className="text-xs text-gray-500">Tipo</label><select className="noma-input mt-1" value={S(mov.tipo_movimiento)} onChange={e => setMov({ ...mov, tipo_movimiento: e.target.value })}>{MOVS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></div>
             <div><label className="text-xs text-gray-500">Cantidad</label><input type="number" className="noma-input mt-1" value={S(mov.cantidad)} onChange={e => setMov({ ...mov, cantidad: e.target.value })} /></div>
@@ -135,7 +135,7 @@ export default function InventarioPage() {
         </div>
 
         <div className="noma-card !p-0 overflow-hidden">
-          <div className="px-4 py-3 border-b border-gray-100 text-sm font-semibold text-[#1b2a4a]">Historial de movimientos</div>
+          <div className="px-4 py-3 border-b border-gray-100 text-sm font-semibold text-[#1F4D27]">Historial de movimientos</div>
           <div className="overflow-x-auto"><table className="w-full text-sm"><thead className="bg-gray-50/50"><tr className="text-gray-400 text-xs text-left"><th className="py-2 px-4 font-medium">Fecha</th><th className="py-2 px-4 font-medium">Tipo</th><th className="py-2 px-4 font-medium text-right">Cant.</th><th className="py-2 px-4 font-medium">Motivo</th><th className="py-2 px-4 font-medium">Usuario</th></tr></thead>
           <tbody className="divide-y divide-gray-50">{movs.length === 0 ? <tr><td colSpan={5} className="py-6 text-center text-gray-400 text-xs">Sin movimientos.</td></tr> : movs.map(m => (
             <tr key={S(m.id)}><td className="py-2 px-4 whitespace-nowrap text-xs">{new Date(S(m.created_at)).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</td><td className="py-2 px-4">{MOV_LBL[S(m.tipo_movimiento)] || S(m.tipo_movimiento)}</td><td className="py-2 px-4 text-right">{N(m.cantidad)}</td><td className="py-2 px-4 text-gray-500">{S(m.motivo)}</td><td className="py-2 px-4 text-gray-500 text-xs">{S(m.usuario_email) || '—'}</td></tr>
@@ -151,7 +151,7 @@ export default function InventarioPage() {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div><h1 className="text-2xl font-bold text-[#1a1a1a]">Inventario por lotes</h1><p className="text-sm text-gray-500 mt-0.5">{lotes.length} lotes</p></div>
         <div className="flex gap-2">
-          <button onClick={() => { setLoading(true); cargar() }} className="flex items-center gap-2 text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-2 hover:border-[#c9a24e]"><RefreshCw size={15} /> Actualizar</button>
+          <button onClick={() => { setLoading(true); cargar() }} className="flex items-center gap-2 text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-2 hover:border-[#307139]"><RefreshCw size={15} /> Actualizar</button>
           <button onClick={() => setNuevoLote({ unidad: 'kilo' })} className="noma-btn-primary flex items-center gap-2 text-sm"><Plus size={16} /> Nuevo lote</button>
         </div>
       </div>
@@ -159,7 +159,7 @@ export default function InventarioPage() {
       {ok && <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2 text-sm text-green-700">{ok}</div>}
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="bg-white rounded-xl border border-gray-100 p-4"><div className="text-xs text-gray-500">Valor inventario</div><div className="text-xl font-bold text-[#1b2a4a]">{clp(valorInv)}</div></div>
+        <div className="bg-white rounded-xl border border-gray-100 p-4"><div className="text-xs text-gray-500">Valor inventario</div><div className="text-xl font-bold text-[#1F4D27]">{clp(valorInv)}</div></div>
         <div className="bg-white rounded-xl border border-gray-100 p-4"><div className="text-xs text-gray-500">Stock bajo</div><div className="text-xl font-bold text-amber-600">{bajos}</div></div>
         <div className="bg-white rounded-xl border border-gray-100 p-4"><div className="text-xs text-gray-500">Por vencer (7d)</div><div className="text-xl font-bold text-amber-600">{porVencer}</div></div>
         <div className="bg-white rounded-xl border border-gray-100 p-4"><div className="text-xs text-gray-500">Bloqueados</div><div className="text-xl font-bold text-red-600">{bloqueados}</div></div>
@@ -190,7 +190,7 @@ export default function InventarioPage() {
           <th className="text-left py-3 px-4 text-xs font-semibold text-gray-400 uppercase">Producto</th><th className="text-left py-3 px-4 text-xs font-semibold text-gray-400 uppercase hidden md:table-cell">Lote</th><th className="text-left py-3 px-4 text-xs font-semibold text-gray-400 uppercase hidden lg:table-cell">Bodega</th><th className="text-right py-3 px-4 text-xs font-semibold text-gray-400 uppercase">Disp.</th><th className="text-right py-3 px-4 text-xs font-semibold text-gray-400 uppercase hidden sm:table-cell">Neto</th><th className="text-left py-3 px-4 text-xs font-semibold text-gray-400 uppercase hidden lg:table-cell">Vence</th><th className="text-center py-3 px-4 text-xs font-semibold text-gray-400 uppercase">Estado</th>
         </tr></thead>
         <tbody className="divide-y divide-gray-50">
-          {loading ? <tr><td colSpan={7} className="py-12 text-center"><Loader2 className="w-5 h-5 text-[#1b2a4a] animate-spin mx-auto" /></td></tr>
+          {loading ? <tr><td colSpan={7} className="py-12 text-center"><Loader2 className="w-5 h-5 text-[#1F4D27] animate-spin mx-auto" /></td></tr>
           : filtrados.length === 0 ? <tr><td colSpan={7} className="py-12 text-center text-gray-400 text-sm">Sin lotes. Crea el primero con &quot;Nuevo lote&quot;.</td></tr>
           : filtrados.map(l => { const p = l.producto as Row | null; return (
             <tr key={S(l.id)} onClick={() => abrir(l)} className="hover:bg-gray-50 cursor-pointer">

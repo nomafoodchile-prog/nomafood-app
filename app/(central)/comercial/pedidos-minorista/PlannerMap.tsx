@@ -22,7 +22,7 @@ export default function PlannerMap({
     const pts: [number, number][] = []
 
     const oIcon = L.divIcon({
-      html: '<div style="width:30px;height:30px;background:#c9a24e;border-radius:8px;border:2px solid #16233f;display:flex;align-items:center;justify-content:center;font-size:15px">🏭</div>',
+      html: '<div style="width:30px;height:30px;background:#307139;border-radius:8px;border:2px solid #1F4D27;display:flex;align-items:center;justify-content:center;font-size:15px">🏭</div>',
       className: '', iconSize: [30, 30], iconAnchor: [15, 15],
     })
     L.marker([origin.lat, origin.lng], { icon: oIcon }).addTo(layerRef.current)
@@ -31,7 +31,7 @@ export default function PlannerMap({
 
     stops.forEach(s => {
       const icon = L.divIcon({
-        html: `<div style="width:26px;height:26px;background:#16233f;color:#fff;border-radius:50%;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;box-shadow:0 1px 4px rgba(0,0,0,.4)">${s.orden}</div>`,
+        html: `<div style="width:26px;height:26px;background:#1F4D27;color:#fff;border-radius:50%;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;box-shadow:0 1px 4px rgba(0,0,0,.4)">${s.orden}</div>`,
         className: '', iconSize: [26, 26], iconAnchor: [13, 13],
       })
       L.marker([s.lat, s.lng], { icon }).addTo(layerRef.current)
@@ -40,13 +40,13 @@ export default function PlannerMap({
     })
 
     if (pts.length > 1) {
-      L.polyline(pts, { color: '#c9a24e', weight: 3, opacity: 0.85, dashArray: '4 8' }).addTo(layerRef.current)
+      L.polyline(pts, { color: '#307139', weight: 3, opacity: 0.85, dashArray: '4 8' }).addTo(layerRef.current)
     }
 
     // Marcador del CHOFER en vivo (camión dorado con halo)
     if (driver && driver.lat != null && driver.lng != null) {
       const dIcon = L.divIcon({
-        html: '<div style="position:relative;width:34px;height:34px"><div style="position:absolute;inset:0;border-radius:50%;background:#c9a24e;opacity:.3;animation:nfpulse 1.6s ease-out infinite"></div><div style="position:absolute;inset:4px;background:#c9a24e;border-radius:50%;border:3px solid #16233f;display:flex;align-items:center;justify-content:center;font-size:14px">🚚</div></div><style>@keyframes nfpulse{0%{transform:scale(.6);opacity:.5}100%{transform:scale(1.8);opacity:0}}</style>',
+        html: '<div style="position:relative;width:34px;height:34px"><div style="position:absolute;inset:0;border-radius:50%;background:#307139;opacity:.3;animation:nfpulse 1.6s ease-out infinite"></div><div style="position:absolute;inset:4px;background:#307139;border-radius:50%;border:3px solid #1F4D27;display:flex;align-items:center;justify-content:center;font-size:14px">🚚</div></div><style>@keyframes nfpulse{0%{transform:scale(.6);opacity:.5}100%{transform:scale(1.8);opacity:0}}</style>',
         className: '', iconSize: [34, 34], iconAnchor: [17, 17],
       })
       L.marker([driver.lat, driver.lng], { icon: dIcon, zIndexOffset: 1000 }).addTo(layerRef.current).bindPopup(driver.nombre || 'Chofer (en vivo)')

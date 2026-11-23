@@ -60,11 +60,11 @@ export default function RemuneracionesPage() {
     setEnviar(null); setMsg(`Consolidado enviado al contador (${enviar.email}).`)
   }
 
-  if (loading) return <div className="min-h-[60vh] flex items-center justify-center"><Loader2 className="w-6 h-6 text-[#1b2a4a] animate-spin" /></div>
+  if (loading) return <div className="min-h-[60vh] flex items-center justify-center"><Loader2 className="w-6 h-6 text-[#1F4D27] animate-spin" /></div>
   if (!VER.includes(role)) return (
     <div className="p-6"><div className="noma-card text-center py-12 max-w-md mx-auto">
       <ShieldAlert className="w-9 h-9 mx-auto text-gray-300 mb-3" />
-      <p className="font-semibold text-[#1b2a4a]">Acceso restringido</p>
+      <p className="font-semibold text-[#1F4D27]">Acceso restringido</p>
       <p className="text-sm text-gray-500 mt-1">Solo Administración, Gerencia y Contador pueden ver Finanzas.</p>
     </div></div>
   )
@@ -75,7 +75,7 @@ export default function RemuneracionesPage() {
         <div><h1 className="text-2xl font-bold text-[#1a1a1a]">Contabilidad · Remuneraciones</h1><p className="text-sm text-gray-500 mt-0.5">Consolidado mensual por trabajador (desde asistencia)</p></div>
         <div className="flex gap-2 items-center flex-wrap">
           <input type="month" className="noma-input" value={mes} onChange={e => setMes(e.target.value)} />
-          <button onClick={descargar} className="flex items-center gap-2 text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-2 hover:border-[#c9a24e]"><FileSpreadsheet size={15} /> Excel</button>
+          <button onClick={descargar} className="flex items-center gap-2 text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-2 hover:border-[#307139]"><FileSpreadsheet size={15} /> Excel</button>
           <button onClick={abrirEnviar} className="noma-btn-primary flex items-center gap-2 text-sm"><Mail size={15} /> Enviar al contador</button>
         </div>
       </div>
@@ -113,7 +113,7 @@ export default function RemuneracionesPage() {
       {enviar ? (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50" onClick={() => setEnviar(null)}>
           <div className="bg-white rounded-2xl p-5 w-full max-w-md" onClick={e => e.stopPropagation()}>
-            <h3 className="font-bold text-[#1b2a4a] mb-1">Enviar al contador</h3>
+            <h3 className="font-bold text-[#1F4D27] mb-1">Enviar al contador</h3>
             <p className="text-xs text-gray-500 mb-3">Se preparará el consolidado de <strong>{mes}</strong> ({filas.length} trabajadores) y se enviará por correo. Nada se envía sin tu confirmación.</p>
             <div className="text-xs text-gray-500 mb-1">Correo del contador</div>
             <input className="noma-input" type="email" value={enviar.email} onChange={e => setEnviar({ email: e.target.value })} placeholder="contador@ejemplo.cl" />

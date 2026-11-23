@@ -164,7 +164,7 @@ export default function RecetasPage() {
         <div className="flex items-center justify-between">
           <div><h1 className="text-2xl font-bold text-[#1a1a1a]">Recetas y formulaciones</h1><p className="text-sm text-gray-500 mt-0.5">{lista.length} recetas · Producción</p></div>
           <div className="flex gap-2">
-            <button onClick={crearDemo} disabled={saving} className="text-sm flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-2 text-gray-600 hover:border-[#c9a24e]"><GitBranch size={15} /> Receta de ejemplo</button>
+            <button onClick={crearDemo} disabled={saving} className="text-sm flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-2 text-gray-600 hover:border-[#307139]"><GitBranch size={15} /> Receta de ejemplo</button>
             <button onClick={crearReceta} disabled={saving} className="noma-btn-primary flex items-center gap-2 text-sm"><Plus size={16} /> Nueva receta</button>
           </div>
         </div>
@@ -175,7 +175,7 @@ export default function RecetasPage() {
             <th className="text-left py-3 px-4 text-xs font-semibold text-gray-400 uppercase">Código</th><th className="text-left py-3 px-4 text-xs font-semibold text-gray-400 uppercase">Receta</th><th className="text-left py-3 px-4 text-xs font-semibold text-gray-400 uppercase hidden md:table-cell">Producto</th><th className="text-left py-3 px-4 text-xs font-semibold text-gray-400 uppercase hidden md:table-cell">Tipo</th><th className="text-center py-3 px-4 text-xs font-semibold text-gray-400 uppercase">Estado</th>
           </tr></thead>
           <tbody className="divide-y divide-gray-50">
-            {loading ? <tr><td colSpan={5} className="py-12 text-center"><Loader2 className="w-5 h-5 text-[#1b2a4a] animate-spin mx-auto" /></td></tr>
+            {loading ? <tr><td colSpan={5} className="py-12 text-center"><Loader2 className="w-5 h-5 text-[#1F4D27] animate-spin mx-auto" /></td></tr>
             : filtrados.length === 0 ? <tr><td colSpan={5} className="py-12 text-center text-gray-400 text-sm">Aún no hay recetas. Crea la primera.</td></tr>
             : filtrados.map(r => {
               const v = (r.version as Row) || {}
@@ -198,18 +198,18 @@ export default function RecetasPage() {
 
   return (
     <div className="space-y-4">
-      <button onClick={() => { setSel(null); cargarLista() }} className="flex items-center gap-1 text-sm text-gray-500 hover:text-[#1b2a4a]"><ArrowLeft size={15} /> Volver a recetas</button>
+      <button onClick={() => { setSel(null); cargarLista() }} className="flex items-center gap-1 text-sm text-gray-500 hover:text-[#1F4D27]"><ArrowLeft size={15} /> Volver a recetas</button>
       <div className="noma-card !p-0 overflow-hidden">
         <div className="p-4 border-b border-gray-100">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-semibold text-[#1b2a4a]">{S(receta.nombre)}</span>
+            <span className="font-semibold text-[#1F4D27]">{S(receta.nombre)}</span>
             <span className="font-mono text-xs text-gray-500 bg-gray-50 px-2 py-0.5 rounded">{S(receta.codigo) || 's/código'}</span>
             <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${estadoPill(S(version.estado) || 'borrador')}`}>{EST_LBL[S(version.estado)] || 'Borrador'} · v{S(version.version) || '1'}</span>
             {aprobada && <span className="text-[11px] text-gray-400">Aprobada no se edita · crea nueva versión</span>}
           </div>
         </div>
         <div className="flex gap-1 px-3 pt-2 border-b border-gray-100 overflow-x-auto">
-          {tabs.map(([id, label]) => <button key={id} onClick={() => setTab(id)} className={`text-sm px-3 py-2 whitespace-nowrap border-b-2 ${tab === id ? 'border-[#c9a24e] text-[#1b2a4a] font-medium' : 'border-transparent text-gray-500'}`}>{label}</button>)}
+          {tabs.map(([id, label]) => <button key={id} onClick={() => setTab(id)} className={`text-sm px-3 py-2 whitespace-nowrap border-b-2 ${tab === id ? 'border-[#307139] text-[#1F4D27] font-medium' : 'border-transparent text-gray-500'}`}>{label}</button>)}
         </div>
 
         <div className="p-5">
@@ -259,7 +259,7 @@ export default function RecetasPage() {
                   <td className="py-1.5 pr-2 text-right">{clp(N(p?.precio) * N(it.cantidad))}</td>
                   <td className="py-1.5">{!aprobada && <button onClick={() => setIngs(a => a.filter((_, j) => j !== i))} className="text-gray-400 hover:text-red-500"><Trash2 size={14} /></button>}</td>
                 </tr>) })}</tbody></table></div>
-              {!aprobada && <div className="flex gap-2 mt-3"><button onClick={() => setIngs(a => [...a, { producto_id: '', tipo_componente: 'materia_prima', cantidad: 1, unidad: 'kilo', merma_pct: 0 }])} className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 hover:border-[#c9a24e]"><Plus size={14} className="inline" /> Agregar ingrediente</button><button onClick={guardarIngs} disabled={saving} className="noma-btn-primary text-sm">Guardar ingredientes</button></div>}
+              {!aprobada && <div className="flex gap-2 mt-3"><button onClick={() => setIngs(a => [...a, { producto_id: '', tipo_componente: 'materia_prima', cantidad: 1, unidad: 'kilo', merma_pct: 0 }])} className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 hover:border-[#307139]"><Plus size={14} className="inline" /> Agregar ingrediente</button><button onClick={guardarIngs} disabled={saving} className="noma-btn-primary text-sm">Guardar ingredientes</button></div>}
               <p className="text-[11px] text-gray-400 mt-2">Solo productos del Maestro. Costos automáticos (precio × cantidad).</p>
             </div>
           )}
@@ -268,7 +268,7 @@ export default function RecetasPage() {
             <div className="space-y-2">
               {pasos.map((p, i) => (
                 <div key={i} className="border border-gray-100 rounded-lg p-3">
-                  <div className="flex items-center gap-2 mb-2"><span className="w-6 h-6 rounded-full bg-[#eef1f6] text-[#1b2a4a] flex items-center justify-center text-xs">{i + 1}</span>{!aprobada && <button onClick={() => setPasos(a => a.filter((_, j) => j !== i))} className="ml-auto text-gray-400 hover:text-red-500"><Trash2 size={14} /></button>}</div>
+                  <div className="flex items-center gap-2 mb-2"><span className="w-6 h-6 rounded-full bg-[#eef1f6] text-[#1F4D27] flex items-center justify-center text-xs">{i + 1}</span>{!aprobada && <button onClick={() => setPasos(a => a.filter((_, j) => j !== i))} className="ml-auto text-gray-400 hover:text-red-500"><Trash2 size={14} /></button>}</div>
                   <textarea rows={2} className="noma-input" placeholder="Instrucción..." value={S(p.instruccion)} disabled={aprobada} onChange={e => setPasos(a => a.map((x, j) => j === i ? { ...x, instruccion: e.target.value } : x))} />
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2">
                     <input type="number" className="noma-input !h-8" placeholder="min" value={S(p.tiempo_min)} disabled={aprobada} onChange={e => setPasos(a => a.map((x, j) => j === i ? { ...x, tiempo_min: e.target.value } : x))} />
@@ -278,7 +278,7 @@ export default function RecetasPage() {
                   </div>
                 </div>
               ))}
-              {!aprobada && <div className="flex gap-2"><button onClick={() => setPasos(a => [...a, { instruccion: '' }])} className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 hover:border-[#c9a24e]"><Plus size={14} className="inline" /> Agregar paso</button><button onClick={guardarPasos} disabled={saving} className="noma-btn-primary text-sm">Guardar pasos</button></div>}
+              {!aprobada && <div className="flex gap-2"><button onClick={() => setPasos(a => [...a, { instruccion: '' }])} className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 hover:border-[#307139]"><Plus size={14} className="inline" /> Agregar paso</button><button onClick={guardarPasos} disabled={saving} className="noma-btn-primary text-sm">Guardar pasos</button></div>}
             </div>
           )}
 
@@ -313,7 +313,7 @@ export default function RecetasPage() {
             <div>
               <table className="w-full text-sm"><thead><tr className="text-gray-400 text-left text-xs"><th className="py-2">v.</th><th className="py-2">Estado</th><th className="py-2">Motivo</th><th></th></tr></thead>
               <tbody>{versiones.map(v => (
-                <tr key={S(v.id)} className="border-t border-gray-50"><td className="py-2">v{S(v.version)}</td><td className="py-2"><span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${estadoPill(S(v.estado))}`}>{EST_LBL[S(v.estado)]}</span></td><td className="py-2 text-gray-500">{S(v.motivo_cambio) || '—'}</td><td className="py-2 text-right">{S(v.id) !== S(version.id) && <button onClick={() => cargarVersion(S(v.id))} className="text-xs text-[#c9a24e] underline">Ver</button>}</td></tr>
+                <tr key={S(v.id)} className="border-t border-gray-50"><td className="py-2">v{S(v.version)}</td><td className="py-2"><span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${estadoPill(S(v.estado))}`}>{EST_LBL[S(v.estado)]}</span></td><td className="py-2 text-gray-500">{S(v.motivo_cambio) || '—'}</td><td className="py-2 text-right">{S(v.id) !== S(version.id) && <button onClick={() => cargarVersion(S(v.id))} className="text-xs text-[#307139] underline">Ver</button>}</td></tr>
               ))}</tbody></table>
               <p className="text-[11px] text-gray-400 mt-2">Una versión aprobada no se edita: se crea una nueva. Solo una aprobada activa por producto.</p>
             </div>

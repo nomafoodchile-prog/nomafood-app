@@ -124,16 +124,16 @@ export default function SolicitudesAcceso() {
   const c = (e: string) => rows.filter(r => r.estado === e).length
   const conversion = rows.length ? Math.round((c('cuenta_creada') / rows.length) * 100) : 0
 
-  if (loading) return <div className="min-h-[60vh] flex items-center justify-center"><Loader2 className="w-6 h-6 text-[#1b2a4a] animate-spin" /></div>
+  if (loading) return <div className="min-h-[60vh] flex items-center justify-center"><Loader2 className="w-6 h-6 text-[#1F4D27] animate-spin" /></div>
 
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[#1b2a4a] flex items-center gap-2"><Users className="w-6 h-6 text-[#c9a24e]" /> Solicitudes de acceso</h1>
+          <h1 className="text-2xl font-bold text-[#1F4D27] flex items-center gap-2"><Users className="w-6 h-6 text-[#307139]" /> Solicitudes de acceso</h1>
           <p className="text-sm text-gray-500 mt-0.5">Solicitudes mayoristas desde la landing pública, en tiempo real.</p>
         </div>
-        <button onClick={cargar} className="flex items-center gap-1.5 text-xs font-medium text-[#1b2a4a] border border-gray-200 bg-white px-3 py-1.5 rounded-full hover:bg-gray-50"><RefreshCw size={13} /> Actualizar</button>
+        <button onClick={cargar} className="flex items-center gap-1.5 text-xs font-medium text-[#1F4D27] border border-gray-200 bg-white px-3 py-1.5 rounded-full hover:bg-gray-50"><RefreshCw size={13} /> Actualizar</button>
       </div>
 
       {/* KPIs */}
@@ -149,12 +149,12 @@ export default function SolicitudesAcceso() {
       <div className="flex flex-wrap items-center gap-2">
         {['todas', 'nueva', 'en_revision', 'contactado', 'aprobado', 'rechazado', 'cuenta_creada'].map(e => (
           <button key={e} onClick={() => setFEstado(e)}
-            className={`text-xs font-medium px-3 py-1.5 rounded-full border ${fEstado === e ? 'bg-[#1b2a4a] text-white border-[#1b2a4a]' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}>
+            className={`text-xs font-medium px-3 py-1.5 rounded-full border ${fEstado === e ? 'bg-[#1F4D27] text-white border-[#1F4D27]' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}>
             {e === 'todas' ? 'Todas' : EST_L[e]}
           </button>
         ))}
         <input value={q} onChange={e => setQ(e.target.value)} placeholder="Buscar empresa, comuna, N°…"
-          className="ml-auto text-sm px-3 py-1.5 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-[#c9a24e] w-52" />
+          className="ml-auto text-sm px-3 py-1.5 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-[#307139] w-52" />
       </div>
 
       {/* Lista */}
@@ -164,9 +164,9 @@ export default function SolicitudesAcceso() {
         <div className="bg-white rounded-2xl shadow-card overflow-hidden divide-y divide-gray-50">
           {filtradas.map(s => (
             <button key={s.id} onClick={() => abrir(s)} className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50/60">
-              <div className="w-9 h-9 rounded-lg bg-[#f5f0e8] flex items-center justify-center flex-shrink-0"><Building2 size={16} className="text-[#c9a24e]" /></div>
+              <div className="w-9 h-9 rounded-lg bg-[#F8EDD9] flex items-center justify-center flex-shrink-0"><Building2 size={16} className="text-[#307139]" /></div>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-[#1b2a4a] truncate">{s.empresa || s.nombre}</p>
+                <p className="text-sm font-medium text-[#1F4D27] truncate">{s.empresa || s.nombre}</p>
                 <p className="text-xs text-gray-400 truncate">{s.numero} · {s.tipo_cliente || '—'} · {s.comuna || '—'} · {s.origen || 'directo'}</p>
               </div>
               <span className="text-[11px] text-gray-400 hidden sm:block">{cuando(s.created_at)}</span>
@@ -180,7 +180,7 @@ export default function SolicitudesAcceso() {
       {sel && (
         <div className="fixed inset-0 z-[1000] bg-black/50 flex items-center justify-center p-4" onClick={() => setSel(null)}>
           <div className="bg-white rounded-2xl max-w-lg w-full max-h-[88vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
-            <div className="bg-[#1b2a4a] text-white px-5 py-3 flex items-center justify-between">
+            <div className="bg-[#1F4D27] text-white px-5 py-3 flex items-center justify-between">
               <div><p className="font-semibold text-sm">{sel.empresa || sel.nombre}</p><p className="text-[11px] text-white/60">{sel.numero}</p></div>
               <div className="flex items-center gap-2">
                 <span className={EST[sel.estado] || 'noma-badge-gray'}>{EST_L[sel.estado] || sel.estado}</span>
@@ -199,10 +199,10 @@ export default function SolicitudesAcceso() {
                 <Dato label="Origen" v={sel.origen} />
                 <Dato label="Sucursales" v={sel.cantidad_sucursales != null ? String(sel.cantidad_sucursales) : '—'} />
               </div>
-              <p className="text-sm text-gray-600 flex items-center gap-2"><MapPin size={14} className="text-[#c9a24e]" />{sel.direccion}, {sel.comuna}</p>
+              <p className="text-sm text-gray-600 flex items-center gap-2"><MapPin size={14} className="text-[#307139]" />{sel.direccion}, {sel.comuna}</p>
               <div className="flex flex-wrap gap-3 text-sm">
                 {sel.telefono && <a href={`https://wa.me/${sel.telefono.replace(/[^0-9]/g, '')}`} target="_blank" rel="noreferrer" className="text-green-700 flex items-center gap-1"><Phone size={14} />{sel.telefono}</a>}
-                {sel.email && <a href={`mailto:${sel.email}`} className="text-[#1b2a4a] flex items-center gap-1"><Mail size={14} />{sel.email}</a>}
+                {sel.email && <a href={`mailto:${sel.email}`} className="text-[#1F4D27] flex items-center gap-1"><Mail size={14} />{sel.email}</a>}
               </div>
               {sel.productos_interes && <p className="text-xs text-gray-500"><b>Productos de interés:</b> {sel.productos_interes}</p>}
               {sel.comentario && <p className="text-xs text-gray-500 italic">“{sel.comentario}”</p>}
@@ -223,8 +223,8 @@ export default function SolicitudesAcceso() {
 
               {/* Cuenta + invitación (tras crear cliente) */}
               {acceso && (
-                <div className="border border-[#c9a24e]/40 bg-[#faf7ef] rounded-xl p-3 space-y-2">
-                  <p className="text-xs font-semibold text-[#1b2a4a] flex items-center gap-1"><Link2 size={13} /> Cuenta del Portal Mayorista</p>
+                <div className="border border-[#307139]/40 bg-[#faf7ef] rounded-xl p-3 space-y-2">
+                  <p className="text-xs font-semibold text-[#1F4D27] flex items-center gap-1"><Link2 size={13} /> Cuenta del Portal Mayorista</p>
                   <p className="text-xs text-gray-600">Cuenta creada para <b>{acceso.email}</b>. {acceso.emailSent ? '✓ Invitación enviada por email' : 'Email no enviado — envía el enlace manualmente'}.</p>
                   {acceso.link && (
                     <div className="flex items-center gap-2">
@@ -239,8 +239,8 @@ export default function SolicitudesAcceso() {
 
               {/* Nota + acciones */}
               <div className="flex gap-2">
-                <input value={nota} onChange={e => setNota(e.target.value)} placeholder="Nota / motivo…" className="flex-1 text-sm px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c9a24e]" />
-                <button onClick={agregarNota} disabled={busy || !nota.trim()} className="px-3 rounded-lg border border-gray-200 text-[#1b2a4a] flex items-center gap-1 text-sm disabled:opacity-50"><MessageSquarePlus size={15} /></button>
+                <input value={nota} onChange={e => setNota(e.target.value)} placeholder="Nota / motivo…" className="flex-1 text-sm px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#307139]" />
+                <button onClick={agregarNota} disabled={busy || !nota.trim()} className="px-3 rounded-lg border border-gray-200 text-[#1F4D27] flex items-center gap-1 text-sm disabled:opacity-50"><MessageSquarePlus size={15} /></button>
               </div>
             </div>
 
@@ -263,7 +263,7 @@ export default function SolicitudesAcceso() {
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setPwOpen(false)} />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
             <div className="flex items-center justify-between mb-1">
-              <h3 className="font-bold text-[#1a1a1a] flex items-center gap-2"><KeyRound size={16} className="text-[#c9a24e]" /> Contraseña de acceso</h3>
+              <h3 className="font-bold text-[#1a1a1a] flex items-center gap-2"><KeyRound size={16} className="text-[#307139]" /> Contraseña de acceso</h3>
               <button onClick={() => setPwOpen(false)} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100"><X size={16} /></button>
             </div>
             <p className="text-xs text-gray-500 mb-4">{sel.empresa || sel.nombre}{sel.email ? ` · ${sel.email}` : ''}</p>
@@ -278,15 +278,15 @@ export default function SolicitudesAcceso() {
                   <div className="flex items-center justify-between gap-2"><span className="text-gray-400 text-xs">Contraseña</span><span className="font-mono text-[#1a1a1a]">{pwValue}</span></div>
                   <div className="flex items-center justify-between gap-2"><span className="text-gray-400 text-xs">Portal</span><span className="text-[#1a1a1a] text-xs">{((sel?.origen || '').toLowerCase().includes('brotes') ? BROTES_PORTAL_URL + '/portal/mayoristas/login?marca=brotes' : NOMMA_PORTAL_URL + '/portal/mayoristas/login').replace('https://', '')}</span></div>
                 </div>
-                <button onClick={() => { const eb = (sel?.origen || '').toLowerCase().includes('brotes'); const nom = eb ? 'BROTES ASIÁTICOS' : 'NOMMA FOOD'; const url = eb ? BROTES_PORTAL_URL + '/portal/mayoristas/login?marca=brotes' : NOMMA_PORTAL_URL + '/portal/mayoristas/login'; navigator.clipboard?.writeText(`Ingresa a ${nom}:\nPortal: ${url}\nCorreo: ${pwOk.email}\nContraseña: ${pwValue}`) }} className="w-full mt-3 flex items-center justify-center gap-2 text-sm font-semibold border border-gray-200 rounded-xl py-2.5 text-gray-600 hover:border-[#c9a24e]"><Copy size={14} /> Copiar datos para enviar al cliente</button>
-                <button onClick={() => setPwOpen(false)} className="w-full mt-2 bg-[#c9a24e] hover:bg-[#b8923f] text-[#1b2a4a] font-bold py-2.5 rounded-xl">Cerrar</button>
+                <button onClick={() => { const eb = (sel?.origen || '').toLowerCase().includes('brotes'); const nom = eb ? 'BROTES ASIÁTICOS' : 'NOMMA FOOD'; const url = eb ? BROTES_PORTAL_URL + '/portal/mayoristas/login?marca=brotes' : NOMMA_PORTAL_URL + '/portal/mayoristas/login'; navigator.clipboard?.writeText(`Ingresa a ${nom}:\nPortal: ${url}\nCorreo: ${pwOk.email}\nContraseña: ${pwValue}`) }} className="w-full mt-3 flex items-center justify-center gap-2 text-sm font-semibold border border-gray-200 rounded-xl py-2.5 text-gray-600 hover:border-[#307139]"><Copy size={14} /> Copiar datos para enviar al cliente</button>
+                <button onClick={() => setPwOpen(false)} className="w-full mt-2 bg-[#307139] hover:bg-[#255A2D] text-white font-bold py-2.5 rounded-xl">Cerrar</button>
               </div>
             ) : (
               <form onSubmit={definirClave} className="space-y-3">
                 <p className="text-xs text-gray-500">Define una contraseña y entrégasela al cliente. Entra directo, sin correo de invitación.</p>
-                <input type="text" value={pwValue} onChange={e => setPwValue(e.target.value)} className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#c9a24e]" placeholder="Mínimo 6 caracteres" autoFocus />
+                <input type="text" value={pwValue} onChange={e => setPwValue(e.target.value)} className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#307139]" placeholder="Mínimo 6 caracteres" autoFocus />
                 {pwErr && <p className="text-sm text-red-600">{pwErr}</p>}
-                <button type="submit" disabled={pwSaving} className="w-full bg-[#c9a24e] hover:bg-[#b8923f] text-[#1b2a4a] font-bold py-2.5 rounded-xl disabled:opacity-60">{pwSaving ? 'Guardando…' : 'Definir contraseña'}</button>
+                <button type="submit" disabled={pwSaving} className="w-full bg-[#307139] hover:bg-[#255A2D] text-white font-bold py-2.5 rounded-xl disabled:opacity-60">{pwSaving ? 'Guardando…' : 'Definir contraseña'}</button>
               </form>
             )}
           </div>
@@ -297,13 +297,13 @@ export default function SolicitudesAcceso() {
 }
 
 function Kpi({ label, value, tone }: { label: string; value: string | number; tone: 'blue' | 'gold' | 'green' | 'navy' }) {
-  const col = tone === 'blue' ? 'text-blue-600' : tone === 'gold' ? 'text-[#c9a24e]' : tone === 'green' ? 'text-green-600' : 'text-[#1b2a4a]'
+  const col = tone === 'blue' ? 'text-blue-600' : tone === 'gold' ? 'text-[#307139]' : tone === 'green' ? 'text-green-600' : 'text-[#1F4D27]'
   return <div className="bg-white rounded-2xl shadow-card p-4"><p className={`text-2xl font-bold ${col}`}>{value}</p><p className="text-xs text-gray-500">{label}</p></div>
 }
 function Dato({ label, v }: { label: string; v: string | null | undefined }) {
   return <div><p className="text-[11px] text-gray-400">{label}</p><p className="text-sm text-gray-800">{v || '—'}</p></div>
 }
 function Accion({ onClick, busy, label, icon: Icon, tone }: { onClick: () => void; busy: boolean; label: string; icon?: React.ElementType; tone?: 'green' | 'red' | 'gold' }) {
-  const cls = tone === 'green' ? 'bg-green-600 text-white hover:bg-green-700' : tone === 'red' ? 'bg-red-600 text-white hover:bg-red-700' : tone === 'gold' ? 'bg-[#c9a24e] text-[#1b2a4a] hover:bg-[#b8923f]' : 'bg-[#1b2a4a] text-white hover:bg-[#142033]'
+  const cls = tone === 'green' ? 'bg-green-600 text-white hover:bg-green-700' : tone === 'red' ? 'bg-red-600 text-white hover:bg-red-700' : tone === 'gold' ? 'bg-[#307139] text-white hover:bg-[#255A2D]' : 'bg-[#1F4D27] text-white hover:bg-[#142033]'
   return <button onClick={onClick} disabled={busy} className={`text-sm font-semibold px-3 py-2 rounded-xl flex items-center gap-1.5 disabled:opacity-50 ${cls}`}>{Icon && <Icon size={15} />}{label}</button>
 }

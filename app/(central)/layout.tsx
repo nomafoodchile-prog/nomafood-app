@@ -10,6 +10,11 @@ import { createServerClient } from '@/lib/supabase/server'
 // se les redirige a su propio portal.
 const CENTRAL_ROLES = ['SuperAdmin', 'Administracion', 'Gerencia', 'EncargadoProduccion', 'Armado']
 
+// Título de pestaña del cockpit interno (marca propia, ignora la plantilla del root).
+export const metadata = {
+  title: { absolute: 'Brotes Asiáticos Fábrica' },
+}
+
 export default async function CentralLayout({ children }: { children: React.ReactNode }) {
   // 1) Validar sesión real (getUser valida el token contra Supabase)
   const { data: { user } } = await getServerSupabase().auth.getUser()
@@ -28,7 +33,7 @@ export default async function CentralLayout({ children }: { children: React.Reac
   }
 
   return (
-    <div className="flex h-screen bg-[#f5f0e8] overflow-hidden">
+    <div className="flex h-screen bg-[#F8EDD9] overflow-hidden">
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <Header />

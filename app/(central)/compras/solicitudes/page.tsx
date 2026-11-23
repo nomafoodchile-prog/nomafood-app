@@ -131,18 +131,18 @@ export default function SolicitudesPage() {
     const est = S(sel.estado)
     return (
       <div className="space-y-4">
-        <button onClick={() => { setSel(null); cargar() }} className="flex items-center gap-1 text-sm text-gray-500 hover:text-[#1b2a4a]"><ArrowLeft size={15} /> Volver a solicitudes</button>
+        <button onClick={() => { setSel(null); cargar() }} className="flex items-center gap-1 text-sm text-gray-500 hover:text-[#1F4D27]"><ArrowLeft size={15} /> Volver a solicitudes</button>
         {error && <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-sm text-red-700">{error}</div>}
 
         <div className="noma-card !p-0 overflow-hidden">
           <div className="flex items-center justify-between gap-3 p-4 border-b border-gray-100 flex-wrap">
             <div>
-              <div className="flex items-center gap-2 flex-wrap"><span className="font-bold text-[#1b2a4a] font-mono">{S(sel.numero)}</span><span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${ESTADO_CLR[est]}`}>{ESTADO_LBL[est] || est}</span><span className={`text-[11px] font-semibold ${PRIOR_CLR[S(sel.prioridad)] || ''}`}>● {S(sel.prioridad)}</span></div>
+              <div className="flex items-center gap-2 flex-wrap"><span className="font-bold text-[#1F4D27] font-mono">{S(sel.numero)}</span><span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${ESTADO_CLR[est]}`}>{ESTADO_LBL[est] || est}</span><span className={`text-[11px] font-semibold ${PRIOR_CLR[S(sel.prioridad)] || ''}`}>● {S(sel.prioridad)}</span></div>
               <div className="text-sm text-gray-600 mt-1">{S(prov.nombre)} · {fecha(sel.created_at)}</div>
             </div>
             <div className="flex gap-2 flex-wrap">
-              <button onClick={() => exportarExcel(sel)} className="flex items-center gap-1.5 text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-2 hover:border-[#c9a24e]"><FileSpreadsheet size={15} /> Excel</button>
-              <button onClick={() => copiar(sel)} className="flex items-center gap-1.5 text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-2 hover:border-[#c9a24e]">{copiado ? <Check size={15} className="text-green-600" /> : <Copy size={15} />} {copiado ? 'Copiado' : 'Copiar'}</button>
+              <button onClick={() => exportarExcel(sel)} className="flex items-center gap-1.5 text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-2 hover:border-[#307139]"><FileSpreadsheet size={15} /> Excel</button>
+              <button onClick={() => copiar(sel)} className="flex items-center gap-1.5 text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-2 hover:border-[#307139]">{copiado ? <Check size={15} className="text-green-600" /> : <Copy size={15} />} {copiado ? 'Copiado' : 'Copiar'}</button>
               <button onClick={() => whatsapp(sel)} className="flex items-center gap-1.5 text-sm text-white rounded-lg px-3 py-2" style={{ backgroundColor: '#25D366' }}><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.1-1.7-.8-1.9-.9-.3-.1-.5-.1-.7.1-.2.3-.7.9-.9 1.1-.2.2-.3.2-.6.1-1.6-.8-2.6-1.4-3.7-3.2-.3-.5.3-.5.8-1.5.1-.2 0-.4 0-.5 0-.1-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.3 5.2 4.6 2 .8 2.7.9 3.7.8.6-.1 1.7-.7 1.9-1.4.2-.7.2-1.2.2-1.4-.1-.1-.3-.2-.6-.3M12 2a10 10 0 0 0-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1 0 12 2"/></svg> WhatsApp</button>
             </div>
           </div>
@@ -156,7 +156,7 @@ export default function SolicitudesPage() {
                     <td className="py-2 px-3 font-medium text-[#1a1a1a]">{nombreItem(i)}</td>
                     <td className={`py-2 px-3 text-right ${N(i.stock_actual) <= 0 ? 'text-red-600 font-semibold' : N(i.stock_actual) < N(i.stock_min) ? 'text-amber-600' : ''}`}>{N(i.stock_actual)}</td>
                     <td className="py-2 px-3 text-right text-gray-500">{N(i.stock_min)}</td>
-                    <td className="py-2 px-3 text-right font-semibold text-[#1b2a4a]">{N(i.cantidad_sugerida)}</td>
+                    <td className="py-2 px-3 text-right font-semibold text-[#1F4D27]">{N(i.cantidad_sugerida)}</td>
                     <td className="py-2 px-3 text-gray-500">{S(i.unidad_compra) || '—'}</td>
                     <td className="py-2 px-3 text-right text-gray-600">{clp(N(i.precio_unitario))}</td>
                     <td className="py-2 px-3 text-right font-medium">{clp(subtotal(i))}</td>
@@ -166,7 +166,7 @@ export default function SolicitudesPage() {
               <tfoot className="border-t border-gray-200">
                 <tr><td colSpan={6} className="py-1.5 px-3 text-right text-sm text-gray-500">Neto</td><td className="py-1.5 px-3 text-right text-sm text-gray-600">{clp(netoDe(sel.id))}</td></tr>
                 <tr><td colSpan={6} className="py-1.5 px-3 text-right text-sm text-gray-500">IVA 19%</td><td className="py-1.5 px-3 text-right text-sm text-gray-600">{clp(ivaDe(sel.id))}</td></tr>
-                <tr><td colSpan={6} className="py-2 px-3 text-right text-sm font-semibold text-[#1b2a4a]">Total a preparar</td><td className="py-2 px-3 text-right text-base font-bold text-[#1b2a4a]">{clp(totalDe(sel.id))}</td></tr>
+                <tr><td colSpan={6} className="py-2 px-3 text-right text-sm font-semibold text-[#1F4D27]">Total a preparar</td><td className="py-2 px-3 text-right text-base font-bold text-[#1F4D27]">{clp(totalDe(sel.id))}</td></tr>
               </tfoot>
             </table></div>
             {totalDe(sel.id) <= 0 && <p className="text-xs text-amber-600 mt-2">Sin precios cargados. Agrega precio referencial o último precio en la ficha del proveedor (Productos que provee) para ver el total.</p>}
@@ -193,7 +193,7 @@ export default function SolicitudesPage() {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div><h1 className="text-2xl font-bold text-[#1a1a1a]">Solicitudes de compra</h1><p className="text-sm text-gray-500 mt-0.5">Sugeridas por stock bajo el punto de reposición · la Central aprueba</p></div>
         <div className="flex gap-2">
-          <button onClick={() => { setLoading(true); cargar() }} className="flex items-center gap-2 text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-2 hover:border-[#c9a24e]"><RefreshCw size={15} /> Actualizar</button>
+          <button onClick={() => { setLoading(true); cargar() }} className="flex items-center gap-2 text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-2 hover:border-[#307139]"><RefreshCw size={15} /> Actualizar</button>
           <button onClick={generar} disabled={busy} className="noma-btn-primary flex items-center gap-2 text-sm">{busy ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />} Generar sugeridas</button>
         </div>
       </div>
@@ -210,11 +210,11 @@ export default function SolicitudesPage() {
           <th className="text-center py-3 px-4 text-xs font-semibold text-gray-400 uppercase">Estado</th>
         </tr></thead>
         <tbody className="divide-y divide-gray-50">
-          {loading ? <tr><td colSpan={6} className="py-12 text-center"><Loader2 className="w-5 h-5 text-[#1b2a4a] animate-spin mx-auto" /></td></tr>
+          {loading ? <tr><td colSpan={6} className="py-12 text-center"><Loader2 className="w-5 h-5 text-[#1F4D27] animate-spin mx-auto" /></td></tr>
           : sols.length === 0 ? <tr><td colSpan={6} className="py-12 text-center text-gray-400 text-sm">Sin solicitudes. Usa <strong>Generar sugeridas</strong> para crearlas desde el stock bajo mínimo.</td></tr>
           : sols.map(s => { const est = S(s.estado); const prov = (s.proveedor as Row) || {}; return (
             <tr key={S(s.id)} onClick={() => setSel(s)} className="hover:bg-gray-50 cursor-pointer">
-              <td className="py-3 px-4 font-mono font-medium text-[#1b2a4a]">{S(s.numero)}<span className={`ml-2 text-[10px] ${PRIOR_CLR[S(s.prioridad)] || ''}`}>●</span></td>
+              <td className="py-3 px-4 font-mono font-medium text-[#1F4D27]">{S(s.numero)}<span className={`ml-2 text-[10px] ${PRIOR_CLR[S(s.prioridad)] || ''}`}>●</span></td>
               <td className="py-3 px-4 text-[#1a1a1a]">{S(prov.nombre)}</td>
               <td className="py-3 px-4 text-right text-gray-600">{itemsDe(s.id).length}</td>
               <td className="py-3 px-4 text-right text-gray-700 font-medium">{clp(totalDe(s.id))}</td>

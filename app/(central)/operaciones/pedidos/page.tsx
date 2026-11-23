@@ -167,12 +167,12 @@ export default function PedidosPage() {
         </div>
         <div className="flex items-center gap-2">
           <div className="inline-flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-            <button onClick={() => setVista('lista')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 ${vista === 'lista' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><List size={14} /> Lista</button>
-            <button onClick={() => setVista('calendario')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 ${vista === 'calendario' ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}><CalendarDays size={14} /> Despachos</button>
+            <button onClick={() => setVista('lista')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 ${vista === 'lista' ? 'bg-white text-[#1F4D27] shadow-sm' : 'text-gray-500'}`}><List size={14} /> Lista</button>
+            <button onClick={() => setVista('calendario')} className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 ${vista === 'calendario' ? 'bg-white text-[#1F4D27] shadow-sm' : 'text-gray-500'}`}><CalendarDays size={14} /> Despachos</button>
           </div>
           <button
             onClick={() => { setRefreshing(true); cargar() }}
-            className="flex items-center gap-2 text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-2 hover:border-[#c9a24e] transition-colors"
+            className="flex items-center gap-2 text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-2 hover:border-[#307139] transition-colors"
           >
             <RefreshCw size={15} className={refreshing ? 'animate-spin' : ''} />
             Actualizar
@@ -199,8 +199,8 @@ export default function PedidosPage() {
                 const sel = iso === diaSel
                 return (
                   <button key={i} onClick={() => setDiaSel(sel ? null : iso)}
-                    className={`aspect-square rounded-lg text-xs flex flex-col items-center justify-center gap-0.5 border transition-all ${sel ? 'border-[#c9a24e] bg-[#f5f0e8]' : esHoy ? 'border-[#1b2a4a]/30 bg-[#1b2a4a]/5' : 'border-transparent hover:bg-gray-50'}`}>
-                    <span className={esHoy ? 'font-bold text-[#1b2a4a]' : 'text-gray-600'}>{n}</span>
+                    className={`aspect-square rounded-lg text-xs flex flex-col items-center justify-center gap-0.5 border transition-all ${sel ? 'border-[#307139] bg-[#F8EDD9]' : esHoy ? 'border-[#1F4D27]/30 bg-[#1F4D27]/5' : 'border-transparent hover:bg-gray-50'}`}>
+                    <span className={esHoy ? 'font-bold text-[#1F4D27]' : 'text-gray-600'}>{n}</span>
                     {items.length > 0 && <span className={`text-[9px] font-bold px-1 rounded-full ${hayPend ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'}`}>{items.length}</span>}
                   </button>
                 )
@@ -267,7 +267,7 @@ export default function PedidosPage() {
                 key={s.key}
                 onClick={() => setFiltro(s.key)}
                 className={`px-2.5 py-1 rounded-md text-xs font-semibold whitespace-nowrap transition-all ${
-                  filtro === s.key ? 'bg-[#c9a24e] text-[#1b2a4a]' : 'text-gray-500 hover:text-gray-700'
+                  filtro === s.key ? 'bg-[#307139] text-white' : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
                 {s.label}
@@ -293,7 +293,7 @@ export default function PedidosPage() {
             </thead>
             <tbody className="divide-y divide-gray-50">
               {loading ? (
-                <tr><td colSpan={6} className="py-12 text-center"><Loader2 className="w-5 h-5 text-[#1b2a4a] animate-spin mx-auto" /></td></tr>
+                <tr><td colSpan={6} className="py-12 text-center"><Loader2 className="w-5 h-5 text-[#1F4D27] animate-spin mx-auto" /></td></tr>
               ) : filtrados.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="py-12 text-center text-gray-400 text-sm">
@@ -316,7 +316,7 @@ export default function PedidosPage() {
                           type="date"
                           value={p.fecha_entrega_req ? String(p.fecha_entrega_req).slice(0, 10) : ''}
                           onChange={e => guardarFecha(p.id, e.target.value)}
-                          className="text-xs text-gray-600 border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:border-[#c9a24e]"
+                          className="text-xs text-gray-600 border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:border-[#307139]"
                           title="Fecha de despacho"
                         />
                       </td>
@@ -341,7 +341,7 @@ export default function PedidosPage() {
                               </button>
                             </>
                           )}
-                          <a href={`/orden-compra/${p.id}`} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-[#c9a24e] hover:underline whitespace-nowrap">Orden compra ↗</a>
+                          <a href={`/orden-compra/${p.id}`} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-[#307139] hover:underline whitespace-nowrap">Orden compra ↗</a>
                           {!['pagado', 'en_preparacion', 'listo_para_despacho', 'asignado', 'entregado'].includes(p.estado) && (
                             <button onClick={() => eliminar(p.id, p.numero_pedido)} disabled={eliminando === p.id} title="Eliminar pedido" className="text-gray-300 hover:text-red-500 disabled:opacity-50">
                               {eliminando === p.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
@@ -372,7 +372,7 @@ export default function PedidosPage() {
             <div className="bg-gray-50 rounded-xl p-3 text-xs text-gray-700 break-all mb-3">{linkModal.url}</div>
             <button
               onClick={() => navigator.clipboard?.writeText(`Hola! Aquí puedes completar el pago de tu pedido ${linkModal.numero} en NOMMA FOOD: ${linkModal.url}`)}
-              className="w-full flex items-center justify-center gap-2 text-sm font-semibold border border-gray-200 rounded-xl py-2.5 text-gray-600 hover:border-[#c9a24e] mb-2">
+              className="w-full flex items-center justify-center gap-2 text-sm font-semibold border border-gray-200 rounded-xl py-2.5 text-gray-600 hover:border-[#307139] mb-2">
               <Copy size={14} /> Copiar mensaje para WhatsApp
             </button>
             <a href={linkModal.url} target="_blank" rel="noopener noreferrer" className="block text-center w-full bg-[#009ee3] hover:bg-[#007ec0] text-white font-semibold py-2.5 rounded-xl">Abrir el link de pago</a>

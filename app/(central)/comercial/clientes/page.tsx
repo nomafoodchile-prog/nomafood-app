@@ -188,10 +188,10 @@ export default function ClientesPage() {
 
       {/* KPI cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="noma-card bg-gradient-to-br from-[#1b2a4a] to-gray-800 text-white">
-          <div className="w-9 h-9 bg-[#c9a24e]/20 rounded-xl flex items-center justify-center mb-3"><Users size={16} className="text-[#c9a24e]" /></div>
+        <div className="noma-card bg-gradient-to-br from-[#1F4D27] to-gray-800 text-white">
+          <div className="w-9 h-9 bg-[#307139]/20 rounded-xl flex items-center justify-center mb-3"><Users size={16} className="text-[#307139]" /></div>
           <p className="text-xs text-gray-400">Total clientes</p>
-          <p className="text-2xl font-bold text-[#c9a24e]">{clientes.length}</p>
+          <p className="text-2xl font-bold text-[#307139]">{clientes.length}</p>
         </div>
         <div className="noma-card border-l-4 border-green-400">
           <div className="w-9 h-9 bg-green-50 rounded-xl flex items-center justify-center mb-3"><Building2 size={16} className="text-green-600" /></div>
@@ -203,10 +203,10 @@ export default function ClientesPage() {
           <p className="text-xs text-gray-500">Con saldo pendiente</p>
           <p className="text-2xl font-bold text-red-600">{conSaldo}</p>
         </div>
-        <div className="noma-card border-l-4 border-[#c9a24e]">
-          <div className="w-9 h-9 bg-amber-50 rounded-xl flex items-center justify-center mb-3"><TrendingUp size={16} className="text-[#c9a24e]" /></div>
+        <div className="noma-card border-l-4 border-[#307139]">
+          <div className="w-9 h-9 bg-amber-50 rounded-xl flex items-center justify-center mb-3"><TrendingUp size={16} className="text-[#307139]" /></div>
           <p className="text-xs text-gray-500">Total por cobrar</p>
-          <p className="text-lg font-bold text-[#c9a24e]">{clp(totalSaldo)}</p>
+          <p className="text-lg font-bold text-[#307139]">{clp(totalSaldo)}</p>
         </div>
       </div>
 
@@ -219,7 +219,7 @@ export default function ClientesPage() {
         <div className="flex items-center gap-1 bg-gray-50 rounded-lg p-1 self-start">
           {(['Todos', 'Activo', 'Inactivo'] as const).map(t => (
             <button key={t} onClick={() => setFiltroEstado(t)}
-              className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${filtroEstado === t ? 'bg-[#c9a24e] text-[#1b2a4a]' : 'text-gray-500 hover:text-gray-700'}`}>
+              className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${filtroEstado === t ? 'bg-[#307139] text-white' : 'text-gray-500 hover:text-gray-700'}`}>
               {t}
             </button>
           ))}
@@ -247,7 +247,7 @@ export default function ClientesPage() {
             </thead>
             <tbody className="divide-y divide-gray-50">
               {loading ? (
-                <tr><td colSpan={8} className="py-12 text-center"><Loader2 className="w-5 h-5 text-[#1b2a4a] animate-spin mx-auto" /></td></tr>
+                <tr><td colSpan={8} className="py-12 text-center"><Loader2 className="w-5 h-5 text-[#1F4D27] animate-spin mx-auto" /></td></tr>
               ) : filtrados.length === 0 ? (
                 <tr><td colSpan={8} className="py-12 text-center text-gray-400 text-sm">
                   <Users className="w-8 h-8 text-gray-200 mx-auto mb-2" />
@@ -271,10 +271,10 @@ export default function ClientesPage() {
                       {c.estado === 'Activo' ? <span className="noma-badge-green">Activo</span> : <span className="noma-badge-gray">Inactivo</span>}
                     </td>
                     <td className="py-3 px-4 text-right whitespace-nowrap">
-                      <button onClick={() => abrirEditar(c)} title="Editar datos del cliente" className="inline-flex items-center gap-1.5 text-xs font-semibold border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-600 hover:border-[#c9a24e] hover:text-[#1b2a4a] mr-1.5">
+                      <button onClick={() => abrirEditar(c)} title="Editar datos del cliente" className="inline-flex items-center gap-1.5 text-xs font-semibold border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-600 hover:border-[#307139] hover:text-[#1F4D27] mr-1.5">
                         Editar
                       </button>
-                      <button onClick={() => abrirClave(c)} title="Definir contraseña de acceso" className="inline-flex items-center gap-1.5 text-xs font-semibold border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-600 hover:border-[#c9a24e] hover:text-[#1b2a4a]">
+                      <button onClick={() => abrirClave(c)} title="Definir contraseña de acceso" className="inline-flex items-center gap-1.5 text-xs font-semibold border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-600 hover:border-[#307139] hover:text-[#1F4D27]">
                         <KeyRound size={13} /> Contraseña
                       </button>
                     </td>
@@ -358,7 +358,7 @@ export default function ClientesPage() {
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setPwCliente(null)} />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
             <div className="flex items-center justify-between mb-1">
-              <h3 className="font-bold text-[#1a1a1a] flex items-center gap-2"><KeyRound size={16} className="text-[#c9a24e]" /> Contraseña de acceso</h3>
+              <h3 className="font-bold text-[#1a1a1a] flex items-center gap-2"><KeyRound size={16} className="text-[#307139]" /> Contraseña de acceso</h3>
               <button onClick={() => setPwCliente(null)} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100"><X size={16} /></button>
             </div>
             <p className="text-xs text-gray-500 mb-4">{pwCliente.empresa}</p>
@@ -375,7 +375,7 @@ export default function ClientesPage() {
                 </div>
                 <button
                   onClick={() => { const mi = MARCA_INFO[marcaDe(pwCliente)]; navigator.clipboard?.writeText(`Ingresa a ${mi.nombre}:\nPortal: ${mi.login}\nCorreo: ${pwEmail}\nContraseña: ${pwValue}`) }}
-                  className="w-full mt-3 flex items-center justify-center gap-2 text-sm font-semibold border border-gray-200 rounded-xl py-2.5 text-gray-600 hover:border-[#c9a24e]">
+                  className="w-full mt-3 flex items-center justify-center gap-2 text-sm font-semibold border border-gray-200 rounded-xl py-2.5 text-gray-600 hover:border-[#307139]">
                   <Copy size={14} /> Copiar datos para enviar al cliente
                 </button>
                 <button onClick={() => setPwCliente(null)} className="w-full mt-2 noma-btn-primary">Cerrar</button>

@@ -87,7 +87,7 @@ export default function ProyeccionPage() {
   const delDeuda = (id: string) => { setDeudas(prev => prev.filter(x => x.id !== id)); tocar() }
   const addMuchas = (filas: Deuda[]) => { if (filas.length) { setDeudas(prev => [...prev, ...filas]); tocar() } }
 
-  if (cargando) return <div className="min-h-[50vh] flex items-center justify-center"><Loader2 className="w-6 h-6 text-[#1b2a4a] animate-spin" /></div>
+  if (cargando) return <div className="min-h-[50vh] flex items-center justify-center"><Loader2 className="w-6 h-6 text-[#1F4D27] animate-spin" /></div>
 
   const semColor = c.estado === 'verde' ? 'bg-green-50 border-green-200 text-green-800' : c.estado === 'amarillo' ? 'bg-amber-50 border-amber-200 text-amber-800' : c.estado === 'rojo' ? 'bg-red-50 border-red-200 text-red-800' : 'bg-gray-50 border-gray-200 text-gray-500'
   const semDot = c.estado === 'verde' ? 'bg-green-500' : c.estado === 'amarillo' ? 'bg-amber-500' : c.estado === 'rojo' ? 'bg-red-500' : 'bg-gray-300'
@@ -106,16 +106,16 @@ export default function ProyeccionPage() {
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Tus números */}
         <div className="noma-card !p-5 space-y-4">
-          <h2 className="font-semibold text-[#1b2a4a] flex items-center gap-2"><Calculator size={16} /> Tus números</h2>
+          <h2 className="font-semibold text-[#1F4D27] flex items-center gap-2"><Calculator size={16} /> Tus números</h2>
           <Campo label="Gastos fijos al mes" prefijo="$" hint="Arriendo, sueldos, servicios, etc." value={d.gastosFijos} onChange={v => set('gastosFijos', v)} />
           <div className="grid grid-cols-2 gap-3">
             {hayDetalle ? (
               <div>
                 <label className="text-xs font-medium text-gray-600">Deuda total</label>
                 <div className="mt-1 flex items-center rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5">
-                  <span className="text-sm font-semibold text-[#1b2a4a]">{clp(totalDeudas)}</span>
+                  <span className="text-sm font-semibold text-[#1F4D27]">{clp(totalDeudas)}</span>
                 </div>
-                <p className="text-[11px] text-[#c9a24e] mt-1">Suma automática del detalle de abajo ({deudas.length})</p>
+                <p className="text-[11px] text-[#307139] mt-1">Suma automática del detalle de abajo ({deudas.length})</p>
               </div>
             ) : (
               <Campo label="Deuda total" prefijo="$" value={d.deudaTotal} onChange={v => set('deudaTotal', v)} />
@@ -145,11 +145,11 @@ export default function ProyeccionPage() {
           </div>
 
           <div className="noma-card !p-5">
-            <div className="flex items-center gap-2 font-semibold text-[#1b2a4a]"><Target size={16} /> Cuánto vender</div>
+            <div className="flex items-center gap-2 font-semibold text-[#1F4D27]"><Target size={16} /> Cuánto vender</div>
             <div className="mt-3 space-y-4">
-              <Meta titulo="Para cubrir los gastos" sub="Punto de equilibrio" mes={c.equilibrioMes} color="#1b2a4a" />
+              <Meta titulo="Para cubrir los gastos" sub="Punto de equilibrio" mes={c.equilibrioMes} color="#1F4D27" />
               <div className="border-t border-gray-100" />
-              <Meta titulo="Para cubrir gastos + salir de deudas" sub={c.abono > 0 ? (c.usaCuotas ? `Incluye tus cuotas reales ${clp(c.abono)}/mes (≈ ${c.mesesImplicados} meses)` : `Incluye abono de ${clp(c.abono)}/mes a la deuda`) : 'Sin deuda cargada'} mes={c.metaMes} color="#c9a24e" destacado />
+              <Meta titulo="Para cubrir gastos + salir de deudas" sub={c.abono > 0 ? (c.usaCuotas ? `Incluye tus cuotas reales ${clp(c.abono)}/mes (≈ ${c.mesesImplicados} meses)` : `Incluye abono de ${clp(c.abono)}/mes a la deuda`) : 'Sin deuda cargada'} mes={c.metaMes} color="#307139" destacado />
             </div>
             {c.pedidosDia > 0 && c.metaMes > 0 && (
               <p className="text-xs text-gray-500 mt-4 flex items-start gap-1.5"><Info size={13} className="mt-0.5 shrink-0" /> Con un ticket de {clp(c.ticket)}, son unos <strong>{c.pedidosDia} pedidos al día</strong> para llegar a la meta.</p>
@@ -176,7 +176,7 @@ function Campo({ label, value, onChange, hint, prefijo, sufijo }: { label: strin
   return (
     <div>
       <label className="text-xs font-medium text-gray-600">{label}</label>
-      <div className="mt-1 flex items-center rounded-xl border border-gray-200 focus-within:border-[#c9a24e] overflow-hidden bg-white">
+      <div className="mt-1 flex items-center rounded-xl border border-gray-200 focus-within:border-[#307139] overflow-hidden bg-white">
         {prefijo && <span className="pl-3 text-gray-400 text-sm">{prefijo}</span>}
         <input value={value} onChange={e => onChange(e.target.value)} inputMode="numeric" className="w-full px-3 py-2.5 text-sm outline-none" placeholder="0" />
         {sufijo && <span className="pr-3 text-gray-400 text-sm">{sufijo}</span>}
@@ -196,7 +196,7 @@ function Meta({ titulo, sub, mes, color, destacado }: { titulo: string; sub: str
       <div className="grid grid-cols-3 gap-2 mt-2">
         {([['al mes', mes], ['a la semana', semana], ['al día', dia]] as const).map(([l, v]) => (
           <div key={l} className={`rounded-xl px-2 py-2.5 text-center ${destacado ? 'bg-[#f5efdf]' : 'bg-gray-50'}`}>
-            <div className={`font-bold ${destacado ? 'text-[#1b2a4a] text-base' : 'text-[#1a1a1a] text-sm'}`}>{clp(v)}</div>
+            <div className={`font-bold ${destacado ? 'text-[#1F4D27] text-base' : 'text-[#1a1a1a] text-sm'}`}>{clp(v)}</div>
             <div className="text-[10px] text-gray-400 mt-0.5">{l}</div>
           </div>
         ))}
@@ -265,22 +265,22 @@ function DeudasCard({ deudas, totalDeudas, totalCuotas, onAdd, onUpd, onDel, onA
     <div className="noma-card !p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="font-semibold text-[#1b2a4a] flex items-center gap-2"><Receipt size={16} /> Detalle de deudas</h2>
+          <h2 className="font-semibold text-[#1F4D27] flex items-center gap-2"><Receipt size={16} /> Detalle de deudas</h2>
           <p className="text-[11px] text-gray-400 mt-0.5">Carga a quién le debes y cuánto. El total alimenta la proyección de arriba.</p>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={onAdd} className="text-xs font-medium px-3 py-2 rounded-lg bg-[#1b2a4a] text-white flex items-center gap-1.5"><Plus size={14} /> Agregar deuda</button>
+          <button onClick={onAdd} className="text-xs font-medium px-3 py-2 rounded-lg bg-[#1F4D27] text-white flex items-center gap-1.5"><Plus size={14} /> Agregar deuda</button>
           <button onClick={() => { setModo(modo === 'pegar' ? '' : 'pegar'); setAviso(null) }} className="text-xs font-medium px-3 py-2 rounded-lg border border-gray-200 text-gray-600 flex items-center gap-1.5"><ClipboardPaste size={14} /> Pegar desde Excel</button>
         </div>
       </div>
 
       {modo === 'pegar' && (
-        <div className="mt-4 rounded-xl border border-dashed border-[#c9a24e] bg-[#faf7ef] p-4 space-y-2">
+        <div className="mt-4 rounded-xl border border-dashed border-[#307139] bg-[#faf7ef] p-4 space-y-2">
           <p className="text-xs text-gray-600">Copia las celdas en tu Excel/Google Sheets y pégalas aquí. Una deuda por fila, en este orden:</p>
           <p className="text-[11px] text-gray-500 font-mono bg-white rounded px-2 py-1 border border-gray-100">Acreedor &nbsp;|&nbsp; Monto &nbsp;|&nbsp; Tipo (opc.) &nbsp;|&nbsp; Cuota mensual (opc.) &nbsp;|&nbsp; Notas (opc.)</p>
-          <textarea value={texto} onChange={e => setTexto(e.target.value)} rows={5} placeholder={'Distribuidora Sur\t850000\tproveedor\t85000\nPréstamo Tía Ana\t2000000\tprestamo\t100000\nBanco Estado\t1500000\tbanco'} className="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs font-mono outline-none focus:border-[#c9a24e]" />
+          <textarea value={texto} onChange={e => setTexto(e.target.value)} rows={5} placeholder={'Distribuidora Sur\t850000\tproveedor\t85000\nPréstamo Tía Ana\t2000000\tprestamo\t100000\nBanco Estado\t1500000\tbanco'} className="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs font-mono outline-none focus:border-[#307139]" />
           <div className="flex flex-wrap items-center gap-2">
-            <button onClick={procesarTexto} className="text-xs font-medium px-3 py-2 rounded-lg bg-[#c9a24e] text-white">Agregar las filas</button>
+            <button onClick={procesarTexto} className="text-xs font-medium px-3 py-2 rounded-lg bg-[#307139] text-white">Agregar las filas</button>
             <label className="text-xs font-medium px-3 py-2 rounded-lg border border-gray-200 text-gray-600 cursor-pointer">
               …o subir un CSV
               <input type="file" accept=".csv,text/csv,text/plain" onChange={onFile} className="hidden" />
@@ -290,7 +290,7 @@ function DeudasCard({ deudas, totalDeudas, totalCuotas, onAdd, onUpd, onDel, onA
         </div>
       )}
 
-      {aviso && <p className="mt-3 text-xs text-[#1b2a4a] bg-[#f5efdf] rounded-lg px-3 py-2">{aviso}</p>}
+      {aviso && <p className="mt-3 text-xs text-[#1F4D27] bg-[#f5efdf] rounded-lg px-3 py-2">{aviso}</p>}
 
       {/* Lista */}
       <div className="mt-4 space-y-2">
@@ -312,12 +312,12 @@ function DeudasCard({ deudas, totalDeudas, totalCuotas, onAdd, onUpd, onDel, onA
             {totalCuotas > 0 && (
               <div className="text-right">
                 <div className="text-[11px] text-gray-400">Cuotas al mes</div>
-                <div className="font-bold text-[#1b2a4a]">{clp(totalCuotas)}</div>
+                <div className="font-bold text-[#1F4D27]">{clp(totalCuotas)}</div>
               </div>
             )}
             <div className="text-right">
               <div className="text-[11px] text-gray-400">Deuda total</div>
-              <div className="font-bold text-lg text-[#c9a24e]">{clp(totalDeudas)}</div>
+              <div className="font-bold text-lg text-[#307139]">{clp(totalDeudas)}</div>
             </div>
           </div>
         </div>
@@ -331,30 +331,30 @@ function DeudaRow({ d, onUpd, onDel }: { d: Deuda; onUpd: (id: string, patch: Pa
     <div className="rounded-xl border border-gray-200 p-3 grid grid-cols-1 sm:grid-cols-12 gap-2 items-start">
       <div className="sm:col-span-4">
         <label className="text-[10px] text-gray-400 sm:hidden">A quién le debes</label>
-        <input value={d.acreedor} onChange={e => onUpd(d.id, { acreedor: e.target.value })} placeholder="Nombre del proveedor o prestamista" className="w-full rounded-lg border border-gray-200 px-2.5 py-2 text-sm outline-none focus:border-[#c9a24e]" />
+        <input value={d.acreedor} onChange={e => onUpd(d.id, { acreedor: e.target.value })} placeholder="Nombre del proveedor o prestamista" className="w-full rounded-lg border border-gray-200 px-2.5 py-2 text-sm outline-none focus:border-[#307139]" />
       </div>
       <div className="sm:col-span-2">
         <label className="text-[10px] text-gray-400 sm:hidden">Tipo</label>
-        <select value={d.tipo} onChange={e => onUpd(d.id, { tipo: e.target.value })} className="w-full rounded-lg border border-gray-200 px-2 py-2 text-sm outline-none focus:border-[#c9a24e] bg-white">
+        <select value={d.tipo} onChange={e => onUpd(d.id, { tipo: e.target.value })} className="w-full rounded-lg border border-gray-200 px-2 py-2 text-sm outline-none focus:border-[#307139] bg-white">
           {TIPOS.map(t => <option key={t.v} value={t.v}>{t.label}</option>)}
         </select>
       </div>
       <div className="sm:col-span-2">
         <label className="text-[10px] text-gray-400 sm:hidden">Monto (saldo)</label>
-        <div className="flex items-center rounded-lg border border-gray-200 focus-within:border-[#c9a24e] overflow-hidden">
+        <div className="flex items-center rounded-lg border border-gray-200 focus-within:border-[#307139] overflow-hidden">
           <span className="pl-2 text-gray-400 text-xs">$</span>
           <input value={d.monto ? d.monto.toLocaleString('es-CL') : ''} onChange={e => onUpd(d.id, { monto: num2(e.target.value) })} inputMode="numeric" placeholder="0" className="w-full px-1.5 py-2 text-sm outline-none" />
         </div>
       </div>
       <div className="sm:col-span-2">
         <label className="text-[10px] text-gray-400 sm:hidden">Cuota mensual</label>
-        <div className="flex items-center rounded-lg border border-gray-200 focus-within:border-[#c9a24e] overflow-hidden">
+        <div className="flex items-center rounded-lg border border-gray-200 focus-within:border-[#307139] overflow-hidden">
           <span className="pl-2 text-gray-400 text-xs">$</span>
           <input value={d.cuota ? d.cuota.toLocaleString('es-CL') : ''} onChange={e => onUpd(d.id, { cuota: num2(e.target.value) })} inputMode="numeric" placeholder="0" className="w-full px-1.5 py-2 text-sm outline-none" />
         </div>
       </div>
       <div className="sm:col-span-2 flex items-center gap-1">
-        <input value={d.notas} onChange={e => onUpd(d.id, { notas: e.target.value })} placeholder="Nota" className="w-full rounded-lg border border-gray-200 px-2.5 py-2 text-sm outline-none focus:border-[#c9a24e]" />
+        <input value={d.notas} onChange={e => onUpd(d.id, { notas: e.target.value })} placeholder="Nota" className="w-full rounded-lg border border-gray-200 px-2.5 py-2 text-sm outline-none focus:border-[#307139]" />
         <button onClick={() => onDel(d.id)} className="shrink-0 p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50" title="Borrar"><Trash2 size={15} /></button>
       </div>
     </div>

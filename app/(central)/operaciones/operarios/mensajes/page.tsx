@@ -48,18 +48,18 @@ export default function MensajesOperarioPage() {
     cargar()
   }
 
-  if (loading) return <div className="min-h-[60vh] flex items-center justify-center"><Loader2 className="w-6 h-6 text-[#1b2a4a] animate-spin" /></div>
+  if (loading) return <div className="min-h-[60vh] flex items-center justify-center"><Loader2 className="w-6 h-6 text-[#1F4D27] animate-spin" /></div>
 
   return (
     <div className="space-y-6 max-w-2xl">
-      <Link href="/operaciones/operarios" className="flex items-center gap-1 text-sm text-gray-500 hover:text-[#1b2a4a]"><ArrowLeft size={15} /> Volver a operarios</Link>
+      <Link href="/operaciones/operarios" className="flex items-center gap-1 text-sm text-gray-500 hover:text-[#1F4D27]"><ArrowLeft size={15} /> Volver a operarios</Link>
       <div>
         <h1 className="text-2xl font-bold text-[#1a1a1a]">Mensajes motivadores</h1>
         <p className="text-sm text-gray-500 mt-0.5">Se muestran al azar en el portal del operario según el momento. Activa/desactiva o agrega los tuyos.</p>
       </div>
 
       <div className="noma-card !p-4 space-y-3">
-        <div className="text-sm font-semibold text-[#1b2a4a]">Agregar mensaje</div>
+        <div className="text-sm font-semibold text-[#1F4D27]">Agregar mensaje</div>
         <div className="flex flex-col sm:flex-row gap-2">
           <select className="noma-input sm:w-56" value={nuevoCtx} onChange={e => setNuevoCtx(e.target.value)}>
             {CONTEXTOS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
@@ -73,7 +73,7 @@ export default function MensajesOperarioPage() {
         const delCtx = msgs.filter(m => S(m.contexto) === k)
         return (
           <div key={k}>
-            <div className="text-sm font-semibold text-[#1b2a4a] mb-2">{l}</div>
+            <div className="text-sm font-semibold text-[#1F4D27] mb-2">{l}</div>
             {delCtx.length === 0 ? <p className="text-xs text-gray-400">Sin mensajes.</p> : (
               <div className="space-y-2">
                 {delCtx.map(m => {

@@ -130,12 +130,12 @@ export default function CajaPage() {
     if (ok) { setMsg('Caja reabierta.'); cargar() }
   }
 
-  if (loading) return <div className="min-h-[60vh] flex items-center justify-center"><Loader2 className="w-6 h-6 text-[#1b2a4a] animate-spin" /></div>
+  if (loading) return <div className="min-h-[60vh] flex items-center justify-center"><Loader2 className="w-6 h-6 text-[#1F4D27] animate-spin" /></div>
 
   if (!puedeVer) return (
     <div className="p-6"><div className="noma-card text-center py-12 max-w-md mx-auto">
       <ShieldAlert className="w-9 h-9 mx-auto text-gray-300 mb-3" />
-      <p className="font-semibold text-[#1b2a4a]">Acceso restringido</p>
+      <p className="font-semibold text-[#1F4D27]">Acceso restringido</p>
       <p className="text-sm text-gray-500 mt-1">Solo Administración, Gerencia y Contador pueden ver la Caja.</p>
     </div></div>
   )
@@ -147,9 +147,9 @@ export default function CajaPage() {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div><h1 className="text-2xl font-bold text-[#1a1a1a]">Caja</h1><p className="text-sm text-gray-500 mt-0.5">Ingresos y egresos · {role === 'Contador' ? 'solo lectura' : 'operativa'}</p></div>
         <div className="flex gap-2 flex-wrap">
-          {puedeEditar ? <button onClick={sincronizar} disabled={busy} className="flex items-center gap-2 text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-2 hover:border-[#c9a24e]"><RefreshCw size={15} className={busy ? 'animate-spin' : ''} /> Sincronizar</button> : null}
+          {puedeEditar ? <button onClick={sincronizar} disabled={busy} className="flex items-center gap-2 text-sm text-gray-600 border border-gray-200 rounded-lg px-3 py-2 hover:border-[#307139]"><RefreshCw size={15} className={busy ? 'animate-spin' : ''} /> Sincronizar</button> : null}
           {puedeEditar && !hoyCerrada ? <button onClick={() => setForm({ tipo: 'egreso', fecha: hoyCl(), medio: 'Efectivo' })} className="noma-btn-primary flex items-center gap-2 text-sm"><Plus size={16} /> Movimiento</button> : null}
-          {puedeEditar && !hoyCerrada ? <button onClick={() => setArqueo({})} className="flex items-center gap-2 text-sm text-white bg-[#1b2a4a] rounded-lg px-3 py-2"><Lock size={15} /> Cerrar caja</button> : null}
+          {puedeEditar && !hoyCerrada ? <button onClick={() => setArqueo({})} className="flex items-center gap-2 text-sm text-white bg-[#1F4D27] rounded-lg px-3 py-2"><Lock size={15} /> Cerrar caja</button> : null}
           {hoyCerrada && REABRIR.includes(role) ? <button onClick={() => reabrir(hoyCl())} className="flex items-center gap-2 text-sm text-amber-700 border border-amber-200 rounded-lg px-3 py-2"><Lock size={15} /> Reabrir hoy</button> : null}
         </div>
       </div>
@@ -160,7 +160,7 @@ export default function CajaPage() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <Kpi label="Ingresos" value={clp(kpi.ing)} color="#27500A" />
         <Kpi label="Egresos" value={clp(kpi.egr)} color="#A32D2D" />
-        <Kpi label="Saldo" value={clp(kpi.saldo)} color="#1b2a4a" />
+        <Kpi label="Saldo" value={clp(kpi.saldo)} color="#1F4D27" />
         <Kpi label="Por conciliar" value={String(kpi.pend)} color="#854F0B" />
       </div>
 
@@ -193,7 +193,7 @@ export default function CajaPage() {
                 <td className={`py-2.5 px-3 text-right font-medium whitespace-nowrap ${S(m.tipo) === 'ingreso' ? 'text-green-700' : 'text-red-700'}`}>{S(m.tipo) === 'ingreso' ? '+' : '−'}{clp(N(m.monto))}</td>
                 <td className="py-2.5 px-3 text-right whitespace-nowrap">
                   {puedeEditar && !anul && !dayLock ? <>
-                    {S(m.origen) === 'manual' ? <button onClick={() => setForm({ ...m, file: null })} className="text-gray-300 hover:text-[#1b2a4a] mr-2" title="Editar"><Pencil size={14} /></button> : null}
+                    {S(m.origen) === 'manual' ? <button onClick={() => setForm({ ...m, file: null })} className="text-gray-300 hover:text-[#1F4D27] mr-2" title="Editar"><Pencil size={14} /></button> : null}
                     <button onClick={() => anular(m)} className="text-gray-300 hover:text-red-500" title="Anular"><Ban size={14} /></button>
                   </> : dayLock && !anul ? <Lock size={13} className="text-gray-300 inline" /> : null}
                 </td>
@@ -206,7 +206,7 @@ export default function CajaPage() {
       {form ? (
         <Modal title={form.id ? 'Editar movimiento' : 'Nuevo movimiento'} onClose={() => setForm(null)}>
           {!form.id ? <div className="flex gap-2 mb-3">
-            {['ingreso', 'egreso'].map(t => <button key={t} onClick={() => setForm({ ...form, tipo: t, categoria: '' })} className={`flex-1 text-sm py-2 rounded-lg ${S(form.tipo) === t ? 'bg-[#1b2a4a] text-white' : 'bg-gray-100 text-gray-600'}`}>{t === 'ingreso' ? 'Ingreso' : 'Egreso'}</button>)}
+            {['ingreso', 'egreso'].map(t => <button key={t} onClick={() => setForm({ ...form, tipo: t, categoria: '' })} className={`flex-1 text-sm py-2 rounded-lg ${S(form.tipo) === t ? 'bg-[#1F4D27] text-white' : 'bg-gray-100 text-gray-600'}`}>{t === 'ingreso' ? 'Ingreso' : 'Egreso'}</button>)}
           </div> : null}
           <div className="grid grid-cols-2 gap-3">
             <Campo label="Fecha"><input type="date" className="noma-input" value={S(form.fecha)} disabled={Boolean(form.id)} onChange={e => setForm({ ...form, fecha: e.target.value })} /></Campo>
@@ -231,7 +231,7 @@ export default function CajaPage() {
             <Campo label="Egresos"><input type="number" className="noma-input" value={S(arqueo.arqueo_egresos)} onChange={e => setArqueo({ ...arqueo, arqueo_egresos: e.target.value })} /></Campo>
             <div className="col-span-2"><Campo label="Observaciones"><textarea className="noma-input" rows={2} value={S(arqueo.observaciones)} onChange={e => setArqueo({ ...arqueo, observaciones: e.target.value })} /></Campo></div>
           </div>
-          <button onClick={cerrarCaja} disabled={busy} className="text-sm mt-4 w-full flex items-center justify-center gap-2 bg-[#1b2a4a] text-white rounded-lg py-2.5">{busy ? <Loader2 size={15} className="animate-spin" /> : <Lock size={15} />} Cerrar caja del día</button>
+          <button onClick={cerrarCaja} disabled={busy} className="text-sm mt-4 w-full flex items-center justify-center gap-2 bg-[#1F4D27] text-white rounded-lg py-2.5">{busy ? <Loader2 size={15} className="animate-spin" /> : <Lock size={15} />} Cerrar caja del día</button>
         </Modal>
       ) : null}
     </div>
@@ -248,7 +248,7 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50" onClick={onClose}>
       <div className="bg-white rounded-2xl p-5 w-full max-w-md" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between mb-3"><h3 className="font-bold text-[#1b2a4a]">{title}</h3><button onClick={onClose} className="text-gray-400"><X size={18} /></button></div>
+        <div className="flex items-center justify-between mb-3"><h3 className="font-bold text-[#1F4D27]">{title}</h3><button onClick={onClose} className="text-gray-400"><X size={18} /></button></div>
         {children}
       </div>
     </div>

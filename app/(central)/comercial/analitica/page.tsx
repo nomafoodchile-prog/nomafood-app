@@ -38,8 +38,8 @@ export default function AnaliticaPage() {
   return (
     <div className="p-5 lg:p-8 max-w-5xl mx-auto">
       <div className="flex items-center justify-between mb-1">
-        <h1 className="text-2xl font-bold text-[#16233f] flex items-center gap-2">
-          <BarChart3 className="text-[#c9a24e]" size={24} /> Analítica web
+        <h1 className="text-2xl font-bold text-[#1F4D27] flex items-center gap-2">
+          <BarChart3 className="text-[#307139]" size={24} /> Analítica web
         </h1>
         <button onClick={load} className="p-2 rounded-lg text-gray-500 hover:bg-gray-100" title="Actualizar">
           <RefreshCw size={16} />
@@ -54,7 +54,7 @@ export default function AnaliticaPage() {
       ) : !d || d.total_visitas === 0 ? (
         <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center">
           <Globe className="mx-auto text-gray-300 mb-3" size={40} />
-          <p className="font-semibold text-[#16233f]">Aún no hay visitas registradas</p>
+          <p className="font-semibold text-[#1F4D27]">Aún no hay visitas registradas</p>
           <p className="text-sm text-gray-500 mt-1">Los datos empiezan a acumularse desde que se publique la web. Vuelve aquí luego de recibir tráfico o lanzar una campaña.</p>
         </div>
       ) : (
@@ -71,7 +71,7 @@ export default function AnaliticaPage() {
             <div className="flex items-end gap-1.5 h-32 mt-2">
               {d.serie.map(s => (
                 <div key={s.dia} className="flex-1 flex flex-col items-center justify-end group">
-                  <div className="w-full rounded-t bg-[#c9a24e]" style={{ height: `${(s.total / maxSerie) * 100}%`, minHeight: s.total > 0 ? 4 : 0 }} title={`${s.dia}: ${s.total}`} />
+                  <div className="w-full rounded-t bg-[#307139]" style={{ height: `${(s.total / maxSerie) * 100}%`, minHeight: s.total > 0 ? 4 : 0 }} title={`${s.dia}: ${s.total}`} />
                   <span className="text-[9px] text-gray-400 mt-1">{s.dia.slice(8, 10)}</span>
                 </div>
               ))}
@@ -83,9 +83,9 @@ export default function AnaliticaPage() {
             <div className="space-y-2 mt-2">
               {d.fuentes.map(f => (
                 <div key={f.nombre} className="flex items-center gap-3">
-                  <span className="text-sm text-[#16233f] w-28 truncate">{f.nombre}</span>
+                  <span className="text-sm text-[#1F4D27] w-28 truncate">{f.nombre}</span>
                   <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-[#16233f] rounded-full" style={{ width: `${(f.total / maxFuente) * 100}%` }} />
+                    <div className="h-full bg-[#1F4D27] rounded-full" style={{ width: `${(f.total / maxFuente) * 100}%` }} />
                   </div>
                   <span className="text-sm font-semibold text-gray-600 w-12 text-right">{nf(f.total)}</span>
                 </div>
@@ -99,7 +99,7 @@ export default function AnaliticaPage() {
                 {d.paths.map(p => (
                   <li key={p.nombre} className="flex justify-between text-sm">
                     <span className="text-gray-600 truncate mr-2">{p.nombre}</span>
-                    <span className="font-semibold text-[#16233f]">{nf(p.total)}</span>
+                    <span className="font-semibold text-[#1F4D27]">{nf(p.total)}</span>
                   </li>
                 ))}
               </ul>
@@ -112,7 +112,7 @@ export default function AnaliticaPage() {
                   {d.campanas.map(c => (
                     <li key={c.nombre} className="flex justify-between text-sm">
                       <span className="text-gray-600 truncate mr-2">{c.nombre}</span>
-                      <span className="font-semibold text-[#16233f]">{nf(c.total)}</span>
+                      <span className="font-semibold text-[#1F4D27]">{nf(c.total)}</span>
                     </li>
                   ))}
                 </ul>
@@ -123,10 +123,10 @@ export default function AnaliticaPage() {
       )}
 
       {/* Nota GA4 */}
-      <div className="mt-8 bg-[#16233f]/5 border border-[#16233f]/10 rounded-xl p-4 text-sm text-gray-600">
-        <p className="font-semibold text-[#16233f] mb-1">¿Quieres análisis más profundo?</p>
+      <div className="mt-8 bg-[#1F4D27]/5 border border-[#1F4D27]/10 rounded-xl p-4 text-sm text-gray-600">
+        <p className="font-semibold text-[#1F4D27] mb-1">¿Quieres análisis más profundo?</p>
         Este panel es un resumen propio. Para reportes detallados (embudos, geografía, tiempo en página), usa <b>Google Analytics 4</b>.{' '}
-        <a href="https://analytics.google.com" target="_blank" rel="noopener noreferrer" className="text-[#c9a24e] font-semibold inline-flex items-center gap-1">Abrir Google Analytics <ExternalLink size={12} /></a>
+        <a href="https://analytics.google.com" target="_blank" rel="noopener noreferrer" className="text-[#307139] font-semibold inline-flex items-center gap-1">Abrir Google Analytics <ExternalLink size={12} /></a>
       </div>
     </div>
   )
@@ -136,7 +136,7 @@ function Metric({ icon, label, value }: { icon: ReactNode; label: string; value:
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-4">
       <div className="flex items-center gap-2 text-gray-400 text-xs font-medium mb-1">{icon}{label}</div>
-      <div className="text-2xl font-bold text-[#16233f] truncate">{value}</div>
+      <div className="text-2xl font-bold text-[#1F4D27] truncate">{value}</div>
     </div>
   )
 }
@@ -144,7 +144,7 @@ function Metric({ icon, label, value }: { icon: ReactNode; label: string; value:
 function Card({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-4">
-      <p className="text-sm font-semibold text-[#16233f]">{title}</p>
+      <p className="text-sm font-semibold text-[#1F4D27]">{title}</p>
       {children}
     </div>
   )

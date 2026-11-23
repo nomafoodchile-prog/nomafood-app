@@ -120,11 +120,11 @@ export default function CampanasPage() {
     setEd(e => e ? { ...e, asunto: S(t.asunto), contenido_html: S(t.contenido_html) || S(e.contenido_html), nombre: S(e.nombre) || S(t.nombre) } : e)
   }
 
-  if (loading) return <div className="min-h-[60vh] flex items-center justify-center"><Loader2 className="w-6 h-6 text-[#1b2a4a] animate-spin" /></div>
+  if (loading) return <div className="min-h-[60vh] flex items-center justify-center"><Loader2 className="w-6 h-6 text-[#1F4D27] animate-spin" /></div>
   if (!VER.includes(role)) return (
     <div className="p-6"><div className="noma-card text-center py-12 max-w-md mx-auto">
       <ShieldAlert className="w-9 h-9 mx-auto text-gray-300 mb-3" />
-      <p className="font-semibold text-[#1b2a4a]">Acceso restringido</p>
+      <p className="font-semibold text-[#1F4D27]">Acceso restringido</p>
       <p className="text-sm text-gray-500 mt-1">Solo Administración, Gerencia y Comercial pueden ver Campañas.</p>
     </div></div>
   )
@@ -134,7 +134,7 @@ export default function CampanasPage() {
     const segLbl = SEGMENTOS.find(s => s[0] === S(aud.segmento))?.[1] || 'Sin audiencia'
     return (
       <div className="space-y-4 max-w-3xl">
-        <button onClick={() => { setEd(null); cargar() }} className="flex items-center gap-1 text-sm text-gray-500 hover:text-[#1b2a4a]"><ArrowLeft size={15} /> Volver a campañas</button>
+        <button onClick={() => { setEd(null); cargar() }} className="flex items-center gap-1 text-sm text-gray-500 hover:text-[#1F4D27]"><ArrowLeft size={15} /> Volver a campañas</button>
         {error ? <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-sm text-red-700">{error}</div> : null}
         {msg ? <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2 text-sm text-green-800">{msg}</div> : null}
 
@@ -144,7 +144,7 @@ export default function CampanasPage() {
             <div><label className="text-xs text-gray-500">Plantilla</label><select className="noma-input mt-1" onChange={e => cargarPlantilla(e.target.value)} defaultValue=""><option value="">—</option>{plantillas.map(t => <option key={S(t.id)} value={S(t.id)}>{S(t.nombre)}</option>)}</select></div>
           </div>
           <div className="flex gap-2">
-            <span className="flex-1 text-center text-sm py-2 rounded-lg bg-[#1b2a4a] text-white"><Mail size={14} className="inline mr-1" /> Email</span>
+            <span className="flex-1 text-center text-sm py-2 rounded-lg bg-[#1F4D27] text-white"><Mail size={14} className="inline mr-1" /> Email</span>
             <span className="flex-1 text-center text-sm py-2 rounded-lg bg-gray-100 text-gray-400">WhatsApp (próximamente)</span>
           </div>
 
@@ -154,7 +154,7 @@ export default function CampanasPage() {
             {S(aud.segmento) === 'tipo' ? <div><label className="text-xs text-gray-500">Tipo</label><select className="noma-input mt-1" value={S(aud.tipo)} onChange={e => setAud('tipo', e.target.value)}><option value="">—</option>{TIPOS.map(t => <option key={t} value={t}>{t}</option>)}</select></div> : null}
             {S(aud.segmento) === 'categoria' ? <div><label className="text-xs text-gray-500">Categoría</label><select className="noma-input mt-1" value={S(aud.categoria)} onChange={e => setAud('categoria', e.target.value)}><option value="">—</option>{CATEGORIAS.map(t => <option key={t} value={t}>{t}</option>)}</select></div> : null}
             {(S(aud.segmento) === 'importada' || S(aud.segmento) === 'minorista') ? <div><label className="text-xs text-gray-500">Enviar de a (tanda)</label><input type="number" min={0} step={100} className="noma-input mt-1" value={aud.limite ? N(aud.limite) : ''} onChange={e => setAud('limite', e.target.value ? N(e.target.value) : 0)} placeholder="Todos" /></div> : null}
-            <div className="flex items-end"><div className="text-sm text-gray-600 flex items-center gap-1.5"><Users size={15} className="text-[#c9a24e]" /> {cuenta === null ? '—' : `${cuenta} destinatarios`}</div></div>
+            <div className="flex items-end"><div className="text-sm text-gray-600 flex items-center gap-1.5"><Users size={15} className="text-[#307139]" /> {cuenta === null ? '—' : `${cuenta} destinatarios`}</div></div>
           </div>
           {(S(aud.segmento) === 'importada' || S(aud.segmento) === 'minorista') && N(aud.limite) > 0 ? <div className="text-[11px] text-gray-500 -mt-2 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">Envío por tandas: cada vez que le das <b>Enviar ahora</b> salen los siguientes {N(aud.limite)} que aún no reciben esta campaña (sin repetir). Repite el envío otro día hasta llegar a toda la base.</div> : null}
 
@@ -184,7 +184,7 @@ export default function CampanasPage() {
           </div>
 
           <div className="bg-gray-50 rounded-xl p-3 space-y-2">
-            <div className="text-xs font-semibold text-[#1b2a4a]">Seguridad de envío</div>
+            <div className="text-xs font-semibold text-[#1F4D27]">Seguridad de envío</div>
             <div className="flex flex-wrap gap-2 items-end">
               <div className="flex-1 min-w-[180px]"><label className="text-[11px] text-gray-500">Correo de prueba</label><input className="noma-input mt-1" value={prueba} onChange={e => setPrueba(e.target.value)} /></div>
               <button onClick={enviarPrueba} disabled={busy} className="text-sm border border-gray-200 rounded-lg px-3 py-2 flex items-center gap-1.5">{ed.prueba_enviada ? <Check size={14} className="text-green-600" /> : <Send size={14} />} Enviar prueba</button>
@@ -194,8 +194,8 @@ export default function CampanasPage() {
 
           {puedeEnviar ? (
             <div className="flex gap-2">
-              <button onClick={() => setConf('programar')} disabled={!ed.prueba_enviada || !ed.programada_para} className={`flex-1 text-sm rounded-lg py-2.5 flex items-center justify-center gap-2 ${ed.prueba_enviada && ed.programada_para ? 'bg-white border border-[#1b2a4a] text-[#1b2a4a]' : 'bg-gray-100 text-gray-400'}`}><CalendarCheck size={15} /> Programar</button>
-              <button onClick={() => setConf('enviar')} disabled={!ed.prueba_enviada} className={`flex-1 text-sm rounded-lg py-2.5 flex items-center justify-center gap-2 font-semibold ${ed.prueba_enviada ? 'bg-[#c9a24e] text-[#1b2a4a]' : 'bg-gray-100 text-gray-400'}`}><Send size={15} /> Enviar ahora</button>
+              <button onClick={() => setConf('programar')} disabled={!ed.prueba_enviada || !ed.programada_para} className={`flex-1 text-sm rounded-lg py-2.5 flex items-center justify-center gap-2 ${ed.prueba_enviada && ed.programada_para ? 'bg-white border border-[#1F4D27] text-[#1F4D27]' : 'bg-gray-100 text-gray-400'}`}><CalendarCheck size={15} /> Programar</button>
+              <button onClick={() => setConf('enviar')} disabled={!ed.prueba_enviada} className={`flex-1 text-sm rounded-lg py-2.5 flex items-center justify-center gap-2 font-semibold ${ed.prueba_enviada ? 'bg-[#307139] text-white' : 'bg-gray-100 text-gray-400'}`}><Send size={15} /> Enviar ahora</button>
             </div>
           ) : <div className="text-xs text-gray-400">Como Comercial puedes crear y guardar borradores. El envío lo hace Administración o Gerencia.</div>}
         </div>
@@ -203,7 +203,7 @@ export default function CampanasPage() {
         {conf ? (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50" onClick={() => setConf(null)}>
             <div className="bg-white rounded-2xl p-5 w-full max-w-sm text-center" onClick={e => e.stopPropagation()}>
-              <h3 className="font-bold text-[#1b2a4a]">{conf === 'programar' ? 'Confirmar programación' : 'Confirmar envío'}</h3>
+              <h3 className="font-bold text-[#1F4D27]">{conf === 'programar' ? 'Confirmar programación' : 'Confirmar envío'}</h3>
               <p className="text-sm text-gray-600 mt-2">Se {conf === 'programar' ? 'programará' : 'enviará'} a <strong>{cuenta ?? 0} destinatarios</strong> ({segLbl}).{conf === 'programar' ? ` Para el ${S(ed.programada_para).replace('T', ' ')}.` : ''}</p>
               <div className="flex gap-2 mt-4">
                 <button onClick={() => setConf(null)} className="flex-1 text-sm border border-gray-200 rounded-lg py-2.5">Cancelar</button>
@@ -232,7 +232,7 @@ export default function CampanasPage() {
           {camps.length === 0 ? <tr><td colSpan={4} className="py-10 text-center text-gray-400 text-sm">Sin campañas. Crea la primera.</td></tr>
           : camps.map(c => { const e = ESTADO[S(c.estado)] || ESTADO.borrador; const st = (c.stats as Row) || {}; return (
             <tr key={S(c.id)}>
-              <td className="py-2.5 px-3"><button onClick={() => { setEd({ ...c }); setError(null); setMsg(null) }} className="font-medium text-[#1a1a1a] hover:text-[#c9a24e] text-left">{S(c.nombre)}</button><div className="text-[11px] text-gray-400">{S(c.asunto)}</div></td>
+              <td className="py-2.5 px-3"><button onClick={() => { setEd({ ...c }); setError(null); setMsg(null) }} className="font-medium text-[#1a1a1a] hover:text-[#307139] text-left">{S(c.nombre)}</button><div className="text-[11px] text-gray-400">{S(c.asunto)}</div></td>
               <td className="py-2.5 px-3"><span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${e.c}`}>{e.l}</span></td>
               <td className="py-2.5 px-3 text-xs text-gray-500">{S(c.estado) === 'enviada' ? `${N(st.enviados)} enviados · ${N(st.errores)} errores · ${N(st.abiertos)} abiertos · ${N(st.clics)} clics` : '—'}</td>
               <td className="py-2.5 px-3 text-right whitespace-nowrap">

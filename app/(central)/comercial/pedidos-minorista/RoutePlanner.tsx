@@ -208,7 +208,7 @@ export default function RoutePlanner({
     <div className="fixed inset-0 bg-black/50 z-50 flex items-stretch sm:items-center justify-center sm:p-4" onClick={onClose}>
       <div className="bg-[#f5efe6] w-full sm:max-w-5xl sm:rounded-2xl max-h-full sm:max-h-[92vh] overflow-auto" onClick={e => e.stopPropagation()}>
         {/* Cabecera */}
-        <div className="sticky top-0 bg-[#16233f] text-white px-5 py-3.5 flex items-center justify-between z-10">
+        <div className="sticky top-0 bg-[#1F4D27] text-white px-5 py-3.5 flex items-center justify-between z-10">
           <div>
             <h2 className="font-bold text-lg">Nueva ruta de despacho</h2>
             <p className="text-xs text-white/70">Revisa el orden y los tiempos, asigna un chofer y confirma.</p>
@@ -221,7 +221,7 @@ export default function RoutePlanner({
         ) : error ? (
           <div className="p-6">
             <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 text-sm">{error}</div>
-            <button onClick={() => optimizar()} className="mt-3 px-4 py-2 rounded-xl bg-[#16233f] text-white text-sm font-semibold">Reintentar</button>
+            <button onClick={() => optimizar()} className="mt-3 px-4 py-2 rounded-xl bg-[#1F4D27] text-white text-sm font-semibold">Reintentar</button>
           </div>
         ) : (
           <div className="p-4 sm:p-5">
@@ -234,7 +234,7 @@ export default function RoutePlanner({
               ].map(m => (
                 <div key={m.k} className="bg-white border rounded-xl px-3.5 py-2 min-w-[92px]">
                   <div className="text-[10px] uppercase tracking-wide text-gray-400 font-bold">{m.k}</div>
-                  <div className="text-lg font-bold text-[#16233f]">{m.v}</div>
+                  <div className="text-lg font-bold text-[#1F4D27]">{m.v}</div>
                 </div>
               ))}
               {data?.provider === 'local-estimate' && (
@@ -259,7 +259,7 @@ export default function RoutePlanner({
                         placeholder="Calle y número correctos"
                         className="flex-1 min-w-0 border rounded-lg px-2.5 py-1.5 text-sm" />
                       <button onClick={() => corregir(f.id)} disabled={fixing === f.id}
-                        className="px-3 py-1.5 rounded-lg bg-[#16233f] text-white text-xs font-semibold flex items-center gap-1.5 disabled:opacity-60">
+                        className="px-3 py-1.5 rounded-lg bg-[#1F4D27] text-white text-xs font-semibold flex items-center gap-1.5 disabled:opacity-60">
                         {fixing === f.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <MapPin className="w-3.5 h-3.5" />} Corregir
                       </button>
                     </div>
@@ -271,7 +271,7 @@ export default function RoutePlanner({
             <div className="grid md:grid-cols-2 gap-4">
               {/* Paradas */}
               <div className="bg-white border rounded-xl p-4">
-                <h3 className="font-semibold text-[#16233f] mb-2.5 text-sm">Paradas · arrastra o usa ▲▼ para reordenar</h3>
+                <h3 className="font-semibold text-[#1F4D27] mb-2.5 text-sm">Paradas · arrastra o usa ▲▼ para reordenar</h3>
                 <div className="mb-3">
                   <label className="text-[11px] font-bold uppercase text-gray-400">Salida desde (dirección de la fábrica)</label>
                   <div className="flex gap-2 mt-1">
@@ -279,7 +279,7 @@ export default function RoutePlanner({
                       placeholder="Ej: La Coruña 5008, Estación Central"
                       className="flex-1 min-w-0 border rounded-lg px-2.5 py-1.5 text-sm" />
                     <button onClick={aplicarOrigen} disabled={savingOrigin}
-                      className="px-3 py-1.5 rounded-lg bg-[#16233f] text-white text-xs font-semibold flex items-center gap-1.5 disabled:opacity-60 whitespace-nowrap">
+                      className="px-3 py-1.5 rounded-lg bg-[#1F4D27] text-white text-xs font-semibold flex items-center gap-1.5 disabled:opacity-60 whitespace-nowrap">
                       {savingOrigin ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <MapPin className="w-3.5 h-3.5" />} Aplicar
                     </button>
                   </div>
@@ -287,15 +287,15 @@ export default function RoutePlanner({
                 </div>
                 <div className="flex flex-wrap gap-2 items-end mb-3">
                   <label className="flex flex-col gap-1 text-[11px] font-bold uppercase text-gray-400">Salida fábrica
-                    <input type="time" value={salida} onChange={e => setSalida(e.target.value)} className="border rounded-lg px-2 py-1.5 text-sm font-normal text-[#16233f]" />
+                    <input type="time" value={salida} onChange={e => setSalida(e.target.value)} className="border rounded-lg px-2 py-1.5 text-sm font-normal text-[#1F4D27]" />
                   </label>
                   <label className="flex flex-col gap-1 text-[11px] font-bold uppercase text-gray-400">Min/entrega
-                    <select value={serviceMin} onChange={e => setServiceMin(Number(e.target.value))} className="border rounded-lg px-2 py-1.5 text-sm font-normal text-[#16233f]">
+                    <select value={serviceMin} onChange={e => setServiceMin(Number(e.target.value))} className="border rounded-lg px-2 py-1.5 text-sm font-normal text-[#1F4D27]">
                       {[5, 8, 10, 15].map(n => <option key={n} value={n}>{n} min</option>)}
                     </select>
                   </label>
                   <label className="flex flex-col gap-1 text-[11px] font-bold uppercase text-gray-400 flex-1 min-w-[140px]">Chofer
-                    <select value={choferId} onChange={e => setChoferId(e.target.value)} className="border rounded-lg px-2 py-1.5 text-sm font-normal text-[#16233f]">
+                    <select value={choferId} onChange={e => setChoferId(e.target.value)} className="border rounded-lg px-2 py-1.5 text-sm font-normal text-[#1F4D27]">
                       <option value="">— Asignar después —</option>
                       {choferes.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
                     </select>
@@ -303,7 +303,7 @@ export default function RoutePlanner({
                 </div>
 
                 <button onClick={abrirPickerMay}
-                  className="w-full mb-3 flex items-center justify-center gap-1.5 border-2 border-dashed border-[#c9a24e]/60 text-[#8a6d22] rounded-xl py-2 text-sm font-semibold hover:bg-[#c9a24e]/10">
+                  className="w-full mb-3 flex items-center justify-center gap-1.5 border-2 border-dashed border-[#307139]/60 text-[#255A2D] rounded-xl py-2 text-sm font-semibold hover:bg-[#307139]/10">
                   <Plus className="w-4 h-4" /> Agregar pedidos mayoristas{mayoristaIds.length > 0 ? ` (${mayoristaIds.length})` : ''}
                 </button>
 
@@ -312,21 +312,21 @@ export default function RoutePlanner({
                     <div key={s.pi} draggable
                       onDragStart={() => setDragPi(s.pi)} onDragOver={e => e.preventDefault()} onDrop={() => onDrop(s.pi)}
                       className="flex gap-2.5 items-center p-2.5 border rounded-xl bg-gray-50">
-                      <div className="w-7 h-7 rounded-full bg-[#16233f] text-white font-bold grid place-items-center text-sm flex-none cursor-grab">{i + 1}</div>
+                      <div className="w-7 h-7 rounded-full bg-[#1F4D27] text-white font-bold grid place-items-center text-sm flex-none cursor-grab">{i + 1}</div>
                       <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-sm text-[#16233f] truncate">
+                        <div className="font-semibold text-sm text-[#1F4D27] truncate">
                           {s.cliente || 'Cliente'}
-                          {s.tipo === 'mayorista' && <span className="ml-1.5 align-middle text-[9px] font-bold bg-[#16233f] text-white px-1.5 py-0.5 rounded-full">MAYORISTA</span>}
+                          {s.tipo === 'mayorista' && <span className="ml-1.5 align-middle text-[9px] font-bold bg-[#1F4D27] text-white px-1.5 py-0.5 rounded-full">MAYORISTA</span>}
                         </div>
                         <div className="text-[11px] text-gray-400 truncate">{[s.direccion, s.comuna].filter(Boolean).join(', ')}</div>
                       </div>
                       <div className="text-right flex-none">
-                        <div className="font-bold text-sm text-[#16233f] tabular-nums">{fromMin(s.etaMin || 0)}</div>
+                        <div className="font-bold text-sm text-[#1F4D27] tabular-nums">{fromMin(s.etaMin || 0)}</div>
                         <div className="text-[9px] uppercase text-gray-400">llegada</div>
                       </div>
                       <div className="flex flex-col flex-none">
-                        <button onClick={() => move(s.pi, -1)} className="text-gray-400 hover:text-[#16233f] w-6 h-5 grid place-items-center"><ArrowUp className="w-3.5 h-3.5" /></button>
-                        <button onClick={() => move(s.pi, 1)} className="text-gray-400 hover:text-[#16233f] w-6 h-5 grid place-items-center"><ArrowDown className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => move(s.pi, -1)} className="text-gray-400 hover:text-[#1F4D27] w-6 h-5 grid place-items-center"><ArrowUp className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => move(s.pi, 1)} className="text-gray-400 hover:text-[#1F4D27] w-6 h-5 grid place-items-center"><ArrowDown className="w-3.5 h-3.5" /></button>
                       </div>
                       <button onClick={() => remove(s.pi)} title="Quitar de la ruta" className="text-gray-300 hover:text-red-500 flex-none"><Trash2 className="w-4 h-4" /></button>
                     </div>
@@ -349,7 +349,7 @@ export default function RoutePlanner({
               <div className="flex gap-2 ml-auto">
                 <button onClick={onClose} className="px-4 py-2.5 rounded-xl border bg-white text-sm font-semibold text-gray-600">Cancelar</button>
                 <button onClick={confirmar} disabled={confirming || calc.stops.length === 0}
-                  className="px-5 py-2.5 rounded-xl bg-[#c9a24e] hover:bg-[#b8923f] text-[#16233f] text-sm font-bold flex items-center gap-2 disabled:opacity-60">
+                  className="px-5 py-2.5 rounded-xl bg-[#307139] hover:bg-[#255A2D] text-white text-sm font-bold flex items-center gap-2 disabled:opacity-60">
                   {confirming ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />} Confirmar ruta
                 </button>
               </div>
@@ -362,7 +362,7 @@ export default function RoutePlanner({
         <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4" onClick={e => { e.stopPropagation(); setMayPicker(false) }}>
           <div className="bg-white rounded-2xl max-w-md w-full max-h-[82vh] flex flex-col" onClick={e => e.stopPropagation()}>
             <div className="p-4 border-b flex items-center justify-between">
-              <h3 className="font-bold text-[#16233f] flex items-center gap-2"><Building2 className="w-5 h-5" /> Pedidos mayoristas</h3>
+              <h3 className="font-bold text-[#1F4D27] flex items-center gap-2"><Building2 className="w-5 h-5" /> Pedidos mayoristas</h3>
               <button onClick={() => setMayPicker(false)}><X className="w-5 h-5 text-gray-400" /></button>
             </div>
             <div className="p-3 overflow-auto flex-1">
@@ -373,10 +373,10 @@ export default function RoutePlanner({
                   {mayList.map(m => {
                     const on = maySel.has(m.id)
                     return (
-                      <label key={m.id} className={`flex items-center gap-2.5 p-2.5 border rounded-xl cursor-pointer ${on ? 'bg-amber-50 border-[#c9a24e]' : ''}`}>
-                        <input type="checkbox" checked={on} onChange={() => setMaySel(prev => { const n = new Set(prev); if (n.has(m.id)) n.delete(m.id); else n.add(m.id); return n })} className="w-4 h-4 accent-[#16233f] flex-none" />
+                      <label key={m.id} className={`flex items-center gap-2.5 p-2.5 border rounded-xl cursor-pointer ${on ? 'bg-amber-50 border-[#307139]' : ''}`}>
+                        <input type="checkbox" checked={on} onChange={() => setMaySel(prev => { const n = new Set(prev); if (n.has(m.id)) n.delete(m.id); else n.add(m.id); return n })} className="w-4 h-4 accent-[#1F4D27] flex-none" />
                         <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-sm text-[#16233f] truncate">{m.cliente}{m.numero ? ` · #${m.numero}` : ''}</div>
+                          <div className="font-semibold text-sm text-[#1F4D27] truncate">{m.cliente}{m.numero ? ` · #${m.numero}` : ''}</div>
                           <div className="text-[11px] text-gray-400 truncate">{m.direccion || 'Sin dirección'}</div>
                         </div>
                         {!m.tiene_coords && <span className="text-[9px] text-amber-600 flex-none">por ubicar</span>}
@@ -390,7 +390,7 @@ export default function RoutePlanner({
             </div>
             <div className="p-4 border-t flex gap-2">
               <button onClick={() => setMayPicker(false)} className="flex-1 py-2.5 rounded-xl border text-sm font-semibold text-gray-600">Cancelar</button>
-              <button onClick={aplicarMay} className="flex-1 py-2.5 rounded-xl bg-[#16233f] text-white text-sm font-bold">Agregar{maySel.size > 0 ? ` (${maySel.size})` : ''}</button>
+              <button onClick={aplicarMay} className="flex-1 py-2.5 rounded-xl bg-[#1F4D27] text-white text-sm font-bold">Agregar{maySel.size > 0 ? ` (${maySel.size})` : ''}</button>
             </div>
           </div>
         </div>

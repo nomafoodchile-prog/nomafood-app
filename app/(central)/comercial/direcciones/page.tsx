@@ -46,12 +46,12 @@ export default function DireccionesPage() {
 
       <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1 w-fit">
         {([['pendiente', `Por revisar${pendientes ? ` (${pendientes})` : ''}`], ['aprobada', 'Aprobadas'], ['rechazada', 'Rechazadas'], ['todas', 'Todas']] as const).map(([k, l]) => (
-          <button key={k} onClick={() => setFiltro(k)} className={`px-3 py-1.5 rounded-md text-xs font-semibold ${filtro === k ? 'bg-white text-[#1b2a4a] shadow-sm' : 'text-gray-500'}`}>{l}</button>
+          <button key={k} onClick={() => setFiltro(k)} className={`px-3 py-1.5 rounded-md text-xs font-semibold ${filtro === k ? 'bg-white text-[#1F4D27] shadow-sm' : 'text-gray-500'}`}>{l}</button>
         ))}
       </div>
 
       {loading ? (
-        <div className="py-16 text-center"><Loader2 className="w-6 h-6 text-[#1b2a4a] animate-spin mx-auto" /></div>
+        <div className="py-16 text-center"><Loader2 className="w-6 h-6 text-[#1F4D27] animate-spin mx-auto" /></div>
       ) : vis.length === 0 ? (
         <div className="noma-card text-center py-14 text-gray-400 text-sm">
           <MapPin className="w-8 h-8 text-gray-200 mx-auto mb-2" />
@@ -62,7 +62,7 @@ export default function DireccionesPage() {
           {vis.map(d => (
             <div key={d.id} className="noma-card flex items-start justify-between gap-4 flex-wrap">
               <div className="flex items-start gap-3">
-                <MapPin size={18} className="text-[#c9a24e] mt-0.5 flex-shrink-0" />
+                <MapPin size={18} className="text-[#307139] mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="font-semibold text-[#1a1a1a]">{d.cliente} {d.alias && <span className="text-xs font-normal text-gray-400">· {d.alias}</span>}</p>
                   <p className="text-sm text-gray-600">{d.direccion}{d.comuna ? `, ${d.comuna}` : ''}</p>
@@ -78,7 +78,7 @@ export default function DireccionesPage() {
                   <button onClick={() => actuar(d.id, 'rechazada')} disabled={actuando === d.id} className="text-xs font-semibold flex items-center gap-1.5 border border-gray-200 text-gray-600 rounded-lg px-3 py-1.5 hover:border-red-300 hover:text-red-600 disabled:opacity-60"><X size={13} /> Rechazar</button>
                 )}
                 {d.estado === 'rechazada' && (
-                  <button onClick={() => actuar(d.id, 'pendiente')} disabled={actuando === d.id} className="text-xs font-semibold flex items-center gap-1.5 border border-gray-200 text-gray-500 rounded-lg px-3 py-1.5 hover:border-[#c9a24e] disabled:opacity-60"><Clock size={13} /> Reabrir</button>
+                  <button onClick={() => actuar(d.id, 'pendiente')} disabled={actuando === d.id} className="text-xs font-semibold flex items-center gap-1.5 border border-gray-200 text-gray-500 rounded-lg px-3 py-1.5 hover:border-[#307139] disabled:opacity-60"><Clock size={13} /> Reabrir</button>
                 )}
               </div>
             </div>

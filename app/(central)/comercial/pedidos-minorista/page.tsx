@@ -169,7 +169,7 @@ export default function PedidosMinorista() {
     <div className="p-4 lg:p-6 max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h1 className="text-xl font-bold text-[#16233f] flex items-center gap-2"><ShoppingCart className="w-6 h-6" /> Pedidos minorista</h1>
+          <h1 className="text-xl font-bold text-[#1F4D27] flex items-center gap-2"><ShoppingCart className="w-6 h-6" /> Pedidos minorista</h1>
           <p className="text-sm text-gray-500">Pedidos de la web (retail) que llegan a la Central.</p>
         </div>
         <button onClick={cargar} className="flex items-center gap-1.5 text-sm bg-white border px-3 py-2 rounded-xl hover:bg-gray-50"><RefreshCw className="w-4 h-4" /> Actualizar</button>
@@ -177,11 +177,11 @@ export default function PedidosMinorista() {
 
       <div className="flex flex-wrap gap-2 mb-4">
         {['todas', 'Brotes Asiáticos', 'NOMMA FOOD'].map(m => (
-          <button key={m} onClick={() => setMarca(m)} className={`px-3 py-1.5 rounded-full text-sm font-medium ${marca === m ? 'bg-[#16233f] text-white' : 'bg-white border text-gray-600'}`}>{m === 'todas' ? 'Todas' : m}</button>
+          <button key={m} onClick={() => setMarca(m)} className={`px-3 py-1.5 rounded-full text-sm font-medium ${marca === m ? 'bg-[#1F4D27] text-white' : 'bg-white border text-gray-600'}`}>{m === 'todas' ? 'Todas' : m}</button>
         ))}
         <span className="w-px bg-gray-200 self-stretch mx-1" />
         {([['todos', 'Despacho: Todos'], ['sin', 'Sin ruta'], ['con', 'Con ruta']] as const).map(([k, lbl]) => (
-          <button key={k} onClick={() => setDespFiltro(k)} className={`px-3 py-1.5 rounded-full text-sm font-medium ${despFiltro === k ? 'bg-[#c9a24e] text-[#16233f]' : 'bg-white border text-gray-600'}`}>{lbl}</button>
+          <button key={k} onClick={() => setDespFiltro(k)} className={`px-3 py-1.5 rounded-full text-sm font-medium ${despFiltro === k ? 'bg-[#307139] text-white' : 'bg-white border text-gray-600'}`}>{lbl}</button>
         ))}
         <input value={q} onChange={e => setQ(e.target.value)} placeholder="Buscar pedido, cliente, comuna..." className="flex-1 min-w-[200px] px-3 py-2 rounded-xl border text-sm" />
       </div>
@@ -196,7 +196,7 @@ export default function PedidosMinorista() {
             <thead className="bg-gray-50 text-gray-500 text-xs uppercase"><tr>
               <th className="px-3 py-2 w-9">
                 <input type="checkbox" checked={todosSel} onChange={toggleTodos} title="Seleccionar todos"
-                  className="w-4 h-4 accent-[#16233f] cursor-pointer align-middle" />
+                  className="w-4 h-4 accent-[#1F4D27] cursor-pointer align-middle" />
               </th>
               <th className="text-left px-4 py-2">Pedido</th><th className="text-left px-4 py-2">Cliente</th>
               <th className="text-left px-4 py-2">Comuna</th><th className="text-right px-4 py-2">Total</th>
@@ -211,9 +211,9 @@ export default function PedidosMinorista() {
                   <td className="px-3 py-2.5" onClick={e => e.stopPropagation()}>
                     <input type="checkbox" checked={seleccion.has(p.id)} disabled={!!p.route_id}
                       onChange={() => toggleSel(p.id)} title={p.route_id ? 'Ya está en una ruta' : 'Seleccionar para despacho'}
-                      className="w-4 h-4 accent-[#16233f] cursor-pointer align-middle disabled:opacity-30" />
+                      className="w-4 h-4 accent-[#1F4D27] cursor-pointer align-middle disabled:opacity-30" />
                   </td>
-                  <td className="px-4 py-2.5 font-semibold text-[#16233f]">#{p.numero}<div className="text-[11px] text-gray-400">{p.marca}</div></td>
+                  <td className="px-4 py-2.5 font-semibold text-[#1F4D27]">#{p.numero}<div className="text-[11px] text-gray-400">{p.marca}</div></td>
                   <td className="px-4 py-2.5">{p.cliente_nombre || '—'}<div className="text-[11px] text-gray-400">{p.cliente_email}</div></td>
                   <td className="px-4 py-2.5">{p.despacho_comuna || '—'}</td>
                   <td className="px-4 py-2.5 text-right font-semibold">{fmt(p.total)}</td>
@@ -221,7 +221,7 @@ export default function PedidosMinorista() {
                   <td className="px-4 py-2.5 text-gray-500">{cuando(p.created_at)}</td>
                   <td className="px-4 py-2.5" onClick={e => { if (p.route_id) e.stopPropagation() }}>{(() => {
                     const b = despachoBadge(p)
-                    if (p.route_id) return <button onClick={() => setVerRuta(p.route_id!)} className={`text-xs px-2 py-0.5 rounded-full whitespace-nowrap hover:ring-2 hover:ring-[#c9a24e]/40 ${b.cls}`} title="Ver ruta y mapa">{b.txt}</button>
+                    if (p.route_id) return <button onClick={() => setVerRuta(p.route_id!)} className={`text-xs px-2 py-0.5 rounded-full whitespace-nowrap hover:ring-2 hover:ring-[#307139]/40 ${b.cls}`} title="Ver ruta y mapa">{b.txt}</button>
                     return <span className={`text-xs px-2 py-0.5 rounded-full whitespace-nowrap ${b.cls}`}>{b.txt}</span>
                   })()}</td>
                   <td className="px-3 py-2.5 text-center" onClick={e => e.stopPropagation()}>
@@ -235,7 +235,7 @@ export default function PedidosMinorista() {
                   <td className="px-4 py-2.5 text-right" onClick={e => e.stopPropagation()}>
                     {esPagado(p.estado) && (
                       <a href={`/orden-compra-minorista/${p.id}`} target="_blank" rel="noopener noreferrer" title="Imprimir orden de compra"
-                        className="inline-flex items-center gap-1 text-xs font-semibold text-[#c9a24e] hover:underline whitespace-nowrap">
+                        className="inline-flex items-center gap-1 text-xs font-semibold text-[#307139] hover:underline whitespace-nowrap">
                         <Printer className="w-3.5 h-3.5" /> OC
                       </a>
                     )}
@@ -251,12 +251,12 @@ export default function PedidosMinorista() {
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setSel(null)}>
           <div className="bg-white rounded-2xl max-w-lg w-full max-h-[85vh] overflow-auto" onClick={e => e.stopPropagation()}>
             <div className="p-5 border-b flex items-center justify-between">
-              <div><h2 className="font-bold text-[#16233f]">Pedido #{sel.numero}</h2><p className="text-xs text-gray-400">{sel.marca} · {cuando(sel.created_at)}</p></div>
+              <div><h2 className="font-bold text-[#1F4D27]">Pedido #{sel.numero}</h2><p className="text-xs text-gray-400">{sel.marca} · {cuando(sel.created_at)}</p></div>
               <button onClick={() => setSel(null)}><X className="w-5 h-5 text-gray-400" /></button>
             </div>
             <div className="p-5 space-y-3 text-sm">
               <div className="flex flex-col gap-1 text-gray-600">
-                {sel.cliente_nombre && <span className="font-semibold text-[#16233f] text-base">{sel.cliente_nombre}</span>}
+                {sel.cliente_nombre && <span className="font-semibold text-[#1F4D27] text-base">{sel.cliente_nombre}</span>}
                 {sel.cliente_email && <span className="flex items-center gap-2"><Mail className="w-4 h-4 text-gray-400" />{sel.cliente_email}</span>}
                 {sel.cliente_telefono && <span className="flex items-center gap-2"><Phone className="w-4 h-4 text-gray-400" />{sel.cliente_telefono}</span>}
                 {(sel.despacho_direccion || sel.despacho_comuna) && <span className="flex items-center gap-2"><MapPin className="w-4 h-4 text-gray-400" />{[sel.despacho_direccion, sel.despacho_comuna, sel.despacho_region].filter(Boolean).join(', ')}</span>}
@@ -272,7 +272,7 @@ export default function PedidosMinorista() {
               <div className="space-y-1 pt-1">
                 <div className="flex justify-between text-gray-500"><span>Subtotal</span><span>{fmt(sel.subtotal)}</span></div>
                 <div className="flex justify-between text-gray-500"><span>Envío</span><span>{fmt(sel.envio)}</span></div>
-                <div className="flex justify-between font-bold text-[#16233f] text-base pt-1 border-t"><span>Total</span><span>{fmt(sel.total)}</span></div>
+                <div className="flex justify-between font-bold text-[#1F4D27] text-base pt-1 border-t"><span>Total</span><span>{fmt(sel.total)}</span></div>
                 {sel.metodo_pago && <div className="text-xs text-gray-400 text-right">Pago: {sel.metodo_pago}</div>}
               </div>
             </div>
@@ -282,7 +282,7 @@ export default function PedidosMinorista() {
                   href={`/orden-compra-minorista/${sel.id}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full flex items-center justify-center gap-2 bg-[#c9a24e] hover:bg-[#b8923f] text-[#16233f] font-semibold py-2.5 rounded-xl transition-colors"
+                  className="w-full flex items-center justify-center gap-2 bg-[#307139] hover:bg-[#255A2D] text-white font-semibold py-2.5 rounded-xl transition-colors"
                 >
                   <Printer className="w-4 h-4" /> Imprimir orden de compra
                 </a>
@@ -308,14 +308,14 @@ export default function PedidosMinorista() {
 
       {/* Barra de selección para crear ruta de despacho */}
       {seleccion.size > 0 && (
-        <div className="sticky bottom-3 mt-4 z-40 bg-[#16233f] text-white rounded-2xl shadow-2xl px-4 py-3 flex items-center gap-4 flex-wrap">
+        <div className="sticky bottom-3 mt-4 z-40 bg-[#1F4D27] text-white rounded-2xl shadow-2xl px-4 py-3 flex items-center gap-4 flex-wrap">
           <div>
             <div className="font-bold text-sm">{seleccion.size} pedido{seleccion.size > 1 ? 's' : ''} seleccionado{seleccion.size > 1 ? 's' : ''}</div>
             <div className="text-[12px] text-white/70">{fmt(selTotal)} en productos · {seleccion.size} entregas</div>
           </div>
           <div className="flex-1" />
           <button onClick={() => setSeleccion(new Set())} className="text-sm text-white/80 hover:text-white px-3 py-2">Limpiar</button>
-          <button onClick={generarRuta} className="flex items-center gap-2 bg-[#c9a24e] hover:bg-[#b8923f] text-[#16233f] font-bold text-sm px-4 py-2.5 rounded-xl">
+          <button onClick={generarRuta} className="flex items-center gap-2 bg-[#307139] hover:bg-[#255A2D] text-white font-bold text-sm px-4 py-2.5 rounded-xl">
             <Truck className="w-4 h-4" /> Generar ruta de despacho
           </button>
         </div>
@@ -335,8 +335,8 @@ export default function PedidosMinorista() {
         onSent={() => { setToast('✓ WhatsApp registrado'); setTimeout(() => setToast(null), 3000); cargarComms() }} />}
 
       {toast && (
-        <div className="fixed left-1/2 -translate-x-1/2 bottom-6 z-[60] bg-[#16233f] text-white px-5 py-3 rounded-xl shadow-2xl font-semibold text-sm flex items-center gap-2">
-          <Route className="w-4 h-4 text-[#c9a24e]" /> {toast}
+        <div className="fixed left-1/2 -translate-x-1/2 bottom-6 z-[60] bg-[#1F4D27] text-white px-5 py-3 rounded-xl shadow-2xl font-semibold text-sm flex items-center gap-2">
+          <Route className="w-4 h-4 text-[#307139]" /> {toast}
         </div>
       )}
     </div>
